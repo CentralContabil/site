@@ -1,0 +1,337 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Admin {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password_hash String
+  name          String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Slide {
+  id           String   @id @default(uuid())
+  title        String
+  subtitle     String?
+  image_url    String
+  button_text  String?
+  button_link  String?
+  order        Int      @default(0)
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@map("slides")
+}
+
+model Service {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  description  String
+  content      String?
+  icon         String?
+  image_url    String?
+  order        Int      @default(0)
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@map("services")
+}
+
+model Testimonial {
+  id                String   @id @default(uuid())
+  client_name       String
+  company           String?
+  testimonial_text  String
+  client_image_url  String?
+  media_type        String?  @default("image") // "image" or "video"
+  media_url         String?  // URL da imagem ou vídeo
+  order             Int      @default(0)
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@map("testimonials")
+}
+
+model ContactMessage {
+  id           String   @id @default(uuid())
+  name         String
+  email        String
+  phone        String?
+  service_type String?
+  message      String
+  is_read      Boolean  @default(false)
+  created_at   DateTime @default(now())
+  replies      ContactMessageReply[]
+
+  @@map("contact_messages")
+}
+
+model ContactMessageReply {
+  id                String   @id @default(uuid())
+  contact_message_id String
+  message           String
+  created_at        DateTime @default(now())
+  contact_message   ContactMessage @relation(fields: [contact_message_id], references: [id], onDelete: Cascade)
+
+  @@map("contact_message_replies")
+  @@index([contact_message_id])
+}
+
+model Configuration {
+  id             String  @id @default(uuid())
+  company_name   String  @default("Empresa Contábil")
+  phone          String?
+  email          String?
+  contact_email  String? @default("wagner.guerra@gmail.com") // Email para receber mensagens de contato
+  address        String?
+  business_hours String?
+  facebook_url   String?
+  instagram_url  String?
+  linkedin_url   String?
+  logo_url       String?
+  logo_dark_url  String?
+  favicon_url    String?
+  whatsapp_number String?
+  footer_years_text String? @default("Mais de 34 anos oferecendo soluções contábeis estratégicas para empresas que buscam crescimento sustentável.")
+  updated_at     DateTime @updatedAt
+
+  @@map("configurations")
+}
+
+model BlogPost {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  excerpt     String?
+  content     String
+  featured_image_url String?
+  author      String   @default("Admin")
+  is_published Boolean  @default(false)
+  published_at DateTime?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@map("blog_posts")
+}
+
+model AuthCode {
+  id          String   @id @default(uuid())
+  email       String
+  code        String
+  type        String   @default("email") // email or sms
+  used        Boolean  @default(false)
+  expires_at  DateTime
+  created_at  DateTime @default(now())
+
+  @@map("auth_codes")
+}
+
+model Hero {
+  id                String   @id @default(uuid())
+  badge_text        String   @default("Contabilidade Consultiva")
+  title_line1       String   @default("Soluções que Vão")
+  title_line2       String   @default("Além da Contabilidade")
+  description       String   @default("Com mais de 34 anos de atuação, oferecemos consultoria contábil estratégica para impulsionar o crescimento do seu negócio com segurança e inovação.")
+  background_image_url String?
+  hero_image_url    String?
+  button1_text      String?  @default("Agende uma Consultoria")
+  button1_link      String?  @default("#contato")
+  button2_text      String?  @default("Conheça Nossos Serviços")
+  button2_link      String?  @default("#servicos")
+  stat_years        String?  @default("34+") // Mantido para compatibilidade
+  stat_clients      String?  @default("500+") // Mantido para compatibilidade
+  stat_network      String?  @default("RNC")  // Mantido para compatibilidade
+  indicator1_title  String?  @default("Anos")
+  indicator1_value  String?  @default("36+")
+  indicator2_title  String?  @default("Clientes")
+  indicator2_value  String?  @default("500+")
+  indicator3_title  String?  @default("Associado")
+  indicator3_value  String?  @default("RNC")
+  updated_at        DateTime @updatedAt
+
+  @@map("hero")
+}
+
+model SectionFeature {
+  id          String   @id @default(uuid())
+  icon        String
+  title       String
+  description String
+  order       Int      @default(0)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("section_features")
+}
+
+model SectionAbout {
+  id                String   @id @default(uuid())
+  badge_text        String   @default("Sobre Nós")
+  title             String   @default("Quem Somos")
+  subtitle          String?
+  description       String
+  background_image_url String?
+  stat_years        String?  @default("34+")
+  stat_clients      String?  @default("500+")
+  stat_network      String?  @default("RNC")
+  indicator1_title  String?  @default("Anos")
+  indicator1_value  String?  @default("34+")
+  indicator2_title  String?  @default("Clientes")
+  indicator2_value  String?  @default("500+")
+  indicator3_title  String?  @default("Rede")
+  indicator3_value  String?  @default("RNC")
+  updated_at        DateTime @updatedAt
+  images            SectionAboutImage[]
+
+  @@map("section_about")
+}
+
+model SectionAboutImage {
+  id                String   @id @default(uuid())
+  section_about_id  String
+  image_url         String
+  description       String?
+  order             Int      @default(0)
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  section_about     SectionAbout @relation(fields: [section_about_id], references: [id], onDelete: Cascade)
+
+  @@map("section_about_images")
+  @@index([section_about_id])
+}
+
+model SectionSpecialty {
+  id          String   @id @default(uuid())
+  icon        String
+  name        String
+  description String
+  order       Int      @default(0)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("section_specialties")
+}
+
+model SectionFiscalBenefit {
+  id                String   @id @default(uuid())
+  icon              String
+  name              String
+  description       String
+  slug              String?  @unique
+  content           String?  @default("")
+  excerpt           String?
+  featured_image_url String?
+  order             Int      @default(0)
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@map("section_fiscal_benefits")
+  @@index([slug])
+}
+
+model SectionFunFact {
+  id          String   @id @default(uuid())
+  icon        String
+  label       String
+  value       String
+  suffix      String?
+  order       Int      @default(0)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("section_fun_facts")
+}
+
+model SectionCertification {
+  id          String   @id @default(uuid())
+  icon        String
+  name        String
+  acronym     String?
+  description String
+  order       Int      @default(0)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("section_certifications")
+}
+
+model SectionNewsletter {
+  id                String   @id @default(uuid())
+  title             String   @default("Fique por dentro das novidades")
+  subtitle          String?
+  description       String?
+  button_text       String?  @default("Inscrever-se")
+  background_image_url String?
+  updated_at        DateTime @updatedAt
+
+  @@map("section_newsletter")
+}
+
+model NewsletterSubscription {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  name       String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("newsletter_subscriptions")
+}
+
+model SectionClients {
+  id                String   @id @default(uuid())
+  title             String   @default("Empresas que Confiam em Nosso Trabalho")
+  background_image_url String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@map("section_clients")
+}
+
+model Client {
+  id           String   @id @default(uuid())
+  name         String
+  logo_url     String?
+  website_url  String?
+  facebook_url String?
+  instagram_url String?
+  linkedin_url String?
+  twitter_url  String?
+  order        Int      @default(0)
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@map("clients")
+}
+
+model PrivacyPolicy {
+  id                String   @id @default(uuid())
+  title             String   @default("Política de Privacidade")
+  content           String   @default("")
+  background_image_url String?
+  updated_at        DateTime @updatedAt
+
+  @@map("privacy_policy")
+}
