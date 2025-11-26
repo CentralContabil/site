@@ -1,0 +1,147 @@
+{
+  "common": {
+    "home": "Home",
+    "about": "About",
+    "aboutUs": "About Us",
+    "services": "Services",
+    "fiscalBenefits": "Fiscal Benefits ES",
+    "testimonials": "Testimonials",
+    "blog": "Blog",
+    "contact": "Contact",
+    "readMore": "Read more",
+    "scheduleConsultation": "Schedule Consultation",
+    "scheduleConsultationFull": "Schedule a Consultation",
+    "knowOurServices": "Discover Our Services",
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "header": {
+    "menu": "Menu",
+    "close": "Close"
+  },
+  "home": {
+    "title": "Welcome",
+    "subtitle": "Accounting solutions for your company"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Stay up to date with the latest news",
+    "backToHome": "Back to Home",
+    "backToBlog": "Back to Blog",
+    "noPosts": "No posts published yet.",
+    "comingSoon": "We'll bring you amazing content soon!",
+    "readingTime": "min read",
+    "author": "Author",
+    "published": "Published",
+    "draft": "Draft",
+    "share": "Share this post"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Our team is ready to assist you. Get in touch and discover how we can help your company achieve better results.",
+    "sendMessage": "Send your Message",
+    "sendMessageSubtitle": "Fill out the form below and we will get back to you shortly",
+    "contactInfo": "Contact Information",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Your full name",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "phone": "Phone",
+    "phonePlaceholder": "(27) 99999-9999",
+    "serviceType": "Type of service",
+    "selectService": "Select a service",
+    "message": "Message",
+    "messagePlaceholder": "Describe how we can help you...",
+    "send": "Send Message",
+    "sending": "Sending...",
+    "success": "Message sent successfully! We will contact you soon.",
+    "error": "Error sending message",
+    "whatsapp": "WhatsApp",
+    "address": "Address",
+    "businessHours": "Business Hours",
+    "ourLocation": "Our Location",
+    "openInMaps": "Open in Google Maps",
+    "configureAddress": "Configure the address in settings to display the map"
+  },
+  "services": {
+    "title": "Our Services",
+    "viewDetails": "View details"
+  },
+  "hero": {
+    "badge": "Consultative Accounting",
+    "titleLine1": "Solutions that Go",
+    "titleLine2": "Beyond Accounting",
+    "description": "With over 34 years of experience, we offer strategic accounting consulting to boost your business growth with security and innovation.",
+    "button1": "Schedule a Consultation",
+    "button2": "Discover Our Services",
+    "years": "Years",
+    "clients": "Clients",
+    "associated": "Associated"
+  },
+  "about": {
+    "title": "About Us",
+    "subtitle": "Over 34 years of experience"
+  },
+  "testimonials": {
+    "title": "Testimonials",
+    "subtitle": "What our clients say",
+    "badge": "Client Testimonials",
+    "heading": "What our clients",
+    "headingHighlight": "say about us"
+  },
+  "footer": {
+    "companyInfo": "Company Information",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "allRightsReserved": "All rights reserved",
+    "privacyPolicy": "Privacy Policy",
+    "newsletterTitle": "Stay up to date with accounting news",
+    "newsletterSubtitle": "Receive tips, tax updates and news directly in your email",
+    "newsletterPlaceholder": "Your best email",
+    "newsletterButton": "Subscribe",
+    "termsOfUse": "Terms of Use",
+    "adminArea": "Admin Area"
+  },
+  "fiscalBenefits": {
+    "title": "Fiscal Benefits",
+    "subtitle": "Optimize your tax burden",
+    "badge": "Fiscal Benefits of ES",
+    "heading": "Have you thought about paying only",
+    "headingHighlight": "1% ICMS?",
+    "description": "Learn about the main Tax Incentives of Espírito Santo and how they can benefit your company with tax savings!",
+    "reduceTax": "Reduce your ICMS rate to up to 1%",
+    "learnMore": "Learn More"
+  },
+  "certifications": {
+    "title": "Certifications and Associations",
+    "badge": "Certifications and Partnerships",
+    "heading": "Recognition and Credibility",
+    "description": "Our certifications and strategic partnerships ensure the excellence and reliability of our accounting services."
+  },
+  "specialties": {
+    "title": "Our Specialties",
+    "badge": "Specialties",
+    "heading": "Our",
+    "headingHighlight": "Specialties",
+    "description": "We offer specializations in specific segments to meet the unique needs of your business with expertise and specialized knowledge."
+  },
+  "clients": {
+    "title": "Our Clients",
+    "defaultTitle": "Companies that Trust Our Work"
+  },
+  "funFacts": {
+    "title": "Our Numbers",
+    "subtitle": "Numbers that Speak for Themselves",
+    "description": "More than three decades building success stories and transforming the accounting management of companies throughout Espírito Santo.",
+    "readyToJoin": "Ready to be part of these numbers?",
+    "startNow": "START NOW"
+  }
+}
+
+
+

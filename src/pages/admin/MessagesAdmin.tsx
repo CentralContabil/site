@@ -12,6 +12,7 @@ export default function MessagesAdmin() {
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
+  const [isClosingDetails, setIsClosingDetails] = useState(false);
 
   // Função auxiliar para formatar data
   const formatDate = (date: Date | string): string => {
@@ -100,7 +101,23 @@ export default function MessagesAdmin() {
   };
 
   const handleViewMessage = async (message: ContactMessage) => {
+    // Se já está visualizando uma mensagem, fechar primeiro com animação
+    if (selectedMessage) {
+      setIsClosingDetails(true);
+      setTimeout(() => {
+        setSelectedMessage(null);
+        setIsClosingDetails(false);
+        // Abrir nova mensagem após fechar
+        openMessageDetails(message);
+      }, 200);
+    } else {
+      openMessageDetails(message);
+    }
+  };
+
+  const openMessageDetails = async (message: ContactMessage) => {
     setReplyMessage(''); // Limpar resposta ao trocar de mensagem
+    setIsClosingDetails(false);
     
     // Carregar mensagem completa com respostas
     try {
@@ -120,6 +137,14 @@ export default function MessagesAdmin() {
     if (!message.isRead) {
       await handleMarkAsRead(message.id);
     }
+  };
+
+  const handleCloseDetails = () => {
+    setIsClosingDetails(true);
+    setTimeout(() => {
+      setSelectedMessage(null);
+      setIsClosingDetails(false);
+    }, 200);
   };
 
   const handleSendReply = async () => {
@@ -200,8 +225,8 @@ export default function MessagesAdmin() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Lista de Mensagens */}
-        <div className={`lg:col-span-2 ${selectedMessage ? 'lg:col-span-1' : ''}`}>
+        {/* Lista de Mensagens - Esquerda */}
+        <div className="lg:col-span-1">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3bb664]"></div>
@@ -211,51 +236,81 @@ export default function MessagesAdmin() {
               <p className="text-gray-500">Nenhuma mensagem de contato recebida ainda.</p>
             </div>
           ) : (
-            <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="bg-white shadow rounded-lg overflow-hidden max-h-[calc(100vh-12rem)] overflow-y-auto">
               <div className="divide-y divide-gray-200">
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                      !message.isRead ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-                    } ${selectedMessage?.id === message.id ? 'bg-[#3bb664]/10' : ''}`}
+                    className={`p-3 cursor-pointer transition-colors ${
+                      !message.isRead 
+                        ? 'bg-blue-50 border-l-4 border-blue-500 hover:bg-blue-100' 
+                        : 'bg-white hover:bg-gray-50'
+                    } ${
+                      selectedMessage?.id === message.id 
+                        ? !message.isRead 
+                          ? 'bg-[#3bb664]/20 border-l-4 border-[#3bb664]' 
+                          : 'bg-[#3bb664]/10 border-l-4 border-[#3bb664]'
+                        : ''
+                    }`}
                     onClick={() => handleViewMessage(message)}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-gray-900 truncate">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className={`text-sm truncate ${
+                            !message.isRead ? 'font-bold text-gray-900' : 'font-semibold text-gray-700'
+                          }`}>
                             {message.name}
                           </p>
                           {!message.isRead && (
-                            <span className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full"></span>
+                            <span className="flex-shrink-0 w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></span>
+                          )}
+                          {message.replies && message.replies.length > 0 && (
+                            <span className="flex items-center gap-1 px-1.5 py-0.5 bg-[#3bb664]/10 text-[#3bb664] rounded text-xs font-medium">
+                              <Send className="w-3 h-3" />
+                              {message.replies.length}
+                            </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 truncate mt-1">
+                        <p className={`text-xs truncate ${
+                          !message.isRead ? 'text-gray-700 font-medium' : 'text-gray-600'
+                        }`}>
                           {message.email}
                         </p>
                         {message.serviceType && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className={`text-xs mt-0.5 ${
+                            !message.isRead ? 'text-gray-600' : 'text-gray-500'
+                          }`}>
                             {message.serviceType}
                           </p>
                         )}
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className={`text-xs mt-0.5 ${
+                          !message.isRead ? 'text-gray-600 font-medium' : 'text-gray-500'
+                        }`}>
                           {formatDate(message.createdAt)}
                         </p>
-                        <p className="text-sm text-gray-700 mt-2 line-clamp-2">
+                        <p className={`text-xs mt-1.5 line-clamp-2 ${
+                          !message.isRead ? 'text-gray-800 font-medium' : 'text-gray-700'
+                        }`}>
                           {message.message}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 ml-4">
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {!message.isRead && (
+                          <Mail className="w-4 h-4 text-blue-500" />
+                        )}
+                        {message.isRead && (
+                          <MailOpen className="w-4 h-4 text-gray-400" />
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDelete(message.id);
                           }}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                           title="Excluir"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -266,17 +321,20 @@ export default function MessagesAdmin() {
           )}
         </div>
 
-        {/* Detalhes da Mensagem */}
-        {selectedMessage && (
-          <div className="lg:col-span-2">
-            <div className="bg-white shadow rounded-lg p-6 sticky top-6">
+        {/* Detalhes da Mensagem - Direita */}
+        {selectedMessage ? (
+          <div className={`lg:col-span-2 message-details-container ${isClosingDetails ? 'closing' : ''}`}>
+            <div className="bg-white shadow rounded-lg p-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
               <div className="flex items-start justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900">Detalhes da Mensagem</h2>
                 <button
-                  onClick={() => setSelectedMessage(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  onClick={handleCloseDetails}
+                  className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded transition-colors"
+                  title="Fechar"
                 >
-                  ✕
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
 
@@ -403,6 +461,13 @@ export default function MessagesAdmin() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        ) : (
+          <div className="lg:col-span-2 flex items-center justify-center bg-white shadow rounded-lg p-12">
+            <div className="text-center">
+              <Mail className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">Selecione uma mensagem para ver os detalhes</p>
             </div>
           </div>
         )}

@@ -24,7 +24,7 @@ export const FooterBlake: React.FC<FooterProps> = ({ configuration }) => {
                 <img 
                   src={configuration.logo_dark_url || configuration.logo_url} 
                   alt={configuration.companyName || 'CENTRAL CONTÁBIL'}
-                  className="h-16 object-contain max-w-[180px]"
+                  className="h-24 object-contain max-w-[240px]"
                   onError={(e) => {
                     // Se a imagem falhar ao carregar, mostrar fallback de texto
                     const target = e.target as HTMLImageElement;
@@ -32,18 +32,18 @@ export const FooterBlake: React.FC<FooterProps> = ({ configuration }) => {
                     const parent = target.parentElement;
                     if (parent && !parent.querySelector('.logo-fallback')) {
                       parent.innerHTML = `
-                        <div class="logo-fallback text-2xl font-bold text-[#3bb664] tracking-wider">CENTRAL</div>
-                        <div class="logo-fallback ml-1 text-sm text-gray-400 font-light">CONTÁBIL</div>
+                        <div class="logo-fallback text-3xl font-bold text-[#3bb664] tracking-wider">CENTRAL</div>
+                        <div class="logo-fallback ml-1 text-base text-gray-400 font-light">CONTÁBIL</div>
                       `;
                     }
                   }}
                 />
               ) : (
                 <>
-                  <div className="text-2xl font-bold text-[#3bb664] tracking-wider">
+                  <div className="text-3xl font-bold text-[#3bb664] tracking-wider">
                     CENTRAL
                   </div>
-                  <div className="ml-1 text-sm text-gray-400 font-light">
+                  <div className="ml-1 text-base text-gray-400 font-light">
                     CONTÁBIL
                   </div>
                 </>

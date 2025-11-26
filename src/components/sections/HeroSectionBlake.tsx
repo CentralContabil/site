@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { Button } from '../ui/Button';
-import { ChevronDown, Mouse } from 'lucide-react';
+import { ChevronDown, Mouse, Play, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Slide, Hero } from '../../types';
 import { apiService } from '../../services/api';
+import { useTranslation } from 'react-i18next';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -14,6 +15,7 @@ interface HeroSectionBlakeProps {
 }
 
 export const HeroSectionBlake: React.FC<HeroSectionBlakeProps> = ({ slides = [] }) => {
+  const { t } = useTranslation();
   const [hero, setHero] = useState<Hero | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,24 +40,27 @@ export const HeroSectionBlake: React.FC<HeroSectionBlakeProps> = ({ slides = [] 
     document.querySelector('#sobre')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Valores padrão caso não tenha dados
-  const badgeText = hero?.badgeText || 'Contabilidade Consultiva';
-  const titleLine1 = hero?.titleLine1 || 'Soluções que Vão';
-  const titleLine2 = hero?.titleLine2 || 'Além da Contabilidade';
-  const description = hero?.description || 'Com mais de 34 anos de atuação, oferecemos consultoria contábil estratégica para impulsionar o crescimento do seu negócio com segurança e inovação.';
+  // Valores padrão caso não tenha dados - usando traduções
+  const badgeText = hero?.badgeText || t('hero.badge');
+  const welcomeText = hero?.welcomeText || null;
+  const titleLine1 = hero?.titleLine1 || t('hero.titleLine1');
+  const titleLine2 = hero?.titleLine2 || t('hero.titleLine2');
+  const description = hero?.description || t('hero.description');
   const backgroundImageUrl = hero?.backgroundImageUrl || 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1920&h=1080&fit=crop&q=80';
   // Só usa imagem se realmente existir no hero, sem valor padrão
   const heroImageUrl = hero?.heroImageUrl || null;
-  const button1Text = hero?.button1Text || 'Agende uma Consultoria';
+  const button1Text = hero?.button1Text || t('hero.button1');
   const button1Link = hero?.button1Link || '#contato';
-  const button2Text = hero?.button2Text || 'Conheça Nossos Serviços';
+  const button1Icon = hero?.button1Icon || null;
+  const button2Text = hero?.button2Text || t('hero.button2');
   const button2Link = hero?.button2Link || '#servicos';
+  const button2Icon = hero?.button2Icon || null;
   // Usar novos indicadores dinâmicos, com fallback para os antigos
-  const indicator1Title = hero?.indicator1Title || hero?.statYears || 'Anos';
+  const indicator1Title = hero?.indicator1Title || hero?.statYears || t('hero.years');
   const indicator1Value = hero?.indicator1Value || hero?.statYears || '36+';
-  const indicator2Title = hero?.indicator2Title || hero?.statClients || 'Clientes';
+  const indicator2Title = hero?.indicator2Title || hero?.statClients || t('hero.clients');
   const indicator2Value = hero?.indicator2Value || hero?.statClients || '500+';
-  const indicator3Title = hero?.indicator3Title || hero?.statNetwork || 'Associado';
+  const indicator3Title = hero?.indicator3Title || hero?.statNetwork || t('hero.associated');
   const indicator3Value = hero?.indicator3Value || hero?.statNetwork || 'RNC';
 
   if (loading) {
@@ -93,27 +98,37 @@ export const HeroSectionBlake: React.FC<HeroSectionBlakeProps> = ({ slides = [] 
           {/* Content */}
           <div className={`text-white space-y-6 sm:space-y-8 w-full ${heroImageUrl ? 'text-center lg:text-left' : 'text-center'}`}>
             <div className="space-y-4 sm:space-y-6">
-              <div className="inline-block px-3 py-1.5 sm:px-4 sm:py-2 bg-[#3bb664]/20 border border-[#3bb664]/30 rounded-full">
-                <span className="text-[#3bb664] text-xs sm:text-sm font-medium uppercase tracking-wider">
-                  {badgeText}
-                </span>
-              </div>
+              {badgeText && (
+                <div className="inline-block px-3 py-1.5 sm:px-4 sm:py-2 bg-[#3bb664]/20 border border-[#3bb664]/30 rounded-full">
+                  <span className="text-[#3bb664] text-xs sm:text-sm font-medium uppercase tracking-wider">
+                    {badgeText}
+                  </span>
+                </div>
+              )}
+              
+              {welcomeText && (
+                <p className="text-base sm:text-lg lg:text-xl text-gray-300 italic">
+                  {welcomeText}
+                </p>
+              )}
               
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold leading-tight">
                 {titleLine1}
                 <span className="block text-[#3bb664]">{titleLine2}</span>
               </h1>
               
-              <p className="text-base sm:text-lg lg:text-xl text-gray-300 leading-relaxed max-w-lg mx-auto lg:mx-0">
-                {description}
-              </p>
+              {description && (
+                <p className="text-base sm:text-lg lg:text-xl text-gray-300 leading-relaxed max-w-lg mx-auto lg:mx-0">
+                  {description}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
               {button1Text && (
                 <Button 
                   size="lg" 
-                  className="px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg bg-[#3bb664] hover:bg-[#2d9a4f] text-white transition-all duration-300 transform hover:scale-105 shadow-2xl w-full sm:w-auto"
+                  className="px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg bg-[#3bb664] hover:bg-[#2d9a4f] text-white transition-all duration-300 transform hover:scale-105 shadow-2xl w-full sm:w-auto flex items-center justify-center gap-2"
                   onClick={() => {
                     const target = button1Link?.startsWith('#') 
                       ? document.querySelector(button1Link) 
@@ -125,12 +140,15 @@ export const HeroSectionBlake: React.FC<HeroSectionBlakeProps> = ({ slides = [] 
                     }
                   }}
                 >
+                  {button1Icon === 'play' && <Play className="w-5 h-5 fill-current" />}
+                  {button1Icon === 'arrow-right' && <ArrowRight className="w-5 h-5" />}
+                  {button1Icon === 'arrow-left' && <ArrowLeft className="w-5 h-5" />}
                   {button1Text}
                 </Button>
               )}
               {button2Text && (
                 <button 
-                  className="px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg border-2 border-white text-white hover:bg-white hover:text-[#3bb664] transition-all duration-300 w-full sm:w-auto font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900"
+                  className="px-6 py-3 sm:px-8 sm:py-4 text-base sm:text-lg border-2 border-white text-white hover:bg-white hover:text-[#3bb664] transition-all duration-300 w-full sm:w-auto font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900 flex items-center justify-center gap-2"
                   onClick={() => {
                     const target = button2Link?.startsWith('#') 
                       ? document.querySelector(button2Link) 
@@ -142,6 +160,9 @@ export const HeroSectionBlake: React.FC<HeroSectionBlakeProps> = ({ slides = [] 
                     }
                   }}
                 >
+                  {button2Icon === 'play' && <Play className="w-5 h-5 fill-current" />}
+                  {button2Icon === 'arrow-right' && <ArrowRight className="w-5 h-5" />}
+                  {button2Icon === 'arrow-left' && <ArrowLeft className="w-5 h-5" />}
                   {button2Text}
                 </button>
               )}

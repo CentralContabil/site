@@ -9,12 +9,14 @@ export default function ClientsAdmin() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<CreateClientRequest>({
     name: '',
+    phone: '',
     websiteUrl: '',
     facebookUrl: '',
     instagramUrl: '',
@@ -39,6 +41,15 @@ export default function ClientsAdmin() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowModal(false);
+      setIsClosing(false);
+      resetForm();
+    }, 200);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,8 +82,7 @@ export default function ClientsAdmin() {
         }
       }
       
-      setShowModal(false);
-      resetForm();
+      handleCloseModal();
       loadClients();
     } catch (error: any) {
       console.error('Error saving client:', error);
@@ -84,6 +94,7 @@ export default function ClientsAdmin() {
     setEditingClient(client);
     setFormData({
       name: client.name,
+      phone: client.phone || '',
       websiteUrl: client.websiteUrl || client.website_url || '',
       facebookUrl: client.facebookUrl || client.facebook_url || '',
       instagramUrl: client.instagramUrl || client.instagram_url || '',
@@ -95,6 +106,7 @@ export default function ClientsAdmin() {
     const logoUrl = getLogoUrl(client);
     setLogoPreview(logoUrl);
     setLogoFile(null);
+    setIsClosing(false);
     setShowModal(true);
   };
 
@@ -177,6 +189,7 @@ export default function ClientsAdmin() {
     setLogoFile(null);
     setFormData({
       name: '',
+      phone: '',
       websiteUrl: '',
       facebookUrl: '',
       instagramUrl: '',
@@ -230,6 +243,7 @@ export default function ClientsAdmin() {
           <button
             onClick={() => {
               resetForm();
+              setIsClosing(false);
               setShowModal(true);
             }}
             className="text-white px-4 py-2 rounded-md flex items-center transition-colors"
@@ -402,14 +416,14 @@ export default function ClientsAdmin() {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => handleEdit(client)}
-                              className="text-blue-600 hover:text-blue-900"
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                               title="Editar"
                             >
                               <Edit className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(client.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                               title="Excluir"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -427,8 +441,11 @@ export default function ClientsAdmin() {
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 modal-backdrop" onClick={handleCloseModal}>
+            <div 
+              className={`relative top-10 mx-auto p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white my-8 modal-content ${isClosing ? 'closing' : ''}`}
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 {editingClient ? 'Editar Cliente' : 'Novo Cliente'}
               </h3>
@@ -494,6 +511,20 @@ export default function ClientsAdmin() {
                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 placeholder:text-gray-400"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Telefone (WhatsApp)</label>
+                  <input
+                    type="text"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-white text-gray-900 placeholder:text-gray-400"
+                    placeholder="(00) 00000-0000"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Telefone para contato via WhatsApp no card do cliente
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -580,10 +611,7 @@ export default function ClientsAdmin() {
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowModal(false);
-                      resetForm();
-                    }}
+                    onClick={handleCloseModal}
                     className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                   >
                     Cancelar

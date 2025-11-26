@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'sonner';
+import { useConfiguration } from '../hooks/useConfiguration';
+import { apiService } from '../services/api';
+import { LoginPage } from '../types';
+import { Play, ArrowRight, ArrowLeft } from 'lucide-react';
 
 // Cor verde padrão do site
 const PRIMARY_COLOR = '#3bb664';
@@ -14,6 +18,8 @@ export default function AdminLogin() {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { configuration } = useConfiguration();
+  const [loginPage, setLoginPage] = useState<LoginPage | null>(null);
 
   // Carrega email salvo se existir
   useEffect(() => {
@@ -22,6 +28,21 @@ export default function AdminLogin() {
       setEmail(savedEmail);
     }
   }, []);
+
+  // Carrega dados da página de login
+  useEffect(() => {
+    loadLoginPage();
+  }, []);
+
+  const loadLoginPage = async () => {
+    try {
+      const response = await apiService.getLoginPage();
+      setLoginPage(response.loginPage);
+    } catch (error) {
+      console.error('Erro ao carregar Página de Login:', error);
+      // Não mostrar erro ao usuário, apenas usar valores padrão
+    }
+  };
 
   // Função para enviar código
   const handleSendCode = async (e: React.FormEvent) => {
@@ -130,17 +151,22 @@ export default function AdminLogin() {
       const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
       const url = `${API_BASE_URL}/auth/verify-code`;
       
-      console.log('🔐 Verificando código para:', email.trim().toLowerCase());
+      const requestBody = { 
+        email: email.trim().toLowerCase(), 
+        code: trimmedCode 
+      };
+      
+      console.log('🔐 Verificando código para:', requestBody.email);
+      console.log('🔐 Código enviado:', requestBody.code);
+      console.log('🔐 Código enviado (length):', requestBody.code.length);
+      console.log('🔐 URL:', url);
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          email: email.trim().toLowerCase(), 
-          code: trimmedCode 
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       console.log('🔐 Status da resposta:', response.status);
@@ -208,7 +234,7 @@ export default function AdminLogin() {
       <div className="hidden lg:flex lg:w-2/3 relative overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1920&h=1080&fit=crop&q=80" 
+            src={loginPage?.backgroundImageUrl || "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1920&h=1080&fit=crop&q=80"} 
             alt="Background"
             className="w-full h-full object-cover"
             style={{ filter: 'blur(8px)' }}
@@ -220,27 +246,76 @@ export default function AdminLogin() {
             background: `linear-gradient(135deg, ${PRIMARY_COLOR}dd 0%, ${PRIMARY_COLOR_HOVER}dd 100%)` 
           }}
         ></div>
+        
+        {/* Conteúdo sobreposto na área verde */}
+        <div className="relative z-10 flex flex-col justify-center items-start px-12 text-white">
+          {loginPage?.welcomeText && (
+            <p className="text-sm text-gray-300 italic mb-4">
+              {loginPage.welcomeText}
+            </p>
+          )}
+          {loginPage?.titleLine1 && (
+            <h1 className="text-4xl font-bold mb-2">
+              {loginPage.titleLine1}
+            </h1>
+          )}
+          {loginPage?.titleLine2 && (
+            <h2 className="text-4xl font-bold mb-6">
+              {loginPage.titleLine2}
+            </h2>
+          )}
+          {loginPage?.buttonText && (
+            <button
+              onClick={() => {
+                if (loginPage.buttonLink) {
+                  if (loginPage.buttonLink.startsWith('#')) {
+                    // Scroll para seção
+                    const target = document.querySelector(loginPage.buttonLink);
+                    if (target) {
+                      target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  } else {
+                    window.location.href = loginPage.buttonLink;
+                  }
+                }
+              }}
+              className="px-6 py-3 border border-white/50 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-all flex items-center gap-2"
+            >
+              {loginPage.buttonIcon === 'play' && <Play className="w-4 h-4 fill-current" />}
+              {loginPage.buttonIcon === 'arrow-right' && <ArrowRight className="w-4 h-4" />}
+              {loginPage.buttonIcon === 'arrow-left' && <ArrowLeft className="w-4 h-4" />}
+              {loginPage.buttonText}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Coluna Direita - Formulário */}
       <div className="w-full lg:w-1/3 bg-white flex flex-col items-center justify-center px-6 sm:px-8 lg:px-12 py-12">
         <div className="w-full max-w-md">
-          {/* Logo e Branding */}
-          <div className="mb-8 text-center lg:text-left">
-            <div className="flex items-center justify-center lg:justify-start gap-3 mb-2">
-              <div 
-                className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-2xl"
-                style={{ backgroundColor: PRIMARY_COLOR }}
-              >
-                C
+          {/* Logo */}
+          <div className="mb-8 text-center">
+            {configuration?.logo_url ? (
+              <img 
+                src={configuration.logo_url} 
+                alt={configuration.companyName || 'Central Contábil'}
+                className="h-20 w-auto object-contain mx-auto"
+              />
+            ) : (
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div 
+                  className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-3xl"
+                  style={{ backgroundColor: PRIMARY_COLOR }}
+                >
+                  C
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold" style={{ color: PRIMARY_COLOR }}>
+                    {configuration?.companyName || 'Central Contábil'}
+                  </h1>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold" style={{ color: PRIMARY_COLOR }}>
-                  Central Contábil
-                </h1>
-                <p className="text-xs text-gray-500">ERP | Gestão Empresarial</p>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Divisor */}
@@ -277,18 +352,6 @@ export default function AdminLogin() {
                     autoFocus
                   />
                 </div>
-              </div>
-
-              <div className="mb-6">
-                <button
-                  type="button"
-                  className="text-sm font-medium transition-colors"
-                  style={{ color: PRIMARY_COLOR }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = PRIMARY_COLOR_HOVER}
-                  onMouseLeave={(e) => e.currentTarget.style.color = PRIMARY_COLOR}
-                >
-                  Esqueci a senha
-                </button>
               </div>
 
               <button
@@ -362,20 +425,11 @@ export default function AdminLogin() {
             </form>
           )}
 
-          {/* Rodapé - Desenvolvido por */}
+          {/* Rodapé - Copyright */}
           <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center mb-3">Desenvolvido por</p>
-            <div className="flex items-center justify-center gap-2">
-              <div 
-                className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm"
-                style={{ backgroundColor: PRIMARY_COLOR }}
-              >
-                C
-              </div>
-              <span className="text-sm font-medium" style={{ color: PRIMARY_COLOR }}>
-                Central Contábil
-              </span>
-            </div>
+            <p className="text-xs text-gray-500 text-center">
+              © {new Date().getFullYear()} {configuration?.companyName || 'Central Contábil'}. Todos os direitos reservados.
+            </p>
           </div>
         </div>
       </div>

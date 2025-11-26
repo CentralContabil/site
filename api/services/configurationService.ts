@@ -18,6 +18,27 @@ export interface ConfigurationData {
   favicon_url?: string;
   whatsapp_number?: string | null;
   footer_years_text?: string;
+  head_scripts?: string | null;
+  body_scripts?: string | null;
+  // Redes Sociais
+  facebook_api_enabled?: boolean;
+  facebook_access_token?: string;
+  facebook_page_id?: string;
+  instagram_api_enabled?: boolean;
+  instagram_access_token?: string;
+  instagram_account_id?: string;
+  linkedin_api_enabled?: boolean;
+  linkedin_access_token?: string;
+  linkedin_organization_id?: string;
+  twitter_api_enabled?: boolean;
+  twitter_api_key?: string;
+  twitter_api_secret?: string;
+  twitter_access_token?: string;
+  twitter_access_token_secret?: string;
+  threads_api_enabled?: boolean;
+  threads_access_token?: string;
+  threads_account_id?: string;
+  [key: string]: any; // Permite campos adicionais
 }
 
 export class ConfigurationService {

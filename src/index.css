@@ -42,6 +42,77 @@
   color: #2d9a4f !important;
 }
 
+/* Modal Animations */
+@keyframes modalBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalContentZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modalContentZoomOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.modal-backdrop {
+  animation: modalBackdropFadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  animation: modalContentZoomIn 0.3s ease-out;
+}
+
+.modal-content.closing {
+  animation: modalContentZoomOut 0.2s ease-in;
+}
+
+/* Message Details Animations */
+@keyframes messageDetailsFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes messageDetailsFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.message-details-container {
+  animation: messageDetailsFadeIn 0.3s ease-out;
+}
+
+.message-details-container.closing {
+  animation: messageDetailsFadeOut 0.2s ease-in;
+}
+
 /* Table Styles for Privacy Policy and other content */
 .prose table,
 .prose table td,

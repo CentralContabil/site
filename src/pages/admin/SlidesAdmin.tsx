@@ -20,6 +20,7 @@ export default function SlidesAdmin() {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [editingSlide, setEditingSlide] = useState<Slide | null>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -49,6 +50,15 @@ export default function SlidesAdmin() {
     }
   };
 
+  const handleCloseModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowModal(false);
+      setIsClosing(false);
+      resetForm();
+    }, 200);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -73,8 +83,7 @@ export default function SlidesAdmin() {
         toast.success('Slide criado com sucesso!');
       }
       
-      setShowModal(false);
-      resetForm();
+      handleCloseModal();
       loadSlides();
     } catch (error) {
       console.error('Error saving slide:', error);
@@ -93,6 +102,7 @@ export default function SlidesAdmin() {
       isActive: slide.isActive
     });
     setImagePreview(slide.imageUrl);
+    setIsClosing(false);
     setShowModal(true);
   };
 
@@ -159,6 +169,7 @@ export default function SlidesAdmin() {
           <button
             onClick={() => {
               resetForm();
+              setIsClosing(false);
               setShowModal(true);
             }}
             className="text-white px-4 py-2 rounded-md flex items-center transition-colors"
@@ -244,13 +255,15 @@ export default function SlidesAdmin() {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(slide)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="Editar"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(slide.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="Excluir"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -265,8 +278,11 @@ export default function SlidesAdmin() {
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 modal-backdrop" onClick={handleCloseModal}>
+            <div 
+              className={`relative top-10 mx-auto p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white my-8 modal-content ${isClosing ? 'closing' : ''}`}
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 {editingSlide ? 'Editar Slide' : 'Novo Slide'}
               </h3>
@@ -355,7 +371,7 @@ export default function SlidesAdmin() {
                 <div className="flex justify-end space-x-2">
                   <button
                     type="button"
-                    onClick={() => setShowModal(false)}
+                    onClick={handleCloseModal}
                     className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     Cancelar

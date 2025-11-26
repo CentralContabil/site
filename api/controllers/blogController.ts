@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthRequest } from '../middleware/auth.js';
 import { FileService } from '../services/fileService.js';
+import { SocialMediaService } from '../services/socialMediaService.js';
 
 const prisma = new PrismaClient();
 
@@ -17,15 +18,39 @@ function slugify(text: string): string {
 
 export const getBlogPosts = async (req: Request, res: Response) => {
   try {
-    const { published } = req.query;
+    const { published, category } = req.query;
     
-    const where = published === 'true' 
-      ? { is_published: true }
-      : {};
+    const where: any = {};
+    
+    if (published === 'true') {
+      where.is_published = true;
+    }
+    
+    if (category) {
+      where.categories = {
+        some: {
+          category: {
+            slug: category as string
+          }
+        }
+      };
+    }
 
     const posts = await prisma.blogPost.findMany({
       where,
-      orderBy: { published_at: 'desc' }
+      orderBy: { published_at: 'desc' },
+      include: {
+        categories: {
+          include: {
+            category: true
+          }
+        },
+        tags: {
+          include: {
+            tag: true
+          }
+        }
+      }
     });
 
     res.json(posts);
@@ -40,7 +65,19 @@ export const getBlogPostBySlug = async (req: Request, res: Response) => {
     const { slug } = req.params;
 
     const post = await prisma.blogPost.findUnique({
-      where: { slug }
+      where: { slug },
+      include: {
+        categories: {
+          include: {
+            category: true
+          }
+        },
+        tags: {
+          include: {
+            tag: true
+          }
+        }
+      }
     });
 
     if (!post) {
@@ -56,7 +93,21 @@ export const getBlogPostBySlug = async (req: Request, res: Response) => {
 
 export const createBlogPost = async (req: Request, res: Response) => {
   try {
-    const { title, excerpt, content, featured_image_url, author, is_published } = req.body;
+    const { 
+      title, 
+      excerpt, 
+      content, 
+      featured_image_url, 
+      author, 
+      is_published, 
+      category_ids, 
+      tag_ids,
+      publishToFacebook,
+      publishToInstagram,
+      publishToLinkedIn,
+      publishToTwitter,
+      publishToThreads
+    } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
@@ -82,9 +133,66 @@ export const createBlogPost = async (req: Request, res: Response) => {
         featured_image_url,
         author: author || 'Admin',
         is_published: is_published || false,
-        published_at: is_published ? new Date() : null
+        published_at: is_published ? new Date() : null,
+        categories: category_ids && category_ids.length > 0 ? {
+          create: category_ids.map((categoryId: string) => ({
+            category_id: categoryId
+          }))
+        } : undefined,
+        tags: tag_ids && tag_ids.length > 0 ? {
+          create: tag_ids.map((tagId: string) => ({
+            tag_id: tagId
+          }))
+        } : undefined
+      },
+      include: {
+        categories: {
+          include: {
+            category: true
+          }
+        },
+        tags: {
+          include: {
+            tag: true
+          }
+        }
       }
     });
+
+    // Publicar nas redes sociais se solicitado e o post estiver publicado
+    if (is_published && (publishToFacebook || publishToInstagram || publishToLinkedIn || publishToTwitter || publishToThreads)) {
+      try {
+        const config = await prisma.configuration.findFirst();
+        if (config) {
+          const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+          const postUrl = `${baseUrl}/blog/${post.slug}`;
+          
+          const socialResults = await SocialMediaService.publishToSocialMedia(
+            config,
+            {
+              title: post.title,
+              excerpt: post.excerpt || undefined,
+              content: post.content,
+              featuredImageUrl: post.featured_image_url || undefined,
+              url: postUrl,
+            },
+            {
+              publishToFacebook,
+              publishToInstagram,
+              publishToLinkedIn,
+              publishToTwitter,
+              publishToThreads,
+            }
+          );
+
+          // Log dos resultados (em produção, você pode salvar isso no banco)
+          console.log('Resultados da publicação em redes sociais:', socialResults);
+        }
+      } catch (socialError) {
+        console.error('Erro ao publicar nas redes sociais:', socialError);
+        // Não falha a criação do post se a publicação nas redes sociais falhar
+      }
+    }
 
     res.status(201).json(post);
   } catch (error) {
@@ -96,10 +204,14 @@ export const createBlogPost = async (req: Request, res: Response) => {
 export const updateBlogPost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, excerpt, content, featured_image_url, author, is_published } = req.body;
+    const { title, excerpt, content, featured_image_url, author, is_published, category_ids, tag_ids } = req.body;
 
     const existingPost = await prisma.blogPost.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        categories: true,
+        tags: true
+      }
     });
 
     if (!existingPost) {
@@ -125,6 +237,42 @@ export const updateBlogPost = async (req: Request, res: Response) => {
       }
     }
 
+    // Atualizar categorias se fornecido
+    if (category_ids !== undefined) {
+      // Deletar todas as categorias existentes
+      await prisma.blogPostCategory.deleteMany({
+        where: { blog_post_id: id }
+      });
+
+      // Criar novas associações se houver categorias
+      if (category_ids && category_ids.length > 0) {
+        await prisma.blogPostCategory.createMany({
+          data: category_ids.map((categoryId: string) => ({
+            blog_post_id: id,
+            category_id: categoryId
+          }))
+        });
+      }
+    }
+
+    // Atualizar tags se fornecido
+    if (tag_ids !== undefined) {
+      // Deletar todas as tags existentes
+      await prisma.blogPostTag.deleteMany({
+        where: { blog_post_id: id }
+      });
+
+      // Criar novas associações se houver tags
+      if (tag_ids && tag_ids.length > 0) {
+        await prisma.blogPostTag.createMany({
+          data: tag_ids.map((tagId: string) => ({
+            blog_post_id: id,
+            tag_id: tagId
+          }))
+        });
+      }
+    }
+
     const post = await prisma.blogPost.update({
       where: { id },
       data: {
@@ -136,8 +284,56 @@ export const updateBlogPost = async (req: Request, res: Response) => {
         author: author !== undefined ? author : existingPost.author,
         is_published: is_published !== undefined ? is_published : existingPost.is_published,
         published_at: is_published === true && !existingPost.is_published ? new Date() : existingPost.published_at
+      },
+      include: {
+        categories: {
+          include: {
+            category: true
+          }
+        },
+        tags: {
+          include: {
+            tag: true
+          }
+        }
       }
     });
+
+    // Publicar nas redes sociais se solicitado e o post estiver publicado
+    const finalIsPublished = is_published !== undefined ? is_published : post.is_published;
+    if (finalIsPublished && (publishToFacebook || publishToInstagram || publishToLinkedIn || publishToTwitter || publishToThreads)) {
+      try {
+        const config = await prisma.configuration.findFirst();
+        if (config) {
+          const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+          const postUrl = `${baseUrl}/blog/${post.slug}`;
+          
+          const socialResults = await SocialMediaService.publishToSocialMedia(
+            config,
+            {
+              title: post.title,
+              excerpt: post.excerpt || undefined,
+              content: post.content,
+              featuredImageUrl: post.featured_image_url || undefined,
+              url: postUrl,
+            },
+            {
+              publishToFacebook,
+              publishToInstagram,
+              publishToLinkedIn,
+              publishToTwitter,
+              publishToThreads,
+            }
+          );
+
+          // Log dos resultados (em produção, você pode salvar isso no banco)
+          console.log('Resultados da publicação em redes sociais:', socialResults);
+        }
+      } catch (socialError) {
+        console.error('Erro ao publicar nas redes sociais:', socialError);
+        // Não falha a atualização do post se a publicação nas redes sociais falhar
+      }
+    }
 
     res.json(post);
   } catch (error) {

@@ -1,122 +1,126 @@
-# Configuração do GitHub - Backup do Projeto
+# 📦 Configuração do Repositório GitHub
 
-## ✅ Status Atual
+## 🎯 Caminho do Repositório
 
-O repositório Git local foi inicializado e o commit inicial foi criado com sucesso!
+O projeto estará disponível no GitHub no seguinte caminho:
 
-**Commit:** `e9ea1c8` - Initial commit: Site Central Contábil
+```
+https://github.com/seu-usuario/central-contabil.git
+```
 
-## 📋 Próximos Passos para Conectar ao GitHub
+**⚠️ IMPORTANTE:** Substitua `seu-usuario` pelo seu nome de usuário do GitHub.
 
-### Opção 1: Criar um Novo Repositório no GitHub
+## 📋 Passos para Publicar no GitHub
 
-1. **Acesse o GitHub:**
-   - Vá para https://github.com/new
-   - Ou acesse seu perfil e clique em "New repository"
+### 1. Criar o Repositório no GitHub
 
-2. **Crie o Repositório:**
-   - **Nome:** `site-central-contabil` (ou outro nome de sua preferência)
-   - **Descrição:** "Site institucional e área administrativa - Central Contábil"
-   - **Visibilidade:** Escolha entre Público ou Privado
-   - **NÃO marque** "Initialize with README" (já temos um)
-   - Clique em "Create repository"
+1. Acesse [GitHub](https://github.com)
+2. Clique em **"New repository"** (ou **"+"** → **"New repository"**)
+3. Configure:
+   - **Repository name:** `central-contabil` (ou o nome que preferir)
+   - **Description:** "Sistema de gestão e website - Central Contábil"
+   - **Visibility:** Escolha **Private** (recomendado) ou **Public**
+   - **NÃO** marque "Initialize with README" (já temos um)
+4. Clique em **"Create repository"**
 
-3. **Conecte o Repositório Local ao GitHub:**
+### 2. Conectar o Repositório Local ao GitHub
 
-   Execute os seguintes comandos no terminal (substitua `SEU_USUARIO` pelo seu usuário do GitHub):
-
-   ```bash
-   git remote add origin https://github.com/SEU_USUARIO/site-central-contabil.git
-   git branch -M main
-   git push -u origin main
-   ```
-
-### Opção 2: Usar um Repositório Existente
-
-Se você já tem um repositório no GitHub:
+Execute os seguintes comandos no terminal (na raiz do projeto):
 
 ```bash
-git remote add origin https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO.git
+# Adicionar o remote (substitua SEU-USUARIO pelo seu usuário)
+git remote add origin https://github.com/SEU-USUARIO/central-contabil.git
+
+# Verificar se foi adicionado corretamente
+git remote -v
+```
+
+### 3. Preparar e Fazer o Commit Inicial
+
+```bash
+# Adicionar todos os arquivos
+git add .
+
+# Fazer o commit inicial
+git commit -m "feat: versão inicial do sistema Central Contábil
+
+- Sistema completo de gestão empresarial
+- Painel administrativo
+- Website institucional
+- Blog com categorias e tags
+- Internacionalização (PT-BR, EN, ES)
+- Sistema de autenticação 2FA
+- Logs de acesso
+- Gerenciamento de conteúdo dinâmico"
+
+# Enviar para o GitHub
+git push -u origin master
+```
+
+**Nota:** Se você estiver usando `main` como branch padrão:
+
+```bash
+git push -u origin master:main
+```
+
+Ou renomeie a branch local:
+
+```bash
 git branch -M main
 git push -u origin main
 ```
 
-## 🔒 Arquivos que NÃO serão versionados (protegidos)
+### 4. Verificar no GitHub
 
-O arquivo `.gitignore` está configurado para **NÃO** versionar:
+Acesse o repositório no GitHub e verifique se todos os arquivos foram enviados corretamente.
 
-- ✅ Arquivos de ambiente (`.env`) - contém senhas e chaves secretas
-- ✅ Banco de dados (`prisma/dev.db`) - dados locais
-- ✅ `node_modules/` - dependências
-- ✅ Arquivos de upload (`public/uploads/*`) - imagens enviadas pelos usuários
-- ✅ Arquivos temporários e logs
+## 🔒 Segurança
 
-**IMPORTANTE:** Antes de fazer push, certifique-se de que:
-- O arquivo `.env` existe localmente mas **NÃO** está no Git
-- Você tem um backup do banco de dados em produção (se aplicável)
+### Arquivos que NÃO serão enviados (já estão no .gitignore):
 
-## 📝 Comandos Úteis
+- ✅ `.env` (variáveis de ambiente)
+- ✅ `node_modules/` (dependências)
+- ✅ `dist/` (build de produção)
+- ✅ `prisma/dev.db` (banco de dados local)
+- ✅ `public/uploads/*` (arquivos enviados pelos usuários)
 
-### Verificar Status
-```bash
-git status
+### ⚠️ IMPORTANTE - Antes de fazer push:
+
+1. **Nunca commite arquivos `.env`** com credenciais reais
+2. **Use `.env.example`** como template
+3. **Verifique se não há tokens ou senhas** nos arquivos commitados
+4. **Revise o histórico** antes de fazer push público
+
+## 📝 Estrutura do Repositório
+
+O repositório conterá:
+
+```
+central-contabil/
+├── api/                    # Backend
+├── src/                    # Frontend
+├── prisma/                 # Schema do banco
+├── public/                 # Arquivos estáticos
+├── scripts/                # Scripts de deploy
+├── .gitignore             # Arquivos ignorados
+├── .htaccess              # Configuração Apache
+├── README.md              # Documentação principal
+├── DEPLOY_KINGHOST.md     # Guia de deploy
+├── CHECKLIST_DEPLOY.md    # Checklist
+├── GITHUB_SETUP.md        # Este arquivo
+├── package.json           # Dependências
+└── ecosystem.config.js    # Config PM2
 ```
 
-### Adicionar Alterações
-```bash
-git add .
-git commit -m "Descrição das alterações"
-```
+## 🚀 Próximos Passos Após Publicar
 
-### Enviar para o GitHub
-```bash
-git push
-```
+1. ✅ Configurar secrets no GitHub (se usar CI/CD)
+2. ✅ Configurar branch protection (recomendado)
+3. ✅ Adicionar colaboradores (se necessário)
+4. ✅ Seguir para deploy em produção
 
-### Ver Histórico
-```bash
-git log --oneline
-```
+## 📞 Suporte
 
-### Criar uma Nova Branch
-```bash
-git checkout -b nome-da-branch
-```
-
-## 🚨 Backup do Banco de Dados
-
-**IMPORTANTE:** O banco de dados SQLite (`prisma/dev.db`) **NÃO** será versionado.
-
-Para fazer backup do banco de dados:
-
-1. **Cópia Manual:**
-   - Copie o arquivo `prisma/dev.db` para um local seguro
-   - Ou use um serviço de backup em nuvem
-
-2. **Exportar Dados:**
-   ```bash
-   # Exportar schema e dados
-   npx prisma db pull
-   ```
-
-3. **Migrações:**
-   - As migrações do Prisma (`prisma/migrations/`) **SÃO** versionadas
-   - Isso permite recriar a estrutura do banco em qualquer ambiente
-
-## ✅ Checklist Antes do Push
-
-- [ ] Arquivo `.env` existe localmente mas não está no Git
-- [ ] Banco de dados local está funcionando
-- [ ] Todas as alterações foram commitadas
-- [ ] Repositório GitHub foi criado
-- [ ] Remote foi configurado corretamente
-
-## 🎯 Após o Push
-
-Após fazer o push inicial, você terá:
-- ✅ Todo o código versionado no GitHub
-- ✅ Histórico de commits
-- ✅ Backup completo do projeto
-- ✅ Possibilidade de colaboração
-- ✅ Deploy facilitado (Vercel, Netlify, etc.)
-
+Em caso de dúvidas sobre o GitHub:
+- [Documentação do GitHub](https://docs.github.com)
+- [Git Handbook](https://guides.github.com/introduction/git-handbook/)

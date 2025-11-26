@@ -28,6 +28,28 @@ interface Configuration {
   favicon_url?: string;
   footer_years_text?: string;
   footerYearsText?: string;
+  head_scripts?: string;
+  headScripts?: string;
+  body_scripts?: string;
+  bodyScripts?: string;
+  // Redes Sociais
+  facebook_api_enabled?: boolean;
+  facebook_access_token?: string;
+  facebook_page_id?: string;
+  instagram_api_enabled?: boolean;
+  instagram_access_token?: string;
+  instagram_account_id?: string;
+  linkedin_api_enabled?: boolean;
+  linkedin_access_token?: string;
+  linkedin_organization_id?: string;
+  twitter_api_enabled?: boolean;
+  twitter_api_key?: string;
+  twitter_api_secret?: string;
+  twitter_access_token?: string;
+  twitter_access_token_secret?: string;
+  threads_api_enabled?: boolean;
+  threads_access_token?: string;
+  threads_account_id?: string;
 }
 
 export default function ConfigurationPage() {
@@ -65,7 +87,7 @@ export default function ConfigurationPage() {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     if (config) {
       setConfig({ ...config, [field]: value });
     }
@@ -538,6 +560,299 @@ export default function ConfigurationPage() {
                   placeholder="https://linkedin.com/company/sua-empresa"
                 />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Redes Sociais - APIs para Publicação Automática */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Redes Sociais - APIs para Publicação Automática</CardTitle>
+            <CardDescription>
+              Configure as APIs das redes sociais para publicar posts automaticamente ao criar novos posts no blog
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Facebook */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-semibold">Facebook</span>
+                </div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.facebook_api_enabled || false}
+                    onChange={(e) => handleInputChange('facebook_api_enabled', e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Habilitar</span>
+                </label>
+              </div>
+              {config.facebook_api_enabled && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="facebook_access_token">Access Token</Label>
+                    <Input
+                      id="facebook_access_token"
+                      type="password"
+                      value={config.facebook_access_token || ''}
+                      onChange={(value) => handleInputChange('facebook_access_token', value)}
+                      placeholder="Seu access token do Facebook"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="facebook_page_id">Page ID</Label>
+                    <Input
+                      id="facebook_page_id"
+                      value={config.facebook_page_id || ''}
+                      onChange={(value) => handleInputChange('facebook_page_id', value)}
+                      placeholder="ID da sua página do Facebook"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Instagram */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-semibold">Instagram</span>
+                </div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.instagram_api_enabled || false}
+                    onChange={(e) => handleInputChange('instagram_api_enabled', e.target.checked)}
+                    className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Habilitar</span>
+                </label>
+              </div>
+              {config.instagram_api_enabled && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram_access_token">Access Token</Label>
+                    <Input
+                      id="instagram_access_token"
+                      type="password"
+                      value={config.instagram_access_token || ''}
+                      onChange={(value) => handleInputChange('instagram_access_token', value)}
+                      placeholder="Seu access token do Instagram"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram_account_id">Account ID</Label>
+                    <Input
+                      id="instagram_account_id"
+                      value={config.instagram_account_id || ''}
+                      onChange={(value) => handleInputChange('instagram_account_id', value)}
+                      placeholder="ID da sua conta do Instagram"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* LinkedIn */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-semibold">LinkedIn</span>
+                </div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.linkedin_api_enabled || false}
+                    onChange={(e) => handleInputChange('linkedin_api_enabled', e.target.checked)}
+                    className="h-4 w-4 text-blue-700 focus:ring-blue-700 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Habilitar</span>
+                </label>
+              </div>
+              {config.linkedin_api_enabled && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="linkedin_access_token">Access Token</Label>
+                    <Input
+                      id="linkedin_access_token"
+                      type="password"
+                      value={config.linkedin_access_token || ''}
+                      onChange={(value) => handleInputChange('linkedin_access_token', value)}
+                      placeholder="Seu access token do LinkedIn"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="linkedin_organization_id">Organization ID</Label>
+                    <Input
+                      id="linkedin_organization_id"
+                      value={config.linkedin_organization_id || ''}
+                      onChange={(value) => handleInputChange('linkedin_organization_id', value)}
+                      placeholder="ID da sua organização no LinkedIn"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Twitter/X */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-semibold">X (Twitter)</span>
+                </div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.twitter_api_enabled || false}
+                    onChange={(e) => handleInputChange('twitter_api_enabled', e.target.checked)}
+                    className="h-4 w-4 text-blue-400 focus:ring-blue-400 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Habilitar</span>
+                </label>
+              </div>
+              {config.twitter_api_enabled && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="twitter_api_key">API Key</Label>
+                    <Input
+                      id="twitter_api_key"
+                      type="password"
+                      value={config.twitter_api_key || ''}
+                      onChange={(value) => handleInputChange('twitter_api_key', value)}
+                      placeholder="Sua API Key do Twitter"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twitter_api_secret">API Secret</Label>
+                    <Input
+                      id="twitter_api_secret"
+                      type="password"
+                      value={config.twitter_api_secret || ''}
+                      onChange={(value) => handleInputChange('twitter_api_secret', value)}
+                      placeholder="Seu API Secret do Twitter"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twitter_access_token">Access Token</Label>
+                    <Input
+                      id="twitter_access_token"
+                      type="password"
+                      value={config.twitter_access_token || ''}
+                      onChange={(value) => handleInputChange('twitter_access_token', value)}
+                      placeholder="Seu Access Token do Twitter"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twitter_access_token_secret">Access Token Secret</Label>
+                    <Input
+                      id="twitter_access_token_secret"
+                      type="password"
+                      value={config.twitter_access_token_secret || ''}
+                      onChange={(value) => handleInputChange('twitter_access_token_secret', value)}
+                      placeholder="Seu Access Token Secret do Twitter"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Threads */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-semibold">Threads</span>
+                </div>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.threads_api_enabled || false}
+                    onChange={(e) => handleInputChange('threads_api_enabled', e.target.checked)}
+                    className="h-4 w-4 text-gray-800 focus:ring-gray-800 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Habilitar</span>
+                </label>
+              </div>
+              {config.threads_api_enabled && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="threads_access_token">Access Token</Label>
+                    <Input
+                      id="threads_access_token"
+                      type="password"
+                      value={config.threads_access_token || ''}
+                      onChange={(value) => handleInputChange('threads_access_token', value)}
+                      placeholder="Seu access token do Threads"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="threads_account_id">Account ID</Label>
+                    <Input
+                      id="threads_account_id"
+                      value={config.threads_account_id || ''}
+                      onChange={(value) => handleInputChange('threads_account_id', value)}
+                      placeholder="ID da sua conta do Threads"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-yellow-800">
+                <strong>Nota:</strong> Para obter as credenciais de API, você precisa criar aplicativos nas respectivas plataformas de desenvolvedor. 
+                As opções de publicação só aparecerão no formulário de posts após configurar e habilitar as APIs aqui.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* JavaScript Scripts */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Scripts JavaScript</CardTitle>
+            <CardDescription>
+              Adicione scripts personalizados como Google Analytics, Meta Pixel, etc.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="head_scripts">Scripts para &lt;head&gt;</Label>
+              <Textarea
+                id="head_scripts"
+                value={config.head_scripts || config.headScripts || ''}
+                onChange={(value) => handleInputChange('head_scripts', value)}
+                rows={8}
+                placeholder='<!-- Exemplo: Google Analytics -->&#10;&lt;script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"&gt;&lt;/script&gt;&#10;&lt;script&gt;&#10;  window.dataLayer = window.dataLayer || [];&#10;  function gtag(){dataLayer.push(arguments);}&#10;  gtag("js", new Date());&#10;  gtag("config", "GA_MEASUREMENT_ID");&#10;&lt;/script&gt;'
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-gray-500">
+                Scripts inseridos no <code>&lt;head&gt;</code> da página. Use para Google Analytics, Meta Pixel, etc.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="body_scripts">Scripts para &lt;/body&gt;</Label>
+              <Textarea
+                id="body_scripts"
+                value={config.body_scripts || config.bodyScripts || ''}
+                onChange={(value) => handleInputChange('body_scripts', value)}
+                rows={8}
+                placeholder='<!-- Exemplo: Google Tag Manager (noscript) -->&#10;&lt;noscript&gt;&#10;  &lt;iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXX"&#10;    height="0" width="0" style="display:none;visibility:hidden"&gt;&lt;/iframe&gt;&#10;&lt;/noscript&gt;'
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-gray-500">
+                Scripts inseridos antes do fechamento do <code>&lt;/body&gt;</code>. Use para Google Tag Manager (noscript), scripts de carregamento, etc.
+              </p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800 font-medium mb-2">💡 Dicas:</p>
+              <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                <li>Cole o código completo do script fornecido pela ferramenta (Google Analytics, Meta Pixel, etc.)</li>
+                <li>Scripts no <code>&lt;head&gt;</code> são carregados antes do conteúdo da página</li>
+                <li>Scripts no <code>&lt;/body&gt;</code> são carregados após o conteúdo, melhorando a performance</li>
+                <li>Não inclua as tags <code>&lt;script&gt;</code> e <code>&lt;/script&gt;</code> se já estiverem no código fornecido</li>
+              </ul>
             </div>
           </CardContent>
         </Card>

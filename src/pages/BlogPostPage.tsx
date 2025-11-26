@@ -5,6 +5,7 @@ import { ptBR } from 'date-fns/locale';
 import { BlogPost } from '../types';
 import { FooterBlake } from '../components/layout/FooterBlake';
 import { Button } from '../components/ui/Button';
+import { SEO } from '../components/SEO';
 import { useConfiguration } from '../hooks/useConfiguration';
 import { Calendar, User, ArrowLeft, Clock, Share2, Facebook, Twitter, Linkedin } from 'lucide-react';
 
@@ -13,13 +14,41 @@ export const BlogPostPage: React.FC = () => {
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
   const { configuration } = useConfiguration();
 
   useEffect(() => {
     if (slug) {
       fetchPost();
     }
+    fetchCategories();
+    fetchTags();
   }, [slug]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories?active=true');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.categories || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+    }
+  };
+
+  const fetchTags = async () => {
+    try {
+      const response = await fetch('/api/tags?active=true');
+      if (response.ok) {
+        const data = await response.json();
+        setTags(data.tags || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar tags:', error);
+    }
+  };
 
   const normalizePost = (post: any): BlogPost => {
     return {
@@ -39,6 +68,8 @@ export const BlogPostPage: React.FC = () => {
       created_at: post.created_at || post.createdAt,
       updatedAt: post.updated_at ? new Date(post.updated_at) : new Date(post.updatedAt || Date.now()),
       updated_at: post.updated_at || post.updatedAt,
+      categories: post.categories || [],
+      tags: post.tags || []
     };
   };
 
@@ -138,8 +169,45 @@ export const BlogPostPage: React.FC = () => {
     );
   }
 
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const postUrl = `${baseUrl}/blog/${post.slug}`;
+  const postImage = post.featuredImageUrl || `${baseUrl}/favicon.svg`;
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO
+        title={post.title}
+        description={post.excerpt || `Leia o artigo completo: ${post.title}`}
+        keywords="blog, artigos, contabilidade, consultoria contábil"
+        image={postImage}
+        url={postUrl}
+        type="article"
+        author={post.author}
+        publishedTime={post.publishedAt ? post.publishedAt.toISOString() : undefined}
+        modifiedTime={post.updatedAt ? post.updatedAt.toISOString() : undefined}
+        configuration={configuration}
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: post.title,
+          description: post.excerpt || post.title,
+          image: postImage,
+          datePublished: post.publishedAt ? post.publishedAt.toISOString() : undefined,
+          dateModified: post.updatedAt ? post.updatedAt.toISOString() : undefined,
+          author: {
+            '@type': 'Person',
+            name: post.author || 'Central Contábil',
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: configuration?.companyName || 'Central Contábil',
+            logo: {
+              '@type': 'ImageObject',
+              url: configuration?.logo_url || `${baseUrl}/favicon.svg`,
+            },
+          },
+        }}
+      />
       {/* Hero Section */}
       <section className="relative text-white pt-32 sm:pt-36 lg:pt-40 pb-20 overflow-hidden">
         {/* Background Image */}
@@ -189,6 +257,47 @@ export const BlogPostPage: React.FC = () => {
                 {formatReadingTime(post.content || '')}
               </div>
             </div>
+
+            {post.categories && post.categories.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {post.categories.map((postCategory) => {
+                  const category = categories.find(c => 
+                    c.id === postCategory.category_id || 
+                    c.id === postCategory.category?.id
+                  );
+                  if (!category) return null;
+                  return (
+                    <span
+                      key={postCategory.id}
+                      className="px-3 py-1 text-sm rounded-full text-white font-medium"
+                      style={{ backgroundColor: category.color || '#3bb664' }}
+                    >
+                      {category.name}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {post.tags.map((postTag) => {
+                  const tag = tags.find(t => 
+                    t.id === postTag.tag_id || 
+                    t.id === postTag.tag?.id
+                  );
+                  if (!tag) return null;
+                  return (
+                    <span
+                      key={postTag.id}
+                      className="px-3 py-1 text-sm rounded-full text-white font-medium"
+                      style={{ backgroundColor: tag.color || '#6b7280' }}
+                    >
+                      {tag.name}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </section>

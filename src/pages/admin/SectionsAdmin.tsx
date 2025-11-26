@@ -10,7 +10,7 @@ import * as LucideIcons from 'lucide-react';
 import { apiService } from '../../services/api';
 import { Hero, UpdateHeroRequest } from '../../types';
 
-type SectionType = 'hero' | 'features' | 'about' | 'specialties' | 'fiscal-benefits' | 'fun-facts' | 'certifications' | 'newsletter' | 'clients';
+type SectionType = 'hero' | 'features' | 'about' | 'specialties' | 'fiscal-benefits' | 'fun-facts' | 'certifications' | 'newsletter' | 'clients' | 'services';
 
 interface SectionItem {
   id: string;
@@ -120,9 +120,10 @@ export default function SectionsAdmin() {
   const [activeSection, setActiveSection] = useState<SectionType>('hero');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState<'background' | 'hero' | 'about' | 'newsletter' | 'fiscal-benefit' | null>(null);
+  const [uploadingImage, setUploadingImage] = useState<'background' | 'hero' | 'about' | 'newsletter' | 'fiscal-benefit' | 'services' | null>(null);
   const [uploadingFiscalBenefitImage, setUploadingFiscalBenefitImage] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   // Hero
   const [hero, setHero] = useState<Hero | null>(null);
@@ -176,6 +177,7 @@ export default function SectionsAdmin() {
   const [aboutImageForm, setAboutImageForm] = useState({ description: '', order: 0 });
   const [uploadingAboutImage, setUploadingAboutImage] = useState(false);
   const [showAboutImageModal, setShowAboutImageModal] = useState(false);
+  const [isClosingImageModal, setIsClosingImageModal] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
@@ -225,6 +227,17 @@ export default function SectionsAdmin() {
   const [clients, setClients] = useState<any>(null);
   const [clientsForm, setClientsForm] = useState({
     title: '',
+    background_image_url: '',
+  });
+
+  // Services
+  const [services, setServices] = useState<any>(null);
+  const [servicesForm, setServicesForm] = useState({
+    badge_text: '',
+    title_line1: '',
+    title_line2: '',
+    years_highlight: '',
+    description: '',
     background_image_url: '',
   });
 
@@ -362,6 +375,21 @@ export default function SectionsAdmin() {
             setClientsForm({
               title: clientsData.clients.title || '',
               background_image_url: clientsData.clients.background_image_url || '',
+            });
+          }
+          break;
+        case 'services':
+          const servicesRes = await fetch(`${baseUrl}/services`);
+          const servicesData = await servicesRes.json();
+          if (servicesData.success && servicesData.services) {
+            setServices(servicesData.services);
+            setServicesForm({
+              badge_text: servicesData.services.badge_text || '',
+              title_line1: servicesData.services.title_line1 || '',
+              title_line2: servicesData.services.title_line2 || '',
+              description: servicesData.services.description || '',
+              years_highlight: servicesData.services.years_highlight || '',
+              background_image_url: servicesData.services.background_image_url || '',
             });
           }
           break;
@@ -607,7 +635,33 @@ export default function SectionsAdmin() {
     }
   };
 
-  const handleImageUpload = async (section: 'about' | 'newsletter' | 'clients', event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSaveServices = async () => {
+    setSaving(true);
+    try {
+      const response = await apiService.updateServicesSection({
+        badge_text: servicesForm.badge_text,
+        title_line1: servicesForm.title_line1,
+        title_line2: servicesForm.title_line2,
+        description: servicesForm.description,
+        years_highlight: servicesForm.years_highlight || null,
+        background_image_url: servicesForm.background_image_url || null,
+      });
+
+      if (response.success) {
+        setServices(response.services);
+        toast.success('✅ Seção de Serviços atualizada com sucesso!');
+      } else {
+        toast.error('Erro ao salvar');
+      }
+    } catch (error: any) {
+      console.error('Erro ao salvar:', error);
+      toast.error(error.message || 'Erro ao salvar dados');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (section: 'about' | 'newsletter' | 'clients' | 'services', event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -645,13 +699,25 @@ export default function SectionsAdmin() {
       return;
     }
 
-    setUploadingImage(true);
+        setUploadingImage(section === 'services' ? 'services' : section);
     const formData = new FormData();
     formData.append('file', file);
 
     try {
+      let response;
+      if (section === 'services') {
+        const result = await apiService.uploadServicesImage(file);
+        if (result.success) {
+          setServicesForm(prev => ({ ...prev, background_image_url: result.data.url }));
+          setServices(result.services);
+          toast.success('Imagem enviada com sucesso!');
+        }
+        setUploadingImage(null);
+        return;
+      }
+
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3006/api/sections/${section}/image`, {
+      response = await fetch(`http://localhost:3006/api/sections/${section}/image`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
@@ -668,6 +734,9 @@ export default function SectionsAdmin() {
         } else if (section === 'clients') {
           setClientsForm(prev => ({ ...prev, background_image_url: result.data.url }));
           setClients(result.clients);
+        } else if (section === 'services') {
+          setServicesForm(prev => ({ ...prev, background_image_url: result.data.url }));
+          setServices(result.services);
         }
         toast.success('Imagem enviada com sucesso!');
       } else {
@@ -885,11 +954,7 @@ export default function SectionsAdmin() {
         const result = await response.json();
         if (result.success) {
           toast.success('Imagem atualizada com sucesso!');
-          setShowAboutImageModal(false);
-          setEditingAboutImage(null);
-          setAboutImageForm({ description: '', order: 0 });
-          setSelectedImageFile(null);
-          setImagePreviewUrl(null);
+          handleCloseImageModal();
           loadSectionData('about');
         } else {
           toast.error(result.error || 'Erro ao atualizar imagem');
@@ -910,7 +975,7 @@ export default function SectionsAdmin() {
         const result = await response.json();
         if (result.success) {
           toast.success('Imagem adicionada com sucesso!');
-          setShowAboutImageModal(false);
+          handleCloseImageModal();
           setEditingAboutImage(null);
           setAboutImageForm({ description: '', order: 0 });
           setSelectedImageFile(null);
@@ -996,7 +1061,7 @@ export default function SectionsAdmin() {
       const data = await response.json();
       if (data.success) {
         toast.success('Item criado com sucesso!');
-        setShowModal(false);
+        handleCloseModal();
         resetForm(type);
         loadSectionData();
       } else {
@@ -1052,7 +1117,7 @@ export default function SectionsAdmin() {
       const data = await response.json();
       if (data.success) {
         toast.success('Item atualizado com sucesso!');
-        setShowModal(false);
+        handleCloseModal();
         resetForm(type);
         loadSectionData();
       } else {
@@ -1115,6 +1180,26 @@ export default function SectionsAdmin() {
     } catch (error) {
       console.error('Erro ao alterar status:', error);
     }
+  };
+
+  const handleCloseModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowModal(false);
+      setIsClosing(false);
+    }, 200);
+  };
+
+  const handleCloseImageModal = () => {
+    setIsClosingImageModal(true);
+    setTimeout(() => {
+      setShowAboutImageModal(false);
+      setIsClosingImageModal(false);
+      setEditingAboutImage(null);
+      setAboutImageForm({ description: '', order: 0 });
+      setSelectedImageFile(null);
+      setImagePreviewUrl(null);
+    }, 200);
   };
 
   const resetForm = (type: 'features' | 'specialties' | 'fiscal-benefits' | 'fun-facts' | 'certifications') => {
@@ -1212,6 +1297,7 @@ export default function SectionsAdmin() {
         });
         break;
     }
+    setIsClosing(false);
     setShowModal(true);
   };
 
@@ -1233,6 +1319,7 @@ export default function SectionsAdmin() {
     { id: 'certifications' as SectionType, label: 'Certificações', icon: '🏆' },
     { id: 'newsletter' as SectionType, label: 'Newsletter', icon: '📧' },
     { id: 'clients' as SectionType, label: 'Clientes', icon: '🏢' },
+    { id: 'services' as SectionType, label: 'Serviços', icon: '💼' },
   ];
 
   if (loading) {
@@ -1264,10 +1351,8 @@ export default function SectionsAdmin() {
                   setEditingCertification(null);
                   setShowModal(false);
                   setActiveSection(section.id);
-                  if (section.id === 'hero') {
-                    // Carregar dados do Hero quando selecionado
-                    loadSectionData();
-                  }
+                  // Carregar dados da seção quando selecionada
+                  loadSectionData();
                 }}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                   activeSection === section.id
@@ -1693,6 +1778,7 @@ export default function SectionsAdmin() {
                         setEditingAboutImage(null);
                         setSelectedImageFile(null);
                         setImagePreviewUrl(null);
+                        setIsClosingImageModal(false);
                         setShowAboutImageModal(true);
                       }}
                       size="sm"
@@ -1736,9 +1822,10 @@ export default function SectionsAdmin() {
                                       setAboutImageForm({ description: image.description || '', order: image.order });
                                       setSelectedImageFile(null);
                                       setImagePreviewUrl(null);
-                                      setShowAboutImageModal(true);
+                                      setIsClosingImageModal(false);
+                        setShowAboutImageModal(true);
                                     }}
-                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                                     title="Editar"
                                   >
                                     <Edit className="h-4 w-4" />
@@ -1765,7 +1852,7 @@ export default function SectionsAdmin() {
                                         }
                                       }
                                     }}
-                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                                     title="Excluir"
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -2034,6 +2121,168 @@ export default function SectionsAdmin() {
           </div>
         )}
 
+        {/* Services Section */}
+        {activeSection === 'services' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Seção de Serviços</h1>
+                <p className="text-gray-600 mt-1">Configure os textos e imagem de fundo da seção de serviços</p>
+              </div>
+              <Button
+                onClick={handleSaveServices}
+                disabled={saving}
+                className="bg-[#3bb664] hover:bg-[#2d9a4f] text-white"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                {saving ? 'Salvando...' : 'Salvar Alterações'}
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Textos da Seção</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Badge (Texto Superior)
+                    </label>
+                    <Input
+                      value={servicesForm.badge_text}
+                      onChange={(value) => setServicesForm({ ...servicesForm, badge_text: value })}
+                      placeholder="Nossos Serviços"
+                      className="bg-white text-gray-900 placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Título - Linha 1
+                    </label>
+                    <Input
+                      value={servicesForm.title_line1}
+                      onChange={(value) => setServicesForm({ ...servicesForm, title_line1: value })}
+                      placeholder="Nossas Soluções Vão"
+                      className="bg-white text-gray-900 placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Título - Linha 2
+                    </label>
+                    <Input
+                      value={servicesForm.title_line2}
+                      onChange={(value) => setServicesForm({ ...servicesForm, title_line2: value })}
+                      placeholder="Além da Contabilidade"
+                      className="bg-white text-gray-900 placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Descrição
+                    </label>
+                    <Textarea
+                      value={servicesForm.description}
+                      onChange={(value) => setServicesForm({ ...servicesForm, description: value })}
+                      placeholder="Atuamos de forma integrada e estratégica para que o seu negócio tenha a melhor performance contábil, fiscal e tributária com 34 anos de experiência."
+                      rows={4}
+                      className="bg-white text-gray-900 placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Número de Anos Destacado
+                    </label>
+                    <Input
+                      value={servicesForm.years_highlight}
+                      onChange={(value) => setServicesForm({ ...servicesForm, years_highlight: value })}
+                      placeholder="34"
+                      className="bg-white text-gray-900 placeholder:text-gray-400"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Este número será destacado em laranja na descrição (ex: "34 anos")
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <ImageIcon className="mr-2 h-5 w-5" />
+                    Imagem de Fundo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <label className="block cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload('services', e)}
+                      className="hidden"
+                      disabled={uploadingImage === 'services'}
+                    />
+                    {servicesForm.background_image_url ? (
+                      <div className="space-y-2">
+                        <img
+                          src={servicesForm.background_image_url}
+                          alt="Preview"
+                          className="w-full h-32 object-cover rounded border"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const input = e.currentTarget.parentElement?.parentElement?.querySelector('input[type="file"]') as HTMLInputElement;
+                              input?.click();
+                            }}
+                            disabled={uploadingImage === 'services'}
+                            className="flex-1"
+                          >
+                            {uploadingImage === 'services' ? 'Enviando...' : 'Trocar Imagem'}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={async () => {
+                              try {
+                                await apiService.deleteServicesImage();
+                                setServicesForm(prev => ({ ...prev, background_image_url: '' }));
+                                toast.success('Imagem removida com sucesso!');
+                              } catch (error: any) {
+                                toast.error(error.message || 'Erro ao remover imagem');
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div 
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#3bb664] transition-colors"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const input = e.currentTarget.parentElement?.querySelector('input[type="file"]') as HTMLInputElement;
+                          if (uploadingImage !== 'services') input?.click();
+                        }}
+                      >
+                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                        <span className="text-sm text-gray-600">Clique para fazer upload</span>
+                        <p className="text-xs text-gray-500 mt-1">PNG, JPG ou GIF até 5MB</p>
+                      </div>
+                    )}
+                  </label>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
         {/* Features, Specialties, Fiscal Benefits, Fun Facts, Certifications - List Management */}
         {(activeSection === 'features' || activeSection === 'specialties' || activeSection === 'fiscal-benefits' || activeSection === 'fun-facts' || activeSection === 'certifications') && (
           <div className="space-y-4">
@@ -2141,21 +2390,20 @@ export default function SectionsAdmin() {
                             >
                               {item.is_active ? 'Ativo' : 'Inativo'}
                             </button>
-                            <Button
-                              variant="outline"
-                              size="sm"
+                            <button
                               onClick={() => handleEdit(activeSection as any, item)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                              title="Editar"
                             >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
                               onClick={() => handleDeleteItem(activeSection as any, item.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Excluir"
                             >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -2167,8 +2415,11 @@ export default function SectionsAdmin() {
 
             {/* Modal de Edição/Criação */}
             {showModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-backdrop" onClick={handleCloseModal}>
+                <Card 
+                  className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content ${isClosing ? 'closing' : ''}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <CardHeader>
                     <CardTitle>
                       {(() => {
@@ -2468,8 +2719,11 @@ export default function SectionsAdmin() {
 
         {/* Modal para Carrossel de Imagens do About */}
         {showAboutImageModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-2xl">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-backdrop" onClick={handleCloseImageModal}>
+            <Card 
+              className={`w-full max-w-2xl modal-content ${isClosingImageModal ? 'closing' : ''}`}
+              onClick={(e) => e.stopPropagation()}
+            >
               <CardHeader>
                 <CardTitle>{editingAboutImage ? 'Editar Imagem' : 'Adicionar Imagem ao Carrossel'}</CardTitle>
               </CardHeader>
@@ -2542,13 +2796,7 @@ export default function SectionsAdmin() {
                 <div className="flex justify-end space-x-3 pt-4">
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setShowAboutImageModal(false);
-                      setEditingAboutImage(null);
-                      setAboutImageForm({ description: '', order: 0 });
-                      setSelectedImageFile(null);
-                      setImagePreviewUrl(null);
-                    }}
+                    onClick={handleCloseImageModal}
                   >
                     Cancelar
                   </Button>

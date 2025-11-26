@@ -1,45 +1,98 @@
-import React from 'react';
-import { Shield, Zap, Settings, TrendingUp, Users, Award } from 'lucide-react';
-
-interface Feature {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
+import React, { useState, useEffect } from 'react';
+import * as LucideIcons from 'lucide-react';
+import { apiService } from '../../services/api';
+import { Feature } from '../../types';
 
 export const FeaturesSectionBlake: React.FC = () => {
-  const features: Feature[] = [
-    {
-      icon: <Shield className="w-6 h-6" />,
-      title: "Conformidade Garantida",
-      description: "Garantimos total conformidade fiscal e tributária para seu negócio com processos auditados e atualizados"
-    },
-    {
-      icon: <Zap className="w-6 h-6" />,
-      title: "Agilidade nos Processos",
-      description: "Entregas rápidas e eficientes sem comprometer a qualidade, utilizando tecnologia de ponta"
-    },
-    {
-      icon: <Settings className="w-6 h-6" />,
-      title: "Soluções Personalizadas",
-      description: "Consultoria adaptada às necessidades específicas do seu negócio, com atendimento dedicado"
-    },
-    {
-      icon: <TrendingUp className="w-6 h-6" />,
-      title: "Otimização Tributária",
-      description: "Redução legal da carga tributária com estratégias inteligentes e planejamento fiscal avançado"
-    },
-    {
-      icon: <Users className="w-6 h-6" />,
-      title: "Equipe Qualificada",
-      description: "Profissionais certificados e atualizados com as últimas normas e legislações vigentes"
-    },
-    {
-      icon: <Award className="w-6 h-6" />,
-      title: "Excelência Comprovada",
-      description: "Mais de 34 anos de tradição e milhares de clientes satisfeitos em todo o Brasil"
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadFeatures();
+  }, []);
+
+  const loadFeatures = async () => {
+    try {
+      const response = await apiService.getFeatures();
+      setFeatures(response.features);
+    } catch (error) {
+      console.error('Erro ao carregar diferenciais:', error);
+      // Fallback para dados padrão se a API falhar
+      setFeatures([
+        {
+          id: '1',
+          icon: 'shield',
+          title: "Conformidade Garantida",
+          description: "Garantimos total conformidade fiscal e tributária para seu negócio com processos auditados e atualizados",
+          order: 0,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: '2',
+          icon: 'zap',
+          title: "Agilidade nos Processos",
+          description: "Entregas rápidas e eficientes sem comprometer a qualidade, utilizando tecnologia de ponta",
+          order: 1,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: '3',
+          icon: 'settings',
+          title: "Soluções Personalizadas",
+          description: "Consultoria adaptada às necessidades específicas do seu negócio, com atendimento dedicado",
+          order: 2,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: '4',
+          icon: 'trending-up',
+          title: "Otimização Tributária",
+          description: "Redução legal da carga tributária com estratégias inteligentes e planejamento fiscal avançado",
+          order: 3,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: '5',
+          icon: 'users',
+          title: "Equipe Qualificada",
+          description: "Profissionais certificados e atualizados com as últimas normas e legislações vigentes",
+          order: 4,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: '6',
+          icon: 'award',
+          title: "Excelência Comprovada",
+          description: "Mais de 34 anos de tradição e milhares de clientes satisfeitos em todo o Brasil",
+          order: 5,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const getIcon = (iconName: string): React.ReactNode => {
+    const IconComponent = (LucideIcons as any)[iconName];
+    if (IconComponent) {
+      return <IconComponent className="w-6 h-6" />;
+    }
+    // Fallback para Shield se o ícone não for encontrado
+    return <LucideIcons.Shield className="w-6 h-6" />;
+  };
 
   return (
     <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-gray-50 via-white to-gray-50 relative overflow-hidden">
@@ -81,42 +134,52 @@ export const FeaturesSectionBlake: React.FC = () => {
         </div>
 
         {/* Features Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {features.map((feature, index) => (
-            <div 
-              key={index}
-              className="group relative bg-white p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 overflow-hidden"
-            >
-              {/* Green Background on Hover */}
-              <div className="absolute inset-0 bg-[#3bb664] opacity-0 group-hover:opacity-5 transition-opacity duration-500"></div>
-              
-              {/* Animated Border */}
-              <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#3bb664]/20 transition-all duration-500"></div>
-              
-              {/* Icon Container */}
-              <div className="relative mb-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-[#3bb664] shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-                  <div className="text-white transform group-hover:scale-110 transition-transform duration-500">
-                    {feature.icon}
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">Carregando diferenciais...</p>
+          </div>
+        ) : features.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">Nenhum diferencial encontrado.</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {features.map((feature) => (
+              <div 
+                key={feature.id}
+                className="group relative bg-white p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 overflow-hidden"
+              >
+                {/* Green Background on Hover */}
+                <div className="absolute inset-0 bg-[#3bb664] opacity-0 group-hover:opacity-5 transition-opacity duration-500"></div>
+                
+                {/* Animated Border */}
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#3bb664]/20 transition-all duration-500"></div>
+                
+                {/* Icon Container */}
+                <div className="relative mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-[#3bb664] shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                    <div className="text-white transform group-hover:scale-110 transition-transform duration-500">
+                      {getIcon(feature.icon)}
+                    </div>
                   </div>
+                  {/* Glow Effect */}
+                  <div className="absolute inset-0 bg-[#3bb664] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></div>
                 </div>
-                {/* Glow Effect */}
-                <div className="absolute inset-0 bg-[#3bb664] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></div>
-              </div>
-              
-              {/* Content */}
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 group-hover:text-[#3bb664] transition-colors duration-300">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600 leading-relaxed text-base group-hover:text-gray-700 transition-colors duration-300">
-                {feature.description}
-              </p>
+                
+                {/* Content */}
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 group-hover:text-[#3bb664] transition-colors duration-300">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed text-base group-hover:text-gray-700 transition-colors duration-300">
+                  {feature.description}
+                </p>
 
-              {/* Decorative Element */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#3bb664] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </div>
-          ))}
-        </div>
+                {/* Decorative Element */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#3bb664] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Call to Action */}
         <div className="text-center mt-16 sm:mt-20 lg:mt-24">

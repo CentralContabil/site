@@ -1,6 +1,7 @@
 import React from 'react';
 import { Store, TrendingUp, ShoppingCart, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { useTranslation } from 'react-i18next';
 
 interface Specialty {
   id: string;
@@ -10,6 +11,7 @@ interface Specialty {
 }
 
 export const SpecialtiesSection: React.FC = () => {
+  const { t } = useTranslation();
   const specialties: Specialty[] = [
     {
       id: '1',
@@ -54,16 +56,15 @@ export const SpecialtiesSection: React.FC = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#3bb664] text-white text-xs font-semibold mb-6 uppercase tracking-wider">
-            Especialidades
+            {t('specialties.badge')}
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-            Nossas
-            <span className="block text-[#3bb664]">Especialidades</span>
+            {t('specialties.heading')}
+            <span className="block text-[#3bb664]">{t('specialties.headingHighlight')}</span>
           </h2>
           <div className="w-20 h-1 bg-[#3bb664] mx-auto mb-6"></div>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Oferecemos especializações em segmentos específicos para atender às necessidades 
-            únicas do seu negócio com expertise e conhecimento especializado.
+            {t('specialties.description')}
           </p>
         </div>
 

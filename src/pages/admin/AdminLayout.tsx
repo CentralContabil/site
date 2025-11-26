@@ -13,7 +13,11 @@ import {
   FileText,
   Mail,
   Building2,
-  Shield
+  Shield,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  Sparkles
 } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { useConfiguration } from '@/hooks/useConfiguration';
@@ -23,6 +27,15 @@ const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const { configuration } = useConfiguration();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Estado para menu retraído (desktop)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem('adminSidebarCollapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  // Estado para controlar qual tooltip está visível
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   // Verificar autenticação ao carregar o layout
   useEffect(() => {
@@ -42,6 +55,7 @@ const AdminLayout: React.FC = () => {
 
   const menuItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/admin/login-page', label: 'Página de Login', icon: Sparkles },
     { path: '/admin/sections', label: 'Seções do Site', icon: Sliders },
     { path: '/admin/services', label: 'Serviços', icon: Briefcase },
     { path: '/admin/testimonials', label: 'Depoimentos', icon: MessageSquare },
@@ -51,6 +65,7 @@ const AdminLayout: React.FC = () => {
     { path: '/admin/privacy-policy', label: 'Política de Privacidade', icon: Shield },
     { path: '/admin/subscriptions', label: 'Inscrições', icon: Mail },
     { path: '/admin/users', label: 'Usuários', icon: Users },
+    { path: '/admin/access-logs', label: 'Logs de Acesso', icon: Activity },
     { path: '/admin/configuration', label: 'Configurações', icon: Settings },
   ];
 
@@ -76,55 +91,119 @@ const AdminLayout: React.FC = () => {
     }
   }, [configuration, location.pathname]);
 
+  // Salvar estado do menu retraído
+  useEffect(() => {
+    localStorage.setItem('adminSidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
       <Toaster position="top-right" />
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out lg:flex-shrink-0`}>
+      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} bg-gray-800 shadow-lg transition-all duration-300 ease-in-out lg:flex-shrink-0 group flex flex-col`}>
         {/* Sidebar Header */}
-        <div className="px-6 h-16 flex items-center" style={{ backgroundColor: '#3bb664' }}>
-          <h1 className="text-white text-xl font-semibold">Admin</h1>
+        <div className={`h-16 flex items-center relative ${sidebarCollapsed ? 'justify-center' : 'justify-between px-6'}`} style={{ backgroundColor: '#3bb664' }}>
+          {!sidebarCollapsed ? (
+            <>
+              <h1 className="text-white text-xl font-semibold">Admin</h1>
+              {/* Botão para retrair (apenas desktop) */}
+              <button
+                onClick={toggleSidebar}
+                className="hidden lg:flex items-center justify-center w-8 h-8 rounded hover:bg-white/20 transition-colors text-white"
+                title="Retrair menu"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">A</span>
+              </div>
+              {/* Botão para expandir (apenas desktop) */}
+              <button
+                onClick={toggleSidebar}
+                className="hidden lg:flex items-center justify-center w-8 h-8 rounded hover:bg-white/20 transition-colors text-white absolute right-2"
+                title="Expandir menu"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          )}
         </div>
         
         {/* Navigation */}
-        <nav className="mt-6">
-          <ul className="space-y-2 px-4">
+        <nav className={`mt-6 flex-1 ${sidebarCollapsed ? '' : 'overflow-y-auto'}`}>
+          <ul className={`space-y-2 ${sidebarCollapsed ? 'px-2' : 'px-4'}`}>
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
+              const isHovered = hoveredItem === item.path;
               
               return (
-                <li key={item.path}>
+                <li key={item.path} className="relative">
                   <Link
                     to={item.path}
-                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    className={`flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'px-4'} py-3 text-sm font-medium rounded-lg transition-colors ${
                       isActive
                         ? 'text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        : 'text-gray-300 hover:bg-gray-700'
                     }`}
                     style={isActive ? { backgroundColor: '#3bb664' } : {}}
                     onClick={() => {
                       console.log('Clicando em:', item.path);
                       setSidebarOpen(false);
                     }}
+                    onMouseEnter={() => setHoveredItem(item.path)}
+                    onMouseLeave={() => setHoveredItem(null)}
                   >
-                    <Icon className="mr-3 h-5 w-5" />
-                    {item.label}
+                    <Icon className={`h-5 w-5 ${sidebarCollapsed ? '' : 'mr-3'}`} />
+                    {!sidebarCollapsed && <span>{item.label}</span>}
                   </Link>
+                  {/* Tooltip quando menu está contraído */}
+                  {sidebarCollapsed && (
+                    <div className={`absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 pointer-events-none transition-opacity duration-200 ${
+                      isHovered ? 'opacity-100' : 'opacity-0'
+                    }`}>
+                      <div className="bg-gray-800 text-white text-sm px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+                        {item.label}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-800"></div>
+                      </div>
+                    </div>
+                  )}
                 </li>
               );
             })}
-            <li>
-              <button
-                onClick={handleLogout}
-                className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <LogOut className="mr-3 h-5 w-5" />
-                Sair
-              </button>
-            </li>
           </ul>
         </nav>
+        
+        {/* Botão Sair na base */}
+        <div className={`border-t border-gray-700 ${sidebarCollapsed ? 'px-2' : 'px-4'} py-4 relative`}>
+          <button
+            onClick={handleLogout}
+            className={`flex items-center w-full ${sidebarCollapsed ? 'justify-center px-2' : 'px-4'} py-3 text-sm font-medium rounded-lg transition-colors text-gray-300 hover:bg-gray-700`}
+            onMouseEnter={() => setHoveredItem('logout')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <LogOut className={`h-5 w-5 ${sidebarCollapsed ? '' : 'mr-3'}`} />
+            {!sidebarCollapsed && <span>Sair</span>}
+          </button>
+              {/* Tooltip quando menu está contraído */}
+              {sidebarCollapsed && (
+                <div className={`absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50 pointer-events-none transition-opacity duration-200 ${
+                  hoveredItem === 'logout' ? 'opacity-100' : 'opacity-0'
+                }`}>
+                  <div className="bg-gray-800 text-white text-sm px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+                    Sair
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-800"></div>
+                  </div>
+                </div>
+              )}
+        </div>
       </div>
 
       {/* Main Content */}

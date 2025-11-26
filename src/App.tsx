@@ -18,6 +18,8 @@ import ConfigurationPage from "@/pages/admin/ConfigurationPage";
 import SubscriptionsAdmin from "@/pages/admin/SubscriptionsAdmin";
 import ClientsAdmin from "@/pages/admin/ClientsAdmin";
 import { PrivacyPolicyAdmin } from "@/pages/admin/PrivacyPolicyAdmin";
+import AccessLogsAdmin from "@/pages/admin/AccessLogsAdmin";
+import HeroAdmin from "@/pages/admin/HeroAdmin";
 import AdminLayout from "@/pages/admin/AdminLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { GlobalHeader } from "@/components/layout/GlobalHeader";
@@ -28,6 +30,7 @@ import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { FloatingWhatsAppButton } from "@/components/FloatingWhatsAppButton";
 import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
+import { ScriptsInjector } from "@/components/ScriptsInjector";
 
 // Layout component that includes global header and footer
 function AppLayout({ children }: { children: React.ReactNode }) {
@@ -96,6 +99,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <Toaster position="top-right" />
+      <ScriptsInjector />
       <GlobalHeader configuration={configuration} />
       <main>
         <PageTransition>
@@ -153,6 +157,7 @@ export default function App() {
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="login-page" element={<ProtectedRoute><HeroAdmin /></ProtectedRoute>} />
           <Route path="sections" element={<ProtectedRoute><SectionsAdmin /></ProtectedRoute>} />
           <Route path="services" element={<ProtectedRoute><ServicesAdmin /></ProtectedRoute>} />
           <Route path="testimonials" element={<ProtectedRoute><TestimonialsAdmin /></ProtectedRoute>} />
@@ -162,6 +167,7 @@ export default function App() {
           <Route path="clients" element={<ProtectedRoute><ClientsAdmin /></ProtectedRoute>} />
           <Route path="privacy-policy" element={<ProtectedRoute><PrivacyPolicyAdmin /></ProtectedRoute>} />
           <Route path="users" element={<ProtectedRoute><UsersAdmin /></ProtectedRoute>} />
+          <Route path="access-logs" element={<ProtectedRoute><AccessLogsAdmin /></ProtectedRoute>} />
           <Route path="configuration" element={<ProtectedRoute><ConfigurationPage /></ProtectedRoute>} />
         </Route>
       </Routes>

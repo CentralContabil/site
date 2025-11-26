@@ -50,6 +50,11 @@ import {
   getClients,
   updateClients,
   uploadClientsImage,
+  // Services
+  getServicesSection,
+  updateServicesSection,
+  uploadServicesImage,
+  deleteServicesImage,
 } from '../controllers/sectionsController';
 
 const router = express.Router();
@@ -192,6 +197,26 @@ router.post('/clients/image', authenticateToken, upload.single('file'), (err: an
   }
   next();
 }, uploadClientsImage);
+
+// ==================== SERVICES ====================
+router.get('/services', getServicesSection);
+router.put('/services', authenticateToken, updateServicesSection);
+router.post('/services/image', authenticateToken, upload.single('file'), (err: any, req: any, res: any, next: any) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'O arquivo é muito grande. O tamanho máximo permitido é 5MB. Por favor, escolha uma imagem menor.' 
+      });
+    }
+    return res.status(400).json({ success: false, error: `Erro no upload: ${err.message}` });
+  }
+  if (err) {
+    return res.status(400).json({ success: false, error: err.message || 'Erro ao processar arquivo' });
+  }
+  next();
+}, uploadServicesImage);
+router.delete('/services/image', authenticateToken, deleteServicesImage);
 
 export default router;
 

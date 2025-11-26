@@ -18,7 +18,7 @@ export class ContactMessagesController {
             orderBy: {
               created_at: 'desc',
             },
-            take: 1, // Apenas a última resposta para contar
+            // Retornar todas as respostas para poder contar
           },
         },
       });
@@ -126,6 +126,74 @@ export class ContactMessagesController {
       console.error('Erro ao contar total de mensagens:', error);
       res.status(500).json({
         error: 'Erro ao contar total de mensagens',
+        details: error instanceof Error ? error.message : 'Erro desconhecido',
+      });
+    }
+  }
+
+  // Obter mensagens agrupadas por mês (últimos 12 meses)
+  static async getMessagesByMonth(req: Request, res: Response) {
+    try {
+      // Calcular data de 12 meses atrás
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+      // Buscar todas as mensagens dos últimos 12 meses
+      const messages = await prisma.contactMessage.findMany({
+        where: {
+          created_at: {
+            gte: twelveMonthsAgo,
+          },
+        },
+        select: {
+          created_at: true,
+        },
+        orderBy: {
+          created_at: 'asc',
+        },
+      });
+
+      // Criar objeto para agrupar por mês/ano
+      const monthlyData: { [key: string]: number } = {};
+      
+      // Inicializar todos os últimos 12 meses com 0
+      const months: string[] = [];
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        months.push(monthKey);
+        monthlyData[monthKey] = 0;
+      }
+
+      // Agrupar mensagens por mês
+      messages.forEach((message) => {
+        const date = new Date(message.created_at);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (monthlyData[monthKey] !== undefined) {
+          monthlyData[monthKey]++;
+        }
+      });
+
+      // Formatar dados para resposta
+      const formattedData = months.map((monthKey) => {
+        const [year, month] = monthKey.split('-');
+        const monthNames = [
+          'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+          'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+        ];
+        return {
+          month: `${monthNames[parseInt(month) - 1]}/${year.slice(-2)}`,
+          count: monthlyData[monthKey],
+          fullMonth: monthKey,
+        };
+      });
+
+      res.json({ data: formattedData });
+    } catch (error) {
+      console.error('Erro ao buscar mensagens por mês:', error);
+      res.status(500).json({
+        error: 'Erro ao buscar mensagens por mês',
         details: error instanceof Error ? error.message : 'Erro desconhecido',
       });
     }

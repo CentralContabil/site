@@ -1,183 +1,163 @@
-# Site e Área Administrativa
+# Central Contábil - Sistema de Gestão e Website
 
-Projeto completo com site institucional e área administrativa, desenvolvido com React + TypeScript + Vite (frontend) e Node.js + Express + Prisma (backend).
+Sistema completo de gestão empresarial com painel administrativo e website institucional.
 
-## 🚀 Como Executar o Projeto Localmente
+## 🚀 Tecnologias
+
+### Frontend
+- **React 18** com TypeScript
+- **Vite** para build e desenvolvimento
+- **Tailwind CSS** para estilização
+- **React Router** para navegação
+- **i18next** para internacionalização (PT-BR, EN, ES)
+- **Recharts** para gráficos
+- **Lucide React** para ícones
+
+### Backend
+- **Node.js** com Express
+- **Prisma ORM** com SQLite
+- **JWT** para autenticação
+- **Nodemailer** para envio de emails
+- **Multer** para upload de arquivos
+- **Zod** para validação
+
+## 📋 Funcionalidades
+
+### Website Público
+- ✅ Hero section dinâmico
+- ✅ Seções personalizáveis (Sobre, Serviços, Depoimentos, etc.)
+- ✅ Blog com categorias e tags
+- ✅ Benefícios fiscais
+- ✅ Formulário de contato
+- ✅ Newsletter
+- ✅ Internacionalização (PT-BR, EN, ES)
+- ✅ SEO otimizado
+
+### Painel Administrativo
+- ✅ Dashboard com estatísticas e gráficos
+- ✅ Gerenciamento de conteúdo (Hero, Seções, Blog)
+- ✅ Gerenciamento de serviços e clientes
+- ✅ Sistema de mensagens de contato
+- ✅ Gerenciamento de usuários
+- ✅ Logs de acesso
+- ✅ Configurações gerais
+- ✅ Página de login personalizável
+- ✅ Autenticação 2FA por email
+
+## 🛠️ Instalação
 
 ### Pré-requisitos
-
-- Node.js (versão 18 ou superior)
+- Node.js 18+ 
 - npm ou yarn
 
-### Passo 1: Instalar Dependências
+### Passos
 
+1. **Clone o repositório**
+```bash
+git clone https://github.com/seu-usuario/central-contabil.git
+cd central-contabil
+```
+
+2. **Instale as dependências**
 ```bash
 npm install
 ```
 
-### Passo 2: Configurar Variáveis de Ambiente
-
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-
-```env
-# JWT Secret (obrigatório para autenticação)
-JWT_SECRET=seu-jwt-secret-super-seguro-aqui
-
-# Configurações de Email (opcional - para funcionalidades de email)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=seu-email@gmail.com
-SMTP_PASS=sua-senha-app
-
-# Porta do servidor (opcional - padrão: 3006)
-PORT=3006
+3. **Configure as variáveis de ambiente**
+```bash
+cp .env.example .env
 ```
 
-**Nota:** O `JWT_SECRET` é obrigatório. Você pode gerar um valor aleatório seguro. As configurações de email são opcionais e só são necessárias se você for usar funcionalidades de envio de email.
+Edite o arquivo `.env` com suas configurações:
+```env
+# Database
+DATABASE_URL="file:./dev.db"
 
-### Passo 3: Gerar o Prisma Client
+# JWT
+JWT_SECRET="seu-jwt-secret-aqui"
 
+# Email (SMTP)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="seu-email@gmail.com"
+SMTP_PASS="sua-senha-app"
+
+# API
+PORT=3006
+NODE_ENV=development
+```
+
+4. **Configure o banco de dados**
 ```bash
 npx prisma generate
+npx prisma db push
 ```
 
-### Passo 4: Executar Migrações do Banco de Dados
-
-```bash
-npx prisma migrate dev
-```
-
-### Passo 5: Popular o Banco de Dados (Seed)
-
-Execute o seed para criar dados iniciais (administradores, configurações, slides, serviços, etc.):
-
-```bash
-npm run seed
-```
-
-Isso criará:
-- **2 administradores:**
-  - Email: `sistema@central-rnc.com.br` / Senha: `admin123`
-  - Email: `wagner.guerra@gmail.com` / Senha: `admin123`
-- Configurações padrão da empresa
-- Slides, serviços e depoimentos de exemplo
-
-### Passo 6: Executar o Projeto
-
-Para executar tanto o frontend quanto o backend simultaneamente:
-
+5. **Inicie o servidor de desenvolvimento**
 ```bash
 npm run dev
 ```
 
-Isso iniciará:
-- **Frontend (Vite):** http://localhost:5173 (ou outra porta disponível)
-- **Backend (API):** http://localhost:3006
+O frontend estará disponível em `http://localhost:5173`
+O backend estará disponível em `http://localhost:3006`
 
-### Executar Separadamente
+## 📦 Scripts Disponíveis
 
-Se preferir executar frontend e backend em terminais separados:
+- `npm run dev` - Inicia frontend e backend em modo desenvolvimento
+- `npm run build` - Build completo (frontend + backend)
+- `npm run build:client` - Build apenas do frontend
+- `npm run build:api` - Build apenas do backend
+- `npm start` - Inicia servidor em produção
+- `npm run prisma:studio` - Abre Prisma Studio para visualizar dados
 
-**Terminal 1 - Frontend:**
-```bash
-npm run client:dev
-```
+## 🌐 Deploy
 
-**Terminal 2 - Backend:**
-```bash
-npm run server:dev
-```
+### Kinghost (Shared Hosting)
 
-## 🌐 Acessando o Projeto
+Consulte o arquivo `DEPLOY_KINGHOST.md` para instruções detalhadas de deploy na Kinghost.
 
-### Site Público
+### Checklist de Deploy
 
-Após iniciar o projeto, acesse no navegador:
-- **URL:** http://localhost:5173
-
-### Área Administrativa
-
-Para acessar a área administrativa:
-1. Acesse: http://localhost:5173/admin/login
-2. Use uma das credenciais criadas no seed:
-   - **Email:** `sistema@central-rnc.com.br`
-   - **Senha:** `admin123`
-
-   OU
-
-   - **Email:** `wagner.guerra@gmail.com`
-   - **Senha:** `admin123`
+Consulte o arquivo `CHECKLIST_DEPLOY.md` para um checklist completo antes do deploy.
 
 ## 📁 Estrutura do Projeto
 
 ```
 ├── api/                    # Backend (Express + Prisma)
-│   ├── controllers/        # Controladores da API
+│   ├── controllers/       # Controllers da API
 │   ├── routes/            # Rotas da API
-│   ├── services/          # Serviços de negócio
+│   ├── services/          # Serviços (email, upload, etc.)
 │   ├── middleware/        # Middlewares (auth, error handling)
-│   └── lib/               # Bibliotecas e configurações
-├── src/                   # Frontend (React + TypeScript)
-│   ├── pages/             # Páginas do site
-│   │   ├── admin/         # Páginas da área administrativa
-│   │   └── ...            # Páginas públicas
-│   ├── components/        # Componentes React
-│   ├── services/          # Serviços de API (cliente)
-│   └── ...
-├── prisma/                # Schema e migrações do banco de dados
-│   ├── schema.prisma      # Schema do Prisma
-│   ├── dev.db            # Banco de dados SQLite
-│   └── seed.ts           # Script de seed
-└── public/                # Arquivos estáticos
+│   └── lib/              # Bibliotecas (Prisma client)
+├── src/                   # Frontend (React)
+│   ├── components/       # Componentes React
+│   ├── pages/           # Páginas
+│   ├── services/        # Serviços (API client)
+│   ├── hooks/           # Custom hooks
+│   ├── types/           # TypeScript types
+│   └── i18n/           # Traduções
+├── prisma/              # Schema do banco de dados
+├── public/              # Arquivos estáticos
+└── dist/               # Build de produção
 ```
 
-## 🛠️ Scripts Disponíveis
+## 🔐 Segurança
 
-- `npm run dev` - Executa frontend e backend simultaneamente
-- `npm run client:dev` - Executa apenas o frontend
-- `npm run server:dev` - Executa apenas o backend
-- `npm run build` - Compila o projeto para produção
-- `npm run preview` - Visualiza a build de produção
-- `npm run seed` - Popula o banco de dados com dados iniciais
-- `npm run lint` - Executa o linter
-- `npm run check` - Verifica tipos TypeScript
+- Autenticação JWT
+- 2FA por email
+- Validação de dados com Zod
+- Sanitização de inputs
+- Proteção contra XSS
+- Rate limiting (recomendado em produção)
 
-## 🔧 Tecnologias Utilizadas
+## 📝 Licença
 
-### Frontend
-- React 18
-- TypeScript
-- Vite
-- React Router
-- Tailwind CSS
-- Zustand (gerenciamento de estado)
+Este projeto é privado e proprietário.
 
-### Backend
-- Node.js
-- Express
-- TypeScript
-- Prisma ORM
-- SQLite
-- JWT (autenticação)
-- Bcrypt (hash de senhas)
+## 👥 Desenvolvido por
 
-## 📝 Notas Importantes
+Central Contábil - Soluções Empresariais
 
-- O banco de dados SQLite está localizado em `prisma/dev.db`
-- As imagens enviadas são salvas em `public/uploads/`
-- O frontend faz proxy das requisições `/api` para o backend automaticamente
-- Certifique-se de que a porta 3006 esteja disponível para o backend
+---
 
-## 🐛 Solução de Problemas
-
-### Erro: "JWT_SECRET is not defined"
-- Certifique-se de criar o arquivo `.env` com a variável `JWT_SECRET`
-
-### Erro: "Cannot find module '@prisma/client'"
-- Execute: `npx prisma generate`
-
-### Erro: "Database not found"
-- Execute: `npx prisma migrate dev`
-
-### Porta já em uso
-- Altere a porta no arquivo `nodemon.json` (backend) ou `vite.config.ts` (frontend)
+Para mais informações, consulte a documentação em `DEPLOY_KINGHOST.md` e `CHECKLIST_DEPLOY.md`.

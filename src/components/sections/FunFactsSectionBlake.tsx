@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as LucideIcons from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface CounterProps {
   end: number;
@@ -71,6 +72,7 @@ interface FunFact {
 }
 
 export const FunFactsSectionBlake: React.FC = () => {
+  const { t } = useTranslation();
   const [funFacts, setFunFacts] = useState<FunFact[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -155,15 +157,14 @@ export const FunFactsSectionBlake: React.FC = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <div className="inline-block px-4 py-2 bg-[#3bb664]/20 text-[#3bb664] rounded-full text-sm font-medium mb-6 border border-[#3bb664]/30">
-            Nossos Números
+            {t('funFacts.title')}
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Números que Falam por Si
+            {t('funFacts.subtitle')}
           </h2>
           <div className="w-24 h-1 bg-[#3bb664] mx-auto mb-6"></div>
           <p className="text-lg text-gray-300 max-w-3xl mx-auto">
-            Mais de três décadas construindo histórias de sucesso e transformando 
-            a gestão contábil de empresas em todo o Espírito Santo.
+            {t('funFacts.description')}
           </p>
         </div>
 
@@ -201,12 +202,12 @@ export const FunFactsSectionBlake: React.FC = () => {
         {/* Call to Action */}
         <div className="text-center mt-16">
           <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-white/10 border-2 border-white/20 px-8 py-5">
-            <span className="text-white text-base font-medium">Pronto para fazer parte desses números?</span>
+            <span className="text-white text-base font-medium">{t('funFacts.readyToJoin')}</span>
             <button 
               className="bg-[#3bb664] text-white px-6 py-2.5 font-semibold hover:bg-[#2d9a4f] transition-colors duration-300 uppercase tracking-wider text-sm"
               onClick={() => document.querySelector('#contato')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Comece Agora
+              {t('funFacts.startNow')}
             </button>
           </div>
         </div>

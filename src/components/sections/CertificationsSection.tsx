@@ -1,7 +1,9 @@
 import React from 'react';
 import { Award, Shield, CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const CertificationsSection: React.FC = () => {
+  const { t } = useTranslation();
   const certifications = [
     {
       name: 'Rede Nacional de Contabilidade',
@@ -46,15 +48,14 @@ export const CertificationsSection: React.FC = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#3bb664] text-white text-xs font-semibold mb-6 uppercase tracking-wider">
-            Certificações e Parcerias
+            {t('certifications.badge')}
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Reconhecimento e Credibilidade
+            {t('certifications.heading')}
           </h2>
           <div className="w-20 h-1 bg-[#3bb664] mx-auto mb-6"></div>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Nossas certificações e parcerias estratégicas garantem a excelência 
-            e confiabilidade dos nossos serviços contábeis.
+            {t('certifications.description')}
           </p>
         </div>
 

@@ -1,12 +1,31 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Plus, 
   Edit, 
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  GripVertical
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { apiService } from '../../services/api';
 import { Service } from '../../types';
 import { toast } from 'sonner';
@@ -18,10 +37,102 @@ const ICON_OPTIONS = [
   'handshake', 'shield', 'trending-up', 'users', 'wallet'
 ];
 
+// Componente para linha arrastável
+function SortableRow({ 
+  service, 
+  onEdit, 
+  onDelete, 
+  onToggleStatus, 
+  renderIcon 
+}: { 
+  service: Service; 
+  onEdit: (service: Service) => void;
+  onDelete: (id: string) => void;
+  onToggleStatus: (service: Service) => void;
+  renderIcon: (iconName: string) => React.ReactNode;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: service.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <tr ref={setNodeRef} style={style} className={isDragging ? 'bg-gray-100' : ''}>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center gap-2">
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1"
+            title="Arrastar para reordenar"
+          >
+            <GripVertical className="w-5 h-5" />
+          </button>
+          {service.icon && (
+            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#3bb66420' }}>
+              {renderIcon(service.icon)}
+            </div>
+          )}
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="text-sm font-medium text-gray-900">{service.name}</div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="text-sm text-gray-500 max-w-xs truncate">
+          {service.description}
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <button
+          onClick={() => onToggleStatus(service)}
+          className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium ${
+            service.isActive
+              ? 'text-white'
+              : 'bg-red-100 text-red-800'
+          }`}
+          style={service.isActive ? { backgroundColor: '#3bb664' } : {}}
+        >
+          {service.isActive ? 'Ativo' : 'Inativo'}
+        </button>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <div className="flex space-x-2">
+          <button
+            onClick={() => onEdit(service)}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            title="Editar"
+          >
+            <Edit className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => onDelete(service.id)}
+            className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+            title="Excluir"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 export default function ServicesAdmin() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -33,6 +144,14 @@ export default function ServicesAdmin() {
     order: 0,
     isActive: true
   });
+
+  // Sensores para drag-and-drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     loadServices();
@@ -51,6 +170,15 @@ export default function ServicesAdmin() {
     }
   };
 
+  const handleCloseModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowModal(false);
+      setIsClosing(false);
+      resetForm();
+    }, 200);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -63,8 +191,7 @@ export default function ServicesAdmin() {
         toast.success('Serviço criado com sucesso!');
       }
       
-      setShowModal(false);
-      resetForm();
+      handleCloseModal();
       loadServices();
     } catch (error) {
       console.error('Error saving service:', error);
@@ -84,6 +211,7 @@ export default function ServicesAdmin() {
       order: service.order,
       isActive: service.isActive
     });
+    setIsClosing(false);
     setShowModal(true);
   };
 
@@ -125,6 +253,72 @@ export default function ServicesAdmin() {
     });
   };
 
+  // Handler para quando o drag termina
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = services.findIndex((s) => s.id === active.id);
+      const newIndex = services.findIndex((s) => s.id === over.id);
+
+      const newServices = arrayMove(services, oldIndex, newIndex);
+      
+      // Atualizar a ordem localmente primeiro (otimista)
+      setServices(newServices);
+
+      // Atualizar a ordem no backend
+      try {
+        // Atualizar a ordem de todos os serviços afetados
+        const updates = newServices.map((service, index) => ({
+          id: service.id,
+          order: index + 1,
+        }));
+
+        // Atualizar cada serviço
+        await Promise.all(
+          updates.map((update) =>
+            apiService.updateService(update.id, { order: update.order })
+          )
+        );
+
+        toast.success('Ordem atualizada com sucesso!');
+      } catch (error) {
+        console.error('Error updating order:', error);
+        toast.error('Erro ao atualizar ordem. Recarregando...');
+        // Reverter para o estado anterior
+        loadServices();
+      }
+    }
+  };
+
+  // Função para renderizar o ícone
+  const renderIcon = (iconName: string) => {
+    if (!iconName) return null;
+    
+    // Normalizar o nome do ícone: remover espaços, converter para PascalCase
+    // Exemplos: "trending-up" -> "TrendingUp", "file-text" -> "FileText", "chart-bar" -> "ChartBar"
+    const normalizedName = iconName
+      .toLowerCase()
+      .replace(/[-_\s]+(.)?/g, (_, c) => c ? c.toUpperCase() : '')
+      .replace(/^(.)/, (_, c) => c.toUpperCase());
+    
+    // Tentar encontrar o ícone no lucide-react
+    const IconComponent = (LucideIcons as any)[normalizedName];
+    
+    if (IconComponent) {
+      return <IconComponent className="w-5 h-5" style={{ color: '#3bb664' }} />;
+    }
+    
+    // Se não encontrar, tentar com o nome original (caso já esteja em PascalCase)
+    const IconComponentOriginal = (LucideIcons as any)[iconName];
+    if (IconComponentOriginal) {
+      return <IconComponentOriginal className="w-5 h-5" style={{ color: '#3bb664' }} />;
+    }
+    
+    // Fallback se o ícone não for encontrado
+    return <span className="text-xs" style={{ color: '#3bb664' }}>{iconName}</span>;
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -133,6 +327,7 @@ export default function ServicesAdmin() {
           <button
             onClick={() => {
               resetForm();
+              setIsClosing(false);
               setShowModal(true);
             }}
             className="text-white px-4 py-2 rounded-md flex items-center transition-colors"
@@ -151,91 +346,61 @@ export default function ServicesAdmin() {
           </div>
         ) : (
           <div className="bg-white shadow rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ícone
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nome
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Descrição
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ordem
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {services.map((service) => (
-                  <tr key={service.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {service.icon && (
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#3bb66420' }}>
-                          <span className="text-lg" style={{ color: '#3bb664' }}>{service.icon}</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{service.name}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500 max-w-xs truncate">
-                        {service.description}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {service.order}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleToggleStatus(service)}
-                        className={`inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium ${
-                          service.isActive
-                            ? 'text-white'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                        style={service.isActive ? { backgroundColor: '#3bb664' } : {}}
-                      >
-                        {service.isActive ? 'Ativo' : 'Inativo'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEdit(service)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(service.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                      
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nome
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Descrição
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <SortableContext
+                  items={services.map((s) => s.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {services.map((service) => (
+                      <SortableRow
+                        key={service.id}
+                        service={service}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onToggleStatus={handleToggleStatus}
+                        renderIcon={renderIcon}
+                      />
+                    ))}
+                  </tbody>
+                </SortableContext>
+              </table>
+            </DndContext>
           </div>
         )}
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 modal-backdrop" onClick={handleCloseModal}>
+            <div 
+              className={`relative top-10 mx-auto p-6 border w-full max-w-3xl shadow-lg rounded-md bg-white my-8 modal-content ${isClosing ? 'closing' : ''}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-bold text-gray-900 mb-6">
                 {editingService ? 'Editar Serviço' : 'Novo Serviço'}
               </h3>
               
@@ -338,7 +503,7 @@ export default function ServicesAdmin() {
                 <div className="flex justify-end space-x-2">
                   <button
                     type="button"
-                    onClick={() => setShowModal(false)}
+                    onClick={handleCloseModal}
                     className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     Cancelar

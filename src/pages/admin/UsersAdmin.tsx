@@ -256,24 +256,20 @@ const UsersAdmin: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <button
                       onClick={() => handleEdit(user)}
-                      className="flex items-center"
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Editar"
                     >
-                      <Edit className="h-3 w-3 mr-1" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => handleDelete(user.id)}
-                      className="flex items-center text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Excluir"
                     >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Remover
-                    </Button>
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               ))}

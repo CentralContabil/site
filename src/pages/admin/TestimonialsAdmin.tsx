@@ -8,6 +8,7 @@ export default function TestimonialsAdmin() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
   const [formData, setFormData] = useState({
     clientName: '',
@@ -51,6 +52,16 @@ export default function TestimonialsAdmin() {
     }
   }, [editingTestimonial, showModal]);
 
+  const handleCloseModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowModal(false);
+      setIsClosing(false);
+      setEditingTestimonial(null);
+      setFormData({ clientName: '', company: '', testimonialText: '', mediaType: 'image', mediaUrl: '', order: 0, isActive: true });
+    }, 200);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -77,9 +88,7 @@ export default function TestimonialsAdmin() {
         toast.success('Depoimento criado com sucesso!');
       }
       
-      setShowModal(false);
-      setEditingTestimonial(null);
-      setFormData({ clientName: '', company: '', testimonialText: '', mediaType: 'image', mediaUrl: '', order: 0, isActive: true });
+      handleCloseModal();
       fetchTestimonials();
     } catch (error) {
       toast.error('Erro ao salvar depoimento');
@@ -112,12 +121,14 @@ export default function TestimonialsAdmin() {
     };
     console.log('📋 FormData a ser definido:', formDataToSet);
     setFormData(formDataToSet);
+    setIsClosing(false);
     setShowModal(true);
   };
 
   const openCreateModal = () => {
     setEditingTestimonial(null);
     setFormData({ clientName: '', company: '', testimonialText: '', mediaType: 'image', mediaUrl: '', order: 0, isActive: true });
+    setIsClosing(false);
     setShowModal(true);
   };
 
@@ -242,19 +253,18 @@ export default function TestimonialsAdmin() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 modal-backdrop" onClick={handleCloseModal}>
+          <div 
+            className={`bg-white rounded-lg max-w-md w-full p-6 modal-content ${isClosing ? 'closing' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-800">
                 {editingTestimonial ? 'Editar Depoimento' : 'Novo Depoimento'}
               </h2>
               <button
                 type="button"
-                onClick={() => {
-                  setShowModal(false);
-                  setEditingTestimonial(null);
-                  setFormData({ clientName: '', company: '', testimonialText: '', mediaType: 'image', mediaUrl: '', order: 0, isActive: true });
-                }}
+                onClick={handleCloseModal}
                 className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -427,7 +437,7 @@ export default function TestimonialsAdmin() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={handleCloseModal}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Cancelar

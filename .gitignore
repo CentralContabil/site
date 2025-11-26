@@ -7,26 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
 node_modules
 dist
 dist-ssr
 *.local
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Database
-prisma/dev.db
-prisma/dev.db-journal
-*.db
-*.db-journal
-
-# Uploads (arquivos enviados pelos usuários)
-public/uploads/*
-!public/uploads/.gitkeep
 
 # Editor directories and files
 .vscode/*
@@ -38,13 +22,39 @@ public/uploads/*
 *.njsproj
 *.sln
 *.sw?
-.vite
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Database
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.db-journal
+
+# Uploads (manter estrutura, mas não os arquivos)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Build outputs
+*.tsbuildinfo
+build
+out
+
+# Temporary files
+*.tmp
+*.temp
+.cache
 
 # OS files
 Thumbs.db
 .DS_Store
 
-# Temporary files
-*.tmp
-*.temp
+# PM2
+.pm2
+
+# Server output
 server-output.txt

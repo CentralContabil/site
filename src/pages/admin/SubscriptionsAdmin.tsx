@@ -154,16 +154,14 @@ export default function SubscriptionsAdmin() {
                       {formatDate(subscription.createdAt)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex items-center gap-1"
+                      <button
+                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() => handleDelete(subscription.id)}
                         disabled={deletingId === subscription.id}
+                        title="Excluir"
                       >
                         <Trash2 className="h-4 w-4" />
-                        {deletingId === subscription.id ? 'Removendo' : 'Remover'}
-                      </Button>
+                      </button>
                     </td>
                   </tr>
                 ))}

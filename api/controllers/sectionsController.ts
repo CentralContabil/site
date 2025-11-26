@@ -904,5 +904,126 @@ export const uploadClientsImage = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// ==================== SERVICES SECTION ====================
+
+const servicesSectionSchema = z.object({
+  badge_text: z.string().optional(),
+  title_line1: z.string().optional(),
+  title_line2: z.string().optional(),
+  description: z.string().optional(),
+  years_highlight: z.string().nullable().optional(),
+  background_image_url: z.string().nullable().optional(),
+});
+
+export const getServicesSection = async (req: Request, res: Response) => {
+  try {
+    let services = await prisma.sectionServices.findFirst();
+    if (!services) {
+      services = await prisma.sectionServices.create({
+        data: {
+          badge_text: 'Nossos Serviços',
+          title_line1: 'Nossas Soluções Vão',
+          title_line2: 'Além da Contabilidade',
+          description: 'Atuamos de forma integrada e estratégica para que o seu negócio tenha a melhor performance contábil, fiscal e tributária com 34 anos de experiência.',
+        },
+      });
+    }
+    res.json({ success: true, services });
+  } catch (error) {
+    console.error('Erro ao buscar services section:', error);
+    res.status(500).json({ success: false, error: 'Erro ao buscar services section' });
+  }
+};
+
+export const updateServicesSection = async (req: AuthRequest, res: Response) => {
+  try {
+    const data = servicesSectionSchema.parse(req.body);
+    let services = await prisma.sectionServices.findFirst();
+    if (!services) {
+      services = await prisma.sectionServices.create({ data });
+    } else {
+      services = await prisma.sectionServices.update({
+        where: { id: services.id },
+        data,
+      });
+    }
+    res.json({ success: true, services });
+  } catch (error: any) {
+    console.error('Erro ao atualizar services section:', error);
+    res.status(400).json({ success: false, error: error.message || 'Erro ao atualizar services section' });
+  }
+};
+
+export const uploadServicesImage = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'Nenhum arquivo enviado' });
+    }
+    FileService.validateImageFile(req.file);
+    const uploadResult = await FileService.uploadFile(req.file);
+    
+    let services = await prisma.sectionServices.findFirst();
+    if (!services) {
+      services = await prisma.sectionServices.create({
+        data: {
+          badge_text: 'Nossos Serviços',
+          title_line1: 'Nossas Soluções Vão',
+          title_line2: 'Além da Contabilidade',
+          description: 'Atuamos de forma integrada e estratégica para que o seu negócio tenha a melhor performance contábil, fiscal e tributária com 34 anos de experiência.',
+        },
+      });
+    }
+    
+    const oldImageUrl = services.background_image_url;
+    if (oldImageUrl && oldImageUrl.startsWith('/uploads/')) {
+      try {
+        const oldFilename = oldImageUrl.split('/').pop();
+        if (oldFilename) await FileService.deleteFile(oldFilename);
+      } catch (e) {
+        console.warn('Erro ao deletar imagem antiga:', e);
+      }
+    }
+    
+    services = await prisma.sectionServices.update({
+      where: { id: services.id },
+      data: { background_image_url: uploadResult.url },
+    });
+    
+    res.json({ success: true, services, data: { url: uploadResult.url } });
+  } catch (error: any) {
+    console.error('Erro ao fazer upload:', error);
+    res.status(500).json({ success: false, error: error.message || 'Erro ao fazer upload' });
+  }
+};
+
+export const deleteServicesImage = async (req: AuthRequest, res: Response) => {
+  try {
+    let services = await prisma.sectionServices.findFirst();
+    if (!services) {
+      return res.status(404).json({ success: false, error: 'Seção de serviços não encontrada' });
+    }
+
+    const oldImageUrl = services.background_image_url;
+    if (oldImageUrl && oldImageUrl.startsWith('/uploads/')) {
+      try {
+        const oldFilename = oldImageUrl.split('/').pop();
+        if (oldFilename) await FileService.deleteFile(oldFilename);
+      } catch (e) {
+        console.warn('Erro ao deletar imagem antiga:', e);
+      }
+    }
+
+    services = await prisma.sectionServices.update({
+      where: { id: services.id },
+      data: { background_image_url: null },
+    });
+
+    res.json({ success: true, services, message: 'Imagem de fundo removida com sucesso' });
+  } catch (error: any) {
+    console.error('Erro ao deletar imagem:', error);
+    res.status(500).json({ success: false, error: error.message || 'Erro ao deletar imagem' });
+  }
+};
+
 
 

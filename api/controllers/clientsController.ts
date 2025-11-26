@@ -6,6 +6,7 @@ import { AuthRequest } from '../middleware/auth.js';
 
 const clientSchema = z.object({
   name: z.string().min(1, 'Nome do cliente é obrigatório'),
+  phone: z.string().optional().or(z.literal('')),
   website_url: z.string().url().optional().or(z.literal('')),
   facebook_url: z.string().url().optional().or(z.literal('')),
   instagram_url: z.string().url().optional().or(z.literal('')),
@@ -73,6 +74,7 @@ export const createClient = async (req: AuthRequest, res: Response) => {
     const client = await prisma.client.create({
       data: {
         name: data.name,
+        phone: data.phone || null,
         website_url: data.website_url || null,
         facebook_url: data.facebook_url || null,
         instagram_url: data.instagram_url || null,
@@ -126,6 +128,7 @@ export const updateClient = async (req: AuthRequest, res: Response) => {
       where: { id },
       data: {
         name: data.name,
+        phone: data.phone !== undefined ? (data.phone || null) : existingClient.phone,
         website_url: data.website_url || null,
         facebook_url: data.facebook_url || null,
         instagram_url: data.instagram_url || null,

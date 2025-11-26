@@ -5,9 +5,11 @@ import { apiService } from '../../services/api';
 import { Client } from '../../types';
 import { ExternalLink, Facebook, Instagram, Linkedin, Twitter, MessageCircle } from 'lucide-react';
 import { useConfiguration } from '../../hooks/useConfiguration';
+import { useTranslation } from 'react-i18next';
 import 'swiper/css';
 
 export const ClientsSection: React.FC = () => {
+  const { t } = useTranslation();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [sectionData, setSectionData] = useState<{ title: string; background_image_url?: string | null } | null>(null);
@@ -26,7 +28,7 @@ export const ClientsSection: React.FC = () => {
         console.error('Erro ao carregar dados:', error);
         // Usar dados padrão em caso de erro
         setClients([]);
-        setSectionData({ title: 'Empresas que Confiam em Nosso Trabalho' });
+        setSectionData({ title: t('clients.defaultTitle') });
       } finally {
         setLoading(false);
       }
@@ -97,7 +99,7 @@ export const ClientsSection: React.FC = () => {
         {/* Título simples */}
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-semibold text-white uppercase tracking-wide">
-            {sectionData?.title || 'Empresas que Confiam em Nosso Trabalho'}
+            {sectionData?.title || t('clients.defaultTitle')}
           </h2>
         </div>
 
@@ -106,23 +108,33 @@ export const ClientsSection: React.FC = () => {
           <Swiper
             modules={[Autoplay]}
             spaceBetween={20}
-            slidesPerView={2}
+            slidesPerView={activeClients.length < 2 ? activeClients.length : 2}
+            centeredSlides={activeClients.length < 5}
+            centeredSlidesBounds={activeClients.length < 5}
             breakpoints={{
               640: {
-                slidesPerView: 3,
+                slidesPerView: activeClients.length < 3 ? activeClients.length : 3,
                 spaceBetween: 20,
+                centeredSlides: activeClients.length < 5,
+                centeredSlidesBounds: activeClients.length < 5,
               },
               768: {
-                slidesPerView: 4,
+                slidesPerView: activeClients.length < 4 ? activeClients.length : 4,
                 spaceBetween: 20,
+                centeredSlides: activeClients.length < 5,
+                centeredSlidesBounds: activeClients.length < 5,
               },
               1024: {
-                slidesPerView: 5,
+                slidesPerView: activeClients.length < 5 ? activeClients.length : 5,
                 spaceBetween: 20,
+                centeredSlides: activeClients.length < 5,
+                centeredSlidesBounds: activeClients.length < 5,
               },
               1280: {
-                slidesPerView: 5,
+                slidesPerView: activeClients.length < 5 ? activeClients.length : 5,
                 spaceBetween: 30,
+                centeredSlides: activeClients.length < 5,
+                centeredSlidesBounds: activeClients.length < 5,
               },
             }}
             autoplay={{
@@ -132,7 +144,7 @@ export const ClientsSection: React.FC = () => {
             }}
             loop={activeClients.length > 5}
             speed={800}
-            className="clients-swiper"
+            className={`clients-swiper ${activeClients.length < 5 ? 'centered-slides' : ''}`}
             grabCursor={false}
           >
             {activeClients.map((client) => {
@@ -142,7 +154,10 @@ export const ClientsSection: React.FC = () => {
               const instagramUrl = client.instagramUrl || client.instagram_url;
               const linkedinUrl = client.linkedinUrl || client.linkedin_url;
               const twitterUrl = client.twitterUrl || client.twitter_url;
-              const whatsappNumber = configuration?.whatsappNumber || configuration?.whatsapp_number;
+              // Usar o telefone do cliente, se disponível, senão usar o da configuração geral
+              const clientPhone = client.phone;
+              const defaultWhatsappNumber = configuration?.whatsappNumber || configuration?.whatsapp_number;
+              const whatsappNumber = clientPhone || defaultWhatsappNumber;
 
               const hasLinks = websiteUrl || facebookUrl || instagramUrl || linkedinUrl || twitterUrl || whatsappNumber;
 
@@ -257,6 +272,11 @@ export const ClientsSection: React.FC = () => {
           align-items: stretch;
           justify-content: center;
           height: 200px;
+        }
+        .clients-swiper.centered-slides .swiper-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       `}</style>
     </section>

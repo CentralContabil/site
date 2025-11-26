@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Service } from '../types';
 import { FooterBlake } from '../components/layout/FooterBlake';
 import { Button } from '../components/ui/Button';
+import { SEO } from '../components/SEO';
 import { useConfiguration } from '../hooks/useConfiguration';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 
@@ -91,8 +92,20 @@ export const ServicePage: React.FC = () => {
     );
   }
 
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const serviceUrl = `${baseUrl}/servicos/${service.slug}`;
+  const serviceImage = service.imageUrl || `${baseUrl}/favicon.svg`;
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO
+        title={service.name}
+        description={service.description}
+        keywords={`${service.name}, serviços contábeis, contabilidade, consultoria contábil`}
+        image={serviceImage}
+        url={serviceUrl}
+        configuration={configuration}
+      />
       {/* Hero Section */}
       <section className="relative text-white pt-32 sm:pt-36 lg:pt-40 pb-20 overflow-hidden">
         {/* Background Image */}

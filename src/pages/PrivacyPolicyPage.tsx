@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FooterBlake } from '../components/layout/FooterBlake';
 import { Button } from '../components/ui/Button';
+import { SEO } from '../components/SEO';
 import { useConfiguration } from '../hooks/useConfiguration';
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 import { apiService } from '../services/api';
@@ -65,6 +66,12 @@ export const PrivacyPolicyPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO
+        title="Política de Privacidade"
+        description="Política de privacidade e conformidade com a LGPD - Lei Geral de Proteção de Dados"
+        keywords="política de privacidade, LGPD, proteção de dados, privacidade"
+        configuration={configuration}
+      />
       {/* Hero Section */}
       <section className="relative text-white pt-32 sm:pt-36 lg:pt-40 pb-20 overflow-hidden">
         {/* Background Image */}

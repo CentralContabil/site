@@ -1,22 +1,90 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS, es } from 'date-fns/locale';
 import { BlogPost } from '../types';
 import { FooterBlake } from '../components/layout/FooterBlake';
 import { Button } from '../components/ui/Button';
+import { SEO } from '../components/SEO';
 import { useConfiguration } from '../hooks/useConfiguration';
 import { Calendar, Clock, User, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const BlogPage: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { configuration } = useConfiguration();
+
+  // Selecionar locale do date-fns baseado no idioma atual
+  const getDateLocale = () => {
+    switch (i18n.language) {
+      case 'en':
+        return enUS;
+      case 'es':
+        return es;
+      default:
+        return ptBR;
+    }
+  };
 
   useEffect(() => {
     fetchPosts();
+    fetchCategories();
+    fetchTags();
   }, []);
+
+  const filteredPosts = posts.filter(post => {
+    // Busca por palavras-chave
+    const matchesSearch = !searchTerm || 
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (post.excerpt && post.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (post.content && post.content.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Filtro por categoria
+    const matchesCategory = selectedCategory === 'all' || 
+      (post.categories && post.categories.some(c => 
+        c.category_id === selectedCategory || c.category?.id === selectedCategory
+      ));
+    
+    // Filtro por tags
+    const matchesTags = selectedTags.length === 0 || 
+      (post.tags && post.tags.some(t => 
+        selectedTags.includes(t.tag_id) || selectedTags.includes(t.tag?.id)
+      ));
+    
+    return matchesSearch && matchesCategory && matchesTags;
+  });
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories?active=true');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.categories || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+    }
+  };
+
+  const fetchTags = async () => {
+    try {
+      const response = await fetch('/api/tags?active=true');
+      if (response.ok) {
+        const data = await response.json();
+        setTags(data.tags || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar tags:', error);
+    }
+  };
 
   const normalizePost = (post: any): BlogPost => {
     return {
@@ -36,6 +104,8 @@ export const BlogPage: React.FC = () => {
       created_at: post.created_at || post.createdAt,
       updatedAt: post.updated_at ? new Date(post.updated_at) : new Date(post.updatedAt || Date.now()),
       updated_at: post.updated_at || post.updatedAt,
+      categories: post.categories || [],
+      tags: post.tags || []
     };
   };
 
@@ -64,19 +134,31 @@ export const BlogPage: React.FC = () => {
   };
 
   const formatDate = (date: string | Date | undefined) => {
-    if (!date) return 'Data não disponível';
+    if (!date) return t('common.loading');
     try {
       const dateObj = date instanceof Date ? date : new Date(date);
-      if (isNaN(dateObj.getTime())) return 'Data inválida';
-      return format(dateObj, 'dd \'de\' MMMM \'de\' yyyy', { locale: ptBR });
+      if (isNaN(dateObj.getTime())) return t('common.error');
+      const locale = getDateLocale();
+      const formatStr = i18n.language === 'en' 
+        ? 'MMMM dd, yyyy' 
+        : i18n.language === 'es'
+        ? 'dd \'de\' MMMM \'de\' yyyy'
+        : 'dd \'de\' MMMM \'de\' yyyy';
+      return format(dateObj, formatStr, { locale });
     } catch (error) {
       console.error('Erro ao formatar data:', error);
-      return 'Data inválida';
+      return t('common.error');
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO
+        title="Blog"
+        description="Artigos e conteúdos sobre contabilidade, consultoria contábil e gestão empresarial"
+        keywords="blog, artigos, contabilidade, consultoria contábil, gestão empresarial"
+        configuration={configuration}
+      />
       {/* Hero Section */}
       <section className="relative text-white pt-32 sm:pt-36 lg:pt-40 pb-20 overflow-hidden">
         {/* Background Image */}
@@ -109,7 +191,7 @@ export const BlogPage: React.FC = () => {
           <div className="mb-8">
             <Link to="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar para Home
+              {t('blog.backToHome')}
             </Link>
           </div>
 
@@ -125,18 +207,18 @@ export const BlogPage: React.FC = () => {
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3bb664]"></div>
             </div>
-          ) : posts.length === 0 ? (
+          ) : filteredPosts.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-500 text-lg mb-4">
-                Nenhum post publicado ainda.
+                {t('blog.noPosts')}
               </div>
               <p className="text-gray-400">
-                Em breve traremos conteúdos incríveis para você!
+                {t('blog.comingSoon')}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {posts.map((post) => (
+              {filteredPosts.map((post) => (
                 <article key={post.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                   {(post.featuredImageUrl || post.featured_image_url) && (
                     <div className="aspect-video overflow-hidden">
@@ -160,6 +242,48 @@ export const BlogPage: React.FC = () => {
                       </div>
                     </div>
 
+                    {post.categories && post.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {post.categories.map((postCategory) => {
+                          const category = categories.find(c => 
+                            c.id === postCategory.category_id || 
+                            c.id === postCategory.category?.id
+                          );
+                          if (!category) return null;
+                          return (
+                            <span
+                              key={postCategory.id}
+                              className="px-2 py-1 text-xs rounded-full text-white font-medium"
+                              style={{ backgroundColor: category.color || '#3bb664' }}
+                            >
+                              {category.name}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {post.tags && post.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {post.tags.map((postTag) => {
+                          const tag = tags.find(t => 
+                            t.id === postTag.tag_id || 
+                            t.id === postTag.tag?.id
+                          );
+                          if (!tag) return null;
+                          return (
+                            <span
+                              key={postTag.id}
+                              className="px-2 py-1 text-xs rounded-full text-white font-medium"
+                              style={{ backgroundColor: tag.color || '#6b7280' }}
+                            >
+                              {tag.name}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
                       <Link to={`/blog/${post.slug}`} className="hover:text-[#3bb664] transition-colors">
                         {post.title}
@@ -177,7 +301,7 @@ export const BlogPage: React.FC = () => {
                         variant="outline" 
                         className="w-full hover:bg-[#3bb664] hover:text-white hover:border-[#3bb664] transition-colors"
                       >
-                        Ler mais
+                        {t('common.readMore')}
                       </Button>
                     </Link>
                   </div>

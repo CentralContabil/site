@@ -13,6 +13,7 @@ import { CertificationsSection } from '../components/sections/CertificationsSect
 import { SpecialtiesSection } from '../components/sections/SpecialtiesSection';
 import { FiscalBenefitsSection } from '../components/sections/FiscalBenefitsSection';
 import { ClientsSection } from '../components/sections/ClientsSection';
+import { SEO } from '../components/SEO';
 import { apiService } from '../services/api';
 import { useConfiguration } from '../hooks/useConfiguration';
 import { Slide, Service, Testimonial } from '../types';
@@ -67,6 +68,27 @@ export default function HomeBlake() {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Início"
+        description={configuration?.email ? `${configuration.companyName || 'Central Contábil'} - Soluções contábeis estratégicas para empresas que buscam crescimento sustentável. Mais de 34 anos de experiência em contabilidade consultiva.` : 'Soluções contábeis estratégicas para empresas que buscam crescimento sustentável.'}
+        keywords="contabilidade, consultoria contábil, assessoria contábil, serviços contábeis, contador, escritório contábil"
+        configuration={configuration}
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'AccountingService',
+          name: configuration?.companyName || 'Central Contábil',
+          description: 'Soluções contábeis estratégicas para empresas que buscam crescimento sustentável',
+          url: typeof window !== 'undefined' ? window.location.origin : '',
+          telephone: configuration?.phone,
+          email: configuration?.email || configuration?.contact_email,
+          address: configuration?.address ? {
+            '@type': 'PostalAddress',
+            streetAddress: configuration.address,
+          } : undefined,
+          priceRange: '$$',
+          areaServed: 'BR',
+        }}
+      />
       <main>
         {/* Hero Section */}
         <section id="inicio">

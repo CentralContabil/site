@@ -17,6 +17,8 @@ interface ConfigurationResponse {
   favicon_url?: string;
   whatsapp_number?: string;
   footer_years_text?: string;
+  head_scripts?: string;
+  body_scripts?: string;
   updated_at: string;
 }
 
@@ -98,6 +100,10 @@ export function useConfiguration() {
         whatsapp_number: data.whatsapp_number,
         footer_years_text: data.footer_years_text,
         footerYearsText: data.footer_years_text,
+        head_scripts: data.head_scripts,
+        headScripts: data.head_scripts,
+        body_scripts: data.body_scripts,
+        bodyScripts: data.body_scripts,
         updatedAt: data.updated_at ? new Date(data.updated_at) : new Date()
       };
       setConfiguration(config);

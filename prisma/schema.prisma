@@ -18,7 +18,27 @@ model Admin {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
+  access_logs   AccessLog[]
+
   @@map("admins")
+}
+
+model AccessLog {
+  id            String   @id @default(uuid())
+  admin_id      String
+  admin_email   String
+  admin_name    String
+  ip_address    String?
+  user_agent    String?
+  login_method  String   @default("password") // "password" ou "2fa"
+  success       Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  admin         Admin    @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+
+  @@map("access_logs")
+  @@index([admin_id])
+  @@index([created_at])
 }
 
 model Slide {
@@ -109,9 +129,43 @@ model Configuration {
   favicon_url    String?
   whatsapp_number String?
   footer_years_text String? @default("Mais de 34 anos oferecendo soluções contábeis estratégicas para empresas que buscam crescimento sustentável.")
+  head_scripts    String?  // Scripts para inserir no <head> (ex: Google Analytics, Meta Pixel)
+  body_scripts    String?  // Scripts para inserir antes do </body> (ex: Google Tag Manager)
+  // Configurações de Redes Sociais para publicação automática
+  facebook_api_enabled Boolean @default(false)
+  facebook_access_token String?
+  facebook_page_id String?
+  instagram_api_enabled Boolean @default(false)
+  instagram_access_token String?
+  instagram_account_id String?
+  linkedin_api_enabled Boolean @default(false)
+  linkedin_access_token String?
+  linkedin_organization_id String?
+  twitter_api_enabled Boolean @default(false)
+  twitter_api_key String?
+  twitter_api_secret String?
+  twitter_access_token String?
+  twitter_access_token_secret String?
+  threads_api_enabled Boolean @default(false)
+  threads_access_token String?
+  threads_account_id String?
   updated_at     DateTime @updatedAt
 
   @@map("configurations")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?  @default("#3bb664") // Cor para exibição
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  posts       BlogPostCategory[]
+
+  @@map("categories")
 }
 
 model BlogPost {
@@ -126,8 +180,50 @@ model BlogPost {
   published_at DateTime?
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
+  categories  BlogPostCategory[]
+  tags        BlogPostTag[]
 
   @@map("blog_posts")
+}
+
+model BlogPostCategory {
+  id          String   @id @default(uuid())
+  blog_post_id String
+  category_id  String
+  blog_post   BlogPost @relation(fields: [blog_post_id], references: [id], onDelete: Cascade)
+  category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@unique([blog_post_id, category_id])
+  @@map("blog_post_categories")
+  @@index([blog_post_id])
+  @@index([category_id])
+}
+
+model Tag {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?  @default("#6b7280") // Cor cinza padrão para tags
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  posts       BlogPostTag[]
+
+  @@map("tags")
+}
+
+model BlogPostTag {
+  id          String   @id @default(uuid())
+  blog_post_id String
+  tag_id       String
+  blog_post   BlogPost @relation(fields: [blog_post_id], references: [id], onDelete: Cascade)
+  tag         Tag      @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+
+  @@unique([blog_post_id, tag_id])
+  @@map("blog_post_tags")
+  @@index([blog_post_id])
+  @@index([tag_id])
 }
 
 model AuthCode {
@@ -145,6 +241,7 @@ model AuthCode {
 model Hero {
   id                String   @id @default(uuid())
   badge_text        String   @default("Contabilidade Consultiva")
+  welcome_text       String?  // Texto de boas-vindas (ex: "We are glad to see you again!")
   title_line1       String   @default("Soluções que Vão")
   title_line2       String   @default("Além da Contabilidade")
   description       String   @default("Com mais de 34 anos de atuação, oferecemos consultoria contábil estratégica para impulsionar o crescimento do seu negócio com segurança e inovação.")
@@ -152,8 +249,10 @@ model Hero {
   hero_image_url    String?
   button1_text      String?  @default("Agende uma Consultoria")
   button1_link      String?  @default("#contato")
+  button1_icon      String?  // Ícone do botão 1 (ex: "play", "arrow-right", null)
   button2_text      String?  @default("Conheça Nossos Serviços")
   button2_link      String?  @default("#servicos")
+  button2_icon      String?  // Ícone do botão 2 (ex: "play", "arrow-right", null)
   stat_years        String?  @default("34+") // Mantido para compatibilidade
   stat_clients      String?  @default("500+") // Mantido para compatibilidade
   stat_network      String?  @default("RNC")  // Mantido para compatibilidade
@@ -166,6 +265,20 @@ model Hero {
   updated_at        DateTime @updatedAt
 
   @@map("hero")
+}
+
+model LoginPage {
+  id                String   @id @default(uuid())
+  background_image_url String?  // Imagem de fundo da área verde
+  welcome_text      String?  // Texto de boas-vindas em itálico (ex: "We are glad to see you again!")
+  title_line1       String?  // Primeira linha do título
+  title_line2       String?  // Segunda linha do título
+  button_text       String?  // Texto do botão CTA
+  button_link       String?  // Link do botão CTA
+  button_icon       String?  // Ícone do botão (ex: "play", "arrow-right", null)
+  updated_at        DateTime @updatedAt
+
+  @@map("login_page")
 }
 
 model SectionFeature {
@@ -309,10 +422,25 @@ model SectionClients {
   @@map("section_clients")
 }
 
+model SectionServices {
+  id                String   @id @default(uuid())
+  badge_text        String   @default("Nossos Serviços")
+  title_line1       String   @default("Nossas Soluções Vão")
+  title_line2       String   @default("Além da Contabilidade")
+  description       String   @default("Atuamos de forma integrada e estratégica para que o seu negócio tenha a melhor performance contábil, fiscal e tributária com 34 anos de experiência.")
+  years_highlight   String?  // Número de anos destacado (ex: "34")
+  background_image_url String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@map("section_services")
+}
+
 model Client {
   id           String   @id @default(uuid())
   name         String
   logo_url     String?
+  phone        String?  // Telefone para contato via WhatsApp
   website_url  String?
   facebook_url String?
   instagram_url String?
