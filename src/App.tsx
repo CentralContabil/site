@@ -6,6 +6,8 @@ import { BlogPostPage } from "@/pages/BlogPostPage";
 import { ServicePage } from "@/pages/ServicePage";
 import { FiscalBenefitPage } from "@/pages/FiscalBenefitPage";
 import { PrivacyPolicyPage } from "@/pages/PrivacyPolicyPage";
+import { CareersPage } from "@/pages/CareersPage";
+import { TermsPage } from "@/pages/TermsPage";
 import { BlogAdmin } from "@/pages/admin/BlogAdmin";
 import AdminLogin from "@/pages/AdminLogin";
 import Dashboard from "@/pages/admin/Dashboard";
@@ -18,8 +20,11 @@ import ConfigurationPage from "@/pages/admin/ConfigurationPage";
 import SubscriptionsAdmin from "@/pages/admin/SubscriptionsAdmin";
 import ClientsAdmin from "@/pages/admin/ClientsAdmin";
 import { PrivacyPolicyAdmin } from "@/pages/admin/PrivacyPolicyAdmin";
-import AccessLogsAdmin from "@/pages/admin/AccessLogsAdmin";
 import HeroAdmin from "@/pages/admin/HeroAdmin";
+import LoginPageAdmin from "@/pages/admin/LoginPageAdmin";
+import AccessLogsAdmin from "@/pages/admin/AccessLogsAdmin";
+import JobApplicationsAdmin from "@/pages/admin/JobApplicationsAdmin";
+import CareersPageAdmin from "@/pages/admin/CareersPageAdmin";
 import AdminLayout from "@/pages/admin/AdminLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { GlobalHeader } from "@/components/layout/GlobalHeader";
@@ -30,7 +35,6 @@ import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { FloatingWhatsAppButton } from "@/components/FloatingWhatsAppButton";
 import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
-import { ScriptsInjector } from "@/components/ScriptsInjector";
 
 // Layout component that includes global header and footer
 function AppLayout({ children }: { children: React.ReactNode }) {
@@ -99,7 +103,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <Toaster position="top-right" />
-      <ScriptsInjector />
       <GlobalHeader configuration={configuration} />
       <main>
         <PageTransition>
@@ -153,11 +156,20 @@ export default function App() {
             <PrivacyPolicyPage />
           </AppLayout>
         } />
+        <Route path="/carreiras" element={
+          <AppLayout>
+            <CareersPage />
+          </AppLayout>
+        } />
+        <Route path="/termos-de-uso" element={
+          <AppLayout>
+            <TermsPage />
+          </AppLayout>
+        } />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="login-page" element={<ProtectedRoute><HeroAdmin /></ProtectedRoute>} />
           <Route path="sections" element={<ProtectedRoute><SectionsAdmin /></ProtectedRoute>} />
           <Route path="services" element={<ProtectedRoute><ServicesAdmin /></ProtectedRoute>} />
           <Route path="testimonials" element={<ProtectedRoute><TestimonialsAdmin /></ProtectedRoute>} />
@@ -165,9 +177,12 @@ export default function App() {
           <Route path="messages" element={<ProtectedRoute><MessagesAdmin /></ProtectedRoute>} />
           <Route path="subscriptions" element={<ProtectedRoute><SubscriptionsAdmin /></ProtectedRoute>} />
           <Route path="clients" element={<ProtectedRoute><ClientsAdmin /></ProtectedRoute>} />
+          <Route path="login-page" element={<ProtectedRoute><LoginPageAdmin /></ProtectedRoute>} />
           <Route path="privacy-policy" element={<ProtectedRoute><PrivacyPolicyAdmin /></ProtectedRoute>} />
           <Route path="users" element={<ProtectedRoute><UsersAdmin /></ProtectedRoute>} />
           <Route path="access-logs" element={<ProtectedRoute><AccessLogsAdmin /></ProtectedRoute>} />
+          <Route path="job-applications" element={<ProtectedRoute><JobApplicationsAdmin /></ProtectedRoute>} />
+          <Route path="careers-page" element={<ProtectedRoute><CareersPageAdmin /></ProtectedRoute>} />
           <Route path="configuration" element={<ProtectedRoute><ConfigurationPage /></ProtectedRoute>} />
         </Route>
       </Routes>

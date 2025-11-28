@@ -6,7 +6,7 @@ import {
   updateSlide, 
   deleteSlide 
 } from '../controllers/slidesController';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import multer from 'multer';
 import path from 'path';
 
@@ -38,10 +38,10 @@ const upload = multer({
 // Rotas públicas
 router.get('/', getSlides);
 
-// Rotas administrativas (protegidas)
-router.get('/all', authenticateToken, getAllSlides);
-router.post('/', authenticateToken, upload.single('image'), createSlide);
-router.put('/:id', authenticateToken, upload.single('image'), updateSlide);
-router.delete('/:id', authenticateToken, deleteSlide);
+// Rotas administrativas (protegidas) - administrator e editor
+router.get('/all', authenticateToken, authorizeRoles(['administrator', 'editor']), getAllSlides);
+router.post('/', authenticateToken, authorizeRoles(['administrator', 'editor']), upload.single('image'), createSlide);
+router.put('/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), upload.single('image'), updateSlide);
+router.delete('/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteSlide);
 
 export default router;

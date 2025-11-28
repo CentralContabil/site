@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import {
   // Features
   getFeatures,
@@ -65,14 +65,14 @@ const upload = multer({
 
 // ==================== FEATURES ====================
 router.get('/features', getFeatures);
-router.get('/features/all', authenticateToken, getAllFeatures);
-router.post('/features', authenticateToken, createFeature);
-router.put('/features/:id', authenticateToken, updateFeature);
-router.delete('/features/:id', authenticateToken, deleteFeature);
+router.get('/features/all', authenticateToken, authorizeRoles(['administrator', 'editor']), getAllFeatures);
+router.post('/features', authenticateToken, authorizeRoles(['administrator', 'editor']), createFeature);
+router.put('/features/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), updateFeature);
+router.delete('/features/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteFeature);
 
 // ==================== ABOUT ====================
 router.get('/about', getAbout);
-router.put('/about', authenticateToken, updateAbout);
+router.put('/about', authenticateToken, authorizeRoles(['administrator', 'editor']), updateAbout);
 router.post('/about/image', authenticateToken, upload.single('file'), (err: any, req: any, res: any, next: any) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -113,23 +113,23 @@ router.post('/about/images', authenticateToken, upload.single('file'), (err: any
   }
   next();
 }, createAboutImage);
-router.put('/about/images/:id', authenticateToken, updateAboutImage);
-router.delete('/about/images/:id', authenticateToken, deleteAboutImage);
+router.put('/about/images/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), updateAboutImage);
+router.delete('/about/images/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteAboutImage);
 
 // ==================== SPECIALTIES ====================
 router.get('/specialties', getSpecialties);
-router.get('/specialties/all', authenticateToken, getAllSpecialties);
-router.post('/specialties', authenticateToken, createSpecialty);
-router.put('/specialties/:id', authenticateToken, updateSpecialty);
-router.delete('/specialties/:id', authenticateToken, deleteSpecialty);
+router.get('/specialties/all', authenticateToken, authorizeRoles(['administrator', 'editor']), getAllSpecialties);
+router.post('/specialties', authenticateToken, authorizeRoles(['administrator', 'editor']), createSpecialty);
+router.put('/specialties/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), updateSpecialty);
+router.delete('/specialties/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteSpecialty);
 
 // ==================== FISCAL BENEFITS ====================
 router.get('/fiscal-benefits', getFiscalBenefits);
-router.get('/fiscal-benefits/all', authenticateToken, getAllFiscalBenefits);
+router.get('/fiscal-benefits/all', authenticateToken, authorizeRoles(['administrator', 'editor']), getAllFiscalBenefits);
 router.get('/fiscal-benefits/slug/:slug', getFiscalBenefitBySlug);
-router.post('/fiscal-benefits', authenticateToken, createFiscalBenefit);
-router.put('/fiscal-benefits/:id', authenticateToken, updateFiscalBenefit);
-router.delete('/fiscal-benefits/:id', authenticateToken, deleteFiscalBenefit);
+router.post('/fiscal-benefits', authenticateToken, authorizeRoles(['administrator', 'editor']), createFiscalBenefit);
+router.put('/fiscal-benefits/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), updateFiscalBenefit);
+router.delete('/fiscal-benefits/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteFiscalBenefit);
 router.post('/fiscal-benefits/:id/image', authenticateToken, upload.single('file'), (err: any, req: any, res: any, next: any) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -148,21 +148,21 @@ router.post('/fiscal-benefits/:id/image', authenticateToken, upload.single('file
 
 // ==================== FUN FACTS ====================
 router.get('/fun-facts', getFunFacts);
-router.get('/fun-facts/all', authenticateToken, getAllFunFacts);
-router.post('/fun-facts', authenticateToken, createFunFact);
-router.put('/fun-facts/:id', authenticateToken, updateFunFact);
-router.delete('/fun-facts/:id', authenticateToken, deleteFunFact);
+router.get('/fun-facts/all', authenticateToken, authorizeRoles(['administrator', 'editor']), getAllFunFacts);
+router.post('/fun-facts', authenticateToken, authorizeRoles(['administrator', 'editor']), createFunFact);
+router.put('/fun-facts/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), updateFunFact);
+router.delete('/fun-facts/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteFunFact);
 
 // ==================== CERTIFICATIONS ====================
 router.get('/certifications', getCertifications);
-router.get('/certifications/all', authenticateToken, getAllCertifications);
-router.post('/certifications', authenticateToken, createCertification);
-router.put('/certifications/:id', authenticateToken, updateCertification);
-router.delete('/certifications/:id', authenticateToken, deleteCertification);
+router.get('/certifications/all', authenticateToken, authorizeRoles(['administrator', 'editor']), getAllCertifications);
+router.post('/certifications', authenticateToken, authorizeRoles(['administrator', 'editor']), createCertification);
+router.put('/certifications/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), updateCertification);
+router.delete('/certifications/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteCertification);
 
 // ==================== NEWSLETTER ====================
 router.get('/newsletter', getNewsletter);
-router.put('/newsletter', authenticateToken, updateNewsletter);
+router.put('/newsletter', authenticateToken, authorizeRoles(['administrator', 'editor']), updateNewsletter);
 router.post('/newsletter/image', authenticateToken, upload.single('file'), (err: any, req: any, res: any, next: any) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -181,7 +181,7 @@ router.post('/newsletter/image', authenticateToken, upload.single('file'), (err:
 
 // ==================== CLIENTS ====================
 router.get('/clients', getClients);
-router.put('/clients', authenticateToken, updateClients);
+router.put('/clients', authenticateToken, authorizeRoles(['administrator', 'editor']), updateClients);
 router.post('/clients/image', authenticateToken, upload.single('file'), (err: any, req: any, res: any, next: any) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -200,7 +200,7 @@ router.post('/clients/image', authenticateToken, upload.single('file'), (err: an
 
 // ==================== SERVICES ====================
 router.get('/services', getServicesSection);
-router.put('/services', authenticateToken, updateServicesSection);
+router.put('/services', authenticateToken, authorizeRoles(['administrator', 'editor']), updateServicesSection);
 router.post('/services/image', authenticateToken, upload.single('file'), (err: any, req: any, res: any, next: any) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -216,7 +216,7 @@ router.post('/services/image', authenticateToken, upload.single('file'), (err: a
   }
   next();
 }, uploadServicesImage);
-router.delete('/services/image', authenticateToken, deleteServicesImage);
+router.delete('/services/image', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteServicesImage);
 
 export default router;
 

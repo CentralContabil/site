@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'sonner';
-import { useConfiguration } from '../hooks/useConfiguration';
-import { apiService } from '../services/api';
-import { LoginPage } from '../types';
-import { Play, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useConfiguration } from '@/hooks/useConfiguration';
+import { apiService } from '@/services/api';
+import { LoginPage } from '@/types';
+import * as LucideIcons from 'lucide-react';
 
 // Cor verde padrão do site
 const PRIMARY_COLOR = '#3bb664';
@@ -17,9 +17,10 @@ export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loginPage, setLoginPage] = useState<LoginPage | null>(null);
+  const [loadingLoginPage, setLoadingLoginPage] = useState(true);
   const navigate = useNavigate();
   const { configuration } = useConfiguration();
-  const [loginPage, setLoginPage] = useState<LoginPage | null>(null);
 
   // Carrega email salvo se existir
   useEffect(() => {
@@ -31,18 +32,19 @@ export default function AdminLogin() {
 
   // Carrega dados da página de login
   useEffect(() => {
+    const loadLoginPage = async () => {
+      try {
+        setLoadingLoginPage(true);
+        const response = await apiService.getLoginPage();
+        setLoginPage(response.loginPage);
+      } catch (error) {
+        console.error('Erro ao carregar dados da página de login:', error);
+      } finally {
+        setLoadingLoginPage(false);
+      }
+    };
     loadLoginPage();
   }, []);
-
-  const loadLoginPage = async () => {
-    try {
-      const response = await apiService.getLoginPage();
-      setLoginPage(response.loginPage);
-    } catch (error) {
-      console.error('Erro ao carregar Página de Login:', error);
-      // Não mostrar erro ao usuário, apenas usar valores padrão
-    }
-  };
 
   // Função para enviar código
   const handleSendCode = async (e: React.FormEvent) => {
@@ -151,22 +153,17 @@ export default function AdminLogin() {
       const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
       const url = `${API_BASE_URL}/auth/verify-code`;
       
-      const requestBody = { 
-        email: email.trim().toLowerCase(), 
-        code: trimmedCode 
-      };
-      
-      console.log('🔐 Verificando código para:', requestBody.email);
-      console.log('🔐 Código enviado:', requestBody.code);
-      console.log('🔐 Código enviado (length):', requestBody.code.length);
-      console.log('🔐 URL:', url);
+      console.log('🔐 Verificando código para:', email.trim().toLowerCase());
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(), 
+          code: trimmedCode 
+        }),
       });
 
       console.log('🔐 Status da resposta:', response.status);
@@ -230,62 +227,68 @@ export default function AdminLogin() {
     <>
       <Toaster position="top-right" />
       <div className="min-h-screen flex">
-      {/* Coluna Esquerda - Imagem de Fundo com Blur e Overlay Verde */}
+      {/* Coluna Esquerda - Imagem de Fundo Dinâmica com Conteúdo */}
       <div className="hidden lg:flex lg:w-2/3 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img 
-            src={loginPage?.backgroundImageUrl || "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1920&h=1080&fit=crop&q=80"} 
-            alt="Background"
-            className="w-full h-full object-cover"
-            style={{ filter: 'blur(8px)' }}
-          />
-        </div>
-        <div 
-          className="absolute inset-0 opacity-90"
-          style={{ 
-            background: `linear-gradient(135deg, ${PRIMARY_COLOR}dd 0%, ${PRIMARY_COLOR_HOVER}dd 100%)` 
-          }}
-        ></div>
+        {loginPage?.background_image_url ? (
+          <>
+            <div className="absolute inset-0">
+              <img 
+                src={loginPage.background_image_url} 
+                alt="Background"
+                className="w-full h-full object-cover"
+                style={{ filter: 'blur(8px)' }}
+              />
+            </div>
+            <div 
+              className="absolute inset-0 opacity-90"
+              style={{ 
+                background: `linear-gradient(135deg, ${PRIMARY_COLOR}dd 0%, ${PRIMARY_COLOR_HOVER}dd 100%)` 
+              }}
+            ></div>
+          </>
+        ) : (
+          <div 
+            className="absolute inset-0"
+            style={{ 
+              background: `linear-gradient(135deg, ${PRIMARY_COLOR} 0%, ${PRIMARY_COLOR_HOVER} 100%)` 
+            }}
+          ></div>
+        )}
         
-        {/* Conteúdo sobreposto na área verde */}
-        <div className="relative z-10 flex flex-col justify-center items-start px-12 text-white">
-          {loginPage?.welcomeText && (
-            <p className="text-sm text-gray-300 italic mb-4">
-              {loginPage.welcomeText}
+        {/* Conteúdo da área esquerda */}
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-12 text-white">
+          {loginPage?.welcome_text && (
+            <p className="text-lg md:text-xl mb-6 text-center opacity-90">
+              {loginPage.welcome_text}
             </p>
           )}
-          {loginPage?.titleLine1 && (
-            <h1 className="text-4xl font-bold mb-2">
-              {loginPage.titleLine1}
-            </h1>
+          
+          {(loginPage?.title_line1 || loginPage?.title_line2) && (
+            <div className="text-center mb-8">
+              {loginPage.title_line1 && (
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-2">
+                  {loginPage.title_line1}
+                </h1>
+              )}
+              {loginPage.title_line2 && (
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold">
+                  {loginPage.title_line2}
+                </h2>
+              )}
+            </div>
           )}
-          {loginPage?.titleLine2 && (
-            <h2 className="text-4xl font-bold mb-6">
-              {loginPage.titleLine2}
-            </h2>
-          )}
-          {loginPage?.buttonText && (
-            <button
-              onClick={() => {
-                if (loginPage.buttonLink) {
-                  if (loginPage.buttonLink.startsWith('#')) {
-                    // Scroll para seção
-                    const target = document.querySelector(loginPage.buttonLink);
-                    if (target) {
-                      target.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  } else {
-                    window.location.href = loginPage.buttonLink;
-                  }
-                }
-              }}
-              className="px-6 py-3 border border-white/50 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-all flex items-center gap-2"
+          
+          {loginPage?.button_text && loginPage?.button_link && (
+            <a
+              href={loginPage.button_link}
+              className="px-8 py-4 bg-white text-[#3bb664] font-semibold rounded-lg hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
             >
-              {loginPage.buttonIcon === 'play' && <Play className="w-4 h-4 fill-current" />}
-              {loginPage.buttonIcon === 'arrow-right' && <ArrowRight className="w-4 h-4" />}
-              {loginPage.buttonIcon === 'arrow-left' && <ArrowLeft className="w-4 h-4" />}
-              {loginPage.buttonText}
-            </button>
+              {loginPage.button_icon && (() => {
+                const IconComponent = (LucideIcons as any)[loginPage.button_icon];
+                return IconComponent ? <IconComponent className="w-5 h-5" /> : null;
+              })()}
+              {loginPage.button_text}
+            </a>
           )}
         </div>
       </div>
@@ -293,27 +296,32 @@ export default function AdminLogin() {
       {/* Coluna Direita - Formulário */}
       <div className="w-full lg:w-1/3 bg-white flex flex-col items-center justify-center px-6 sm:px-8 lg:px-12 py-12">
         <div className="w-full max-w-md">
-          {/* Logo */}
+          {/* Logo e Branding - Centralizado e Maior */}
           <div className="mb-8 text-center">
             {configuration?.logo_url ? (
-              <img 
-                src={configuration.logo_url} 
-                alt={configuration.companyName || 'Central Contábil'}
-                className="h-20 w-auto object-contain mx-auto"
-              />
+              <div className="flex flex-col items-center mb-4">
+                <img 
+                  src={configuration.logo_url} 
+                  alt={configuration.companyName || 'Logo'} 
+                  className="h-20 w-auto mb-3"
+                />
+                {configuration.companyName && (
+                  <h1 className="text-2xl font-bold" style={{ color: PRIMARY_COLOR }}>
+                    {configuration.companyName}
+                  </h1>
+                )}
+              </div>
             ) : (
-              <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="flex flex-col items-center mb-4">
                 <div 
-                  className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-3xl"
+                  className="w-20 h-20 rounded-lg flex items-center justify-center text-white font-bold text-4xl mb-3"
                   style={{ backgroundColor: PRIMARY_COLOR }}
                 >
-                  C
+                  {configuration?.companyName?.charAt(0) || 'C'}
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold" style={{ color: PRIMARY_COLOR }}>
-                    {configuration?.companyName || 'Central Contábil'}
-                  </h1>
-                </div>
+                <h1 className="text-2xl font-bold" style={{ color: PRIMARY_COLOR }}>
+                  {configuration?.companyName || 'Central Contábil'}
+                </h1>
               </div>
             )}
           </div>

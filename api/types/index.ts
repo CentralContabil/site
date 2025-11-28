@@ -58,10 +58,13 @@ export interface Configuration {
   updatedAt: Date;
 }
 
+export type AdminRole = 'administrator' | 'editor' | 'author' | 'contributor' | 'subscriber';
+
 export interface Admin {
   id: string;
   email: string;
   name: string;
+  role: AdminRole;
   createdAt: Date;
   updatedAt: Date;
 }

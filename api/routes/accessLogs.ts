@@ -1,12 +1,13 @@
-import express from 'express';
-import { AccessLogController } from '../controllers/accessLogController.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { Router } from 'express';
+import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { getAllLogs, getStats } from '../controllers/accessLogController';
 
-const router = express.Router();
+const router = Router();
 
-// Todas as rotas requerem autenticação
-router.get('/', authenticateToken, AccessLogController.getAllLogs);
-router.get('/stats', authenticateToken, AccessLogController.getStats);
+// Todas as rotas requerem autenticação e nível administrator
+router.get('/', authenticateToken, authorizeRoles(['administrator']), getAllLogs);
+router.get('/stats', authenticateToken, authorizeRoles(['administrator']), getStats);
 
 export default router;
+
 

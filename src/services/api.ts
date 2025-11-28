@@ -15,19 +15,24 @@ import {
   UpdateUserRequest,
   Hero,
   UpdateHeroRequest,
-  LoginPage,
-  UpdateLoginPageRequest,
   NewsletterSubscription,
   Client,
   CreateClientRequest,
-  Feature,
   UpdateClientRequest,
+  LoginPage,
+  UpdateLoginPageRequest,
   Category,
   CreateCategoryRequest,
   UpdateCategoryRequest,
   Tag,
   CreateTagRequest,
-  UpdateTagRequest
+  UpdateTagRequest,
+  AccessLog,
+  ContactMessage,
+  ContactMessageReply,
+  JobApplication,
+  CareersPage,
+  UpdateCareersPageRequest
 } from '../types';
 
 // Em desenvolvimento, usar o proxy do Vite (/api)
@@ -110,21 +115,13 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     try {
-      const url = `${API_BASE_URL}${endpoint}`;
-      const headers = {
-        ...this.getHeaders(),
-        ...options.headers,
-      };
-      
-      console.log(`📡 Requisição: ${options.method || 'GET'} ${url}`);
-      console.log('📡 Headers:', headers);
-      
-      const response = await fetch(url, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
-        headers,
+        headers: {
+          ...this.getHeaders(),
+          ...options.headers,
+        },
       });
-
-      console.log(`📡 Resposta: ${response.status} ${response.statusText}`);
 
       const data = await response.json().catch(() => ({}));
 
@@ -133,11 +130,8 @@ class ApiService {
         const error: any = new Error(data.error || data.message || 'Erro na requisição');
         error.response = { data };
         error.status = response.status;
-        console.error(`❌ Erro na requisição ${endpoint}:`, error);
         throw error;
       }
-      
-      console.log(`✅ Sucesso na requisição ${endpoint}:`, data);
 
       return data;
     } catch (error: any) {
@@ -171,10 +165,15 @@ class ApiService {
       
       // Garante que a resposta tenha o formato correto
       if (response && typeof response === 'object') {
+        const anyResponse: any = response;
+        const success =
+          anyResponse.success === true ||
+          anyResponse.success === 'true';
+
         return {
-          success: response.success === true || response.success === 'true',
-          message: response.message || '',
-          email: response.email || data.email
+          success,
+          message: anyResponse.message || '',
+          email: anyResponse.email || data.email
         };
       }
       
@@ -213,6 +212,7 @@ class ApiService {
         id: u.id,
         email: u.email || '',
         name: u.name || '',
+        role: u.role || 'administrator',
         createdAt: u.createdAt || u.created_at || new Date(),
         updatedAt: u.updatedAt || u.updated_at || new Date(),
       }));
@@ -329,6 +329,47 @@ class ApiService {
     });
   }
 
+  // Service Image Upload
+  async uploadServiceImage(id: string, file: File): Promise<{ data: { url: string }; service: Service }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    const response = await fetch(`${API_BASE_URL}/services/${id}/image`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao fazer upload da imagem');
+    }
+
+    const resp = await response.json();
+    return { data: resp.data, service: this.toService(resp.service) };
+  }
+
+  async deleteServiceImage(id: string): Promise<{ service: Service }> {
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    const response = await fetch(`${API_BASE_URL}/services/${id}/image`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao remover imagem');
+    }
+
+    const resp = await response.json();
+    return { service: this.toService(resp.service) };
+  }
+
   // Testimonials
   async getTestimonials(): Promise<{ testimonials: Testimonial[] }> {
     const resp = await this.request<any>('/testimonials');
@@ -387,59 +428,7 @@ class ApiService {
 
   // Configuration
   async getConfiguration(): Promise<{ configuration: Configuration }> {
-    const response = await this.request<any>('/configurations');
-    const data = response.configuration || response;
-    
-    // Normalizar dados do backend (snake_case) para o formato do frontend
-    const normalized: Configuration = {
-      id: data.id || 'default',
-      companyName: data.company_name || data.companyName || 'Central Contábil',
-      company_name: data.company_name || data.companyName,
-      phone: data.phone,
-      email: data.email,
-      contact_email: data.contact_email || data.contactEmail,
-      contactEmail: data.contact_email || data.contactEmail,
-      address: data.address,
-      businessHours: data.business_hours || data.businessHours,
-      business_hours: data.business_hours || data.businessHours,
-      facebookUrl: data.facebook_url || data.facebookUrl,
-      facebook_url: data.facebook_url || data.facebookUrl,
-      instagramUrl: data.instagram_url || data.instagramUrl,
-      instagram_url: data.instagram_url || data.instagramUrl,
-      linkedinUrl: data.linkedin_url || data.linkedinUrl,
-      linkedin_url: data.linkedin_url || data.linkedinUrl,
-      logo_url: data.logo_url,
-      logo_dark_url: data.logo_dark_url,
-      favicon_url: data.favicon_url,
-      whatsappNumber: data.whatsapp_number || data.whatsappNumber,
-      whatsapp_number: data.whatsapp_number || data.whatsappNumber,
-      footer_years_text: data.footer_years_text || data.footerYearsText,
-      footerYearsText: data.footer_years_text || data.footerYearsText,
-      head_scripts: data.head_scripts || data.headScripts,
-      headScripts: data.head_scripts || data.headScripts,
-      body_scripts: data.body_scripts || data.bodyScripts,
-      bodyScripts: data.body_scripts || data.bodyScripts,
-      facebook_api_enabled: data.facebook_api_enabled,
-      facebook_access_token: data.facebook_access_token,
-      facebook_page_id: data.facebook_page_id,
-      instagram_api_enabled: data.instagram_api_enabled,
-      instagram_access_token: data.instagram_access_token,
-      instagram_account_id: data.instagram_account_id,
-      linkedin_api_enabled: data.linkedin_api_enabled,
-      linkedin_access_token: data.linkedin_access_token,
-      linkedin_organization_id: data.linkedin_organization_id,
-      twitter_api_enabled: data.twitter_api_enabled,
-      twitter_api_key: data.twitter_api_key,
-      twitter_api_secret: data.twitter_api_secret,
-      twitter_access_token: data.twitter_access_token,
-      twitter_access_token_secret: data.twitter_access_token_secret,
-      threads_api_enabled: data.threads_api_enabled,
-      threads_access_token: data.threads_access_token,
-      threads_account_id: data.threads_account_id,
-      updatedAt: data.updated_at ? new Date(data.updated_at) : (data.updatedAt ? new Date(data.updatedAt) : new Date())
-    };
-    
-    return { configuration: normalized };
+    return this.request('/configuracoes');
   }
 
   async updateConfiguration(config: Partial<Configuration>): Promise<{ configuration: Configuration }> {
@@ -530,59 +519,163 @@ class ApiService {
     return this.request('/contact-messages/total-count');
   }
 
-  async getContactMessagesByMonth(): Promise<{ data: Array<{ month: string; count: number; fullMonth: string }> }> {
-    return this.request('/contact-messages/by-month');
-  }
-
-  async getAccessLogs(params?: { page?: number; limit?: number; adminId?: string; success?: boolean }): Promise<{
-    logs: Array<{
-      id: string;
-      admin_id: string;
-      admin_email: string;
-      admin_name: string;
-      ip_address: string | null;
-      user_agent: string | null;
-      login_method: string;
-      success: boolean;
-      created_at: string;
-      admin: {
-        id: string;
-        email: string;
-        name: string;
-      };
-    }>;
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-  }> {
-    const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.adminId) queryParams.append('adminId', params.adminId);
-    if (params?.success !== undefined) queryParams.append('success', params.success.toString());
-    
-    const query = queryParams.toString();
-    return this.request(`/access-logs${query ? `?${query}` : ''}`);
-  }
-
-  async getAccessLogsStats(): Promise<{
-    total: number;
-    successful: number;
-    failed: number;
-    uniqueUsers: number;
-    recentLogs: Array<any>;
-  }> {
-    return this.request('/access-logs/stats');
-  }
-
   async sendContactMessageReply(id: string, message: string): Promise<{ message: string }> {
     return this.request(`/contact-messages/${id}/reply`, {
       method: 'POST',
       body: JSON.stringify({ message }),
     });
+  }
+
+  // Job Applications (Trabalhe Conosco)
+  async uploadJobApplicationCv(file: File): Promise<{ data: { url: string } }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/job-applications/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Erro ao enviar currículo');
+    }
+
+    const resp = await response.json();
+    return { data: resp.data };
+  }
+
+  async sendJobApplication(data: {
+    name: string;
+    email: string;
+    phone?: string;
+    position?: string;
+    linkedinUrl?: string;
+    message?: string;
+    cvUrl?: string;
+    captchaToken?: string;
+    honeypot?: string;
+  }): Promise<{ success: boolean; message: string }> {
+    return this.request('/job-applications', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getJobApplications(): Promise<{ applications: JobApplication[] }> {
+    const response = await this.request<{ applications: any[] }>('/job-applications');
+    return {
+      applications: (response.applications || []).map((app) => ({
+        id: app.id,
+        name: app.name,
+        email: app.email,
+        phone: app.phone || undefined,
+        position: app.position || undefined,
+        linkedinUrl: app.linkedin_url || app.linkedinUrl || undefined,
+        message: app.message || undefined,
+        cvUrl: app.cv_url || app.cvUrl || undefined,
+        isRead: app.is_read !== undefined ? app.is_read : !!app.isRead,
+        createdAt: app.created_at ? new Date(app.created_at) : new Date(app.createdAt || Date.now()),
+      })),
+    };
+  }
+
+  async getJobApplication(id: string): Promise<{ application: JobApplication }> {
+    const response = await this.request<{ application: any }>(`/job-applications/${id}`);
+    const app = response.application;
+    return {
+      application: {
+        id: app.id,
+        name: app.name,
+        email: app.email,
+        phone: app.phone || undefined,
+        position: app.position || undefined,
+        linkedinUrl: app.linkedin_url || app.linkedinUrl || undefined,
+        message: app.message || undefined,
+        cvUrl: app.cv_url || app.cvUrl || undefined,
+        isRead: app.is_read !== undefined ? app.is_read : !!app.isRead,
+        createdAt: app.created_at ? new Date(app.created_at) : new Date(app.createdAt || Date.now()),
+      },
+    };
+  }
+
+  async markJobApplicationAsRead(id: string): Promise<{ application: JobApplication }> {
+    const response = await this.request<{ application: any }>(`/job-applications/${id}/read`, {
+      method: 'PUT',
+    });
+    const app = response.application;
+    return {
+      application: {
+        id: app.id,
+        name: app.name,
+        email: app.email,
+        phone: app.phone || undefined,
+        position: app.position || undefined,
+        linkedinUrl: app.linkedin_url || app.linkedinUrl || undefined,
+        message: app.message || undefined,
+        cvUrl: app.cv_url || app.cvUrl || undefined,
+        isRead: app.is_read !== undefined ? app.is_read : !!app.isRead,
+        createdAt: app.created_at ? new Date(app.created_at) : new Date(app.createdAt || Date.now()),
+      },
+    };
+  }
+
+  async deleteJobApplication(id: string): Promise<{ message: string }> {
+    return this.request(`/job-applications/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Careers Page
+  async getCareersPage(): Promise<{ careersPage: CareersPage }> {
+    return this.request('/careers-page');
+  }
+
+  async updateCareersPage(data: UpdateCareersPageRequest): Promise<{ careersPage: CareersPage }> {
+    return this.request('/careers-page', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async uploadCareersPageImage(file: File): Promise<{ data: { url: string }; careersPage: CareersPage }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    const response = await fetch(`${API_BASE_URL}/careers-page/image`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Erro ao enviar imagem');
+    }
+
+    const resp = await response.json();
+    return { data: resp.data, careersPage: resp.careersPage };
+  }
+
+  async deleteCareersPageImage(): Promise<{ careersPage: CareersPage }> {
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    const response = await fetch(`${API_BASE_URL}/careers-page/image`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Erro ao remover imagem');
+    }
+
+    const resp = await response.json();
+    return { careersPage: resp.careersPage };
   }
 
   // Privacy Policy
@@ -687,7 +780,6 @@ class ApiService {
     // Converter camelCase para snake_case e tratar valores vazios
     const requestData: any = {};
     if (data.badgeText !== undefined && data.badgeText !== null) requestData.badge_text = data.badgeText;
-    if (data.welcomeText !== undefined) requestData.welcome_text = data.welcomeText || null;
     if (data.titleLine1 !== undefined && data.titleLine1 !== null) requestData.title_line1 = data.titleLine1;
     if (data.titleLine2 !== undefined && data.titleLine2 !== null) requestData.title_line2 = data.titleLine2;
     if (data.description !== undefined && data.description !== null) requestData.description = data.description;
@@ -695,10 +787,8 @@ class ApiService {
     if (data.heroImageUrl !== undefined) requestData.hero_image_url = data.heroImageUrl || null;
     if (data.button1Text !== undefined) requestData.button1_text = data.button1Text || null;
     if (data.button1Link !== undefined) requestData.button1_link = data.button1Link || null;
-    if (data.button1Icon !== undefined) requestData.button1_icon = data.button1Icon || null;
     if (data.button2Text !== undefined) requestData.button2_text = data.button2Text || null;
     if (data.button2Link !== undefined) requestData.button2_link = data.button2Link || null;
-    if (data.button2Icon !== undefined) requestData.button2_icon = data.button2Icon || null;
     if (data.statYears !== undefined) requestData.stat_years = data.statYears || null;
     if (data.statClients !== undefined) requestData.stat_clients = data.statClients || null;
     if (data.statNetwork !== undefined) requestData.stat_network = data.statNetwork || null;
@@ -714,30 +804,6 @@ class ApiService {
       body: JSON.stringify(requestData),
     });
     return { hero: resp.hero };
-  }
-
-  // LoginPage
-  async getLoginPage(): Promise<{ loginPage: LoginPage }> {
-    const resp = await this.request<any>('/login-page');
-    return { loginPage: resp.loginPage };
-  }
-
-  async updateLoginPage(data: UpdateLoginPageRequest): Promise<{ loginPage: LoginPage }> {
-    // Converter camelCase para snake_case e tratar valores vazios
-    const requestData: any = {};
-    if (data.backgroundImageUrl !== undefined) requestData.background_image_url = data.backgroundImageUrl || null;
-    if (data.welcomeText !== undefined) requestData.welcome_text = data.welcomeText || null;
-    if (data.titleLine1 !== undefined) requestData.title_line1 = data.titleLine1 || null;
-    if (data.titleLine2 !== undefined) requestData.title_line2 = data.titleLine2 || null;
-    if (data.buttonText !== undefined) requestData.button_text = data.buttonText || null;
-    if (data.buttonLink !== undefined) requestData.button_link = data.buttonLink || null;
-    if (data.buttonIcon !== undefined) requestData.button_icon = data.buttonIcon || null;
-
-    const resp = await this.request<any>('/login-page', {
-      method: 'PUT',
-      body: JSON.stringify(requestData),
-    });
-    return { loginPage: resp.loginPage };
   }
 
   // Blog Post Image Upload
@@ -819,7 +885,6 @@ class ApiService {
       },
       body: JSON.stringify({
         name: client.name,
-        phone: client.phone,
         website_url: client.websiteUrl,
         facebook_url: client.facebookUrl,
         instagram_url: client.instagramUrl,
@@ -849,7 +914,6 @@ class ApiService {
       },
       body: JSON.stringify({
         name: client.name,
-        phone: client.phone,
         website_url: client.websiteUrl,
         facebook_url: client.facebookUrl,
         instagram_url: client.instagramUrl,
@@ -935,7 +999,6 @@ class ApiService {
       name: db.name || '',
       logoUrl: db.logo_url || db.logoUrl || undefined,
       logo_url: db.logo_url || db.logoUrl || undefined,
-      phone: db.phone || undefined,
       websiteUrl: db.website_url || db.websiteUrl || undefined,
       website_url: db.website_url || db.websiteUrl || undefined,
       facebookUrl: db.facebook_url || db.facebookUrl || undefined,
@@ -970,227 +1033,206 @@ class ApiService {
     };
   }
 
-  async getServicesSection(): Promise<{ services: { badge_text: string; title_line1: string; title_line2: string; description: string; years_highlight?: string | null; background_image_url?: string | null } }> {
-    const response = await fetch(`${API_BASE_URL}/sections/services`);
-    if (!response.ok) {
-      throw new Error('Erro ao buscar seção de serviços');
-    }
-    const data = await response.json();
+  // Login Page
+  async getLoginPage(): Promise<{ loginPage: LoginPage }> {
+    const response = await this.request<{ loginPage: any }>('/login-page');
     return {
-      services: {
-        badge_text: data.services?.badge_text || 'Nossos Serviços',
-        title_line1: data.services?.title_line1 || 'Nossas Soluções Vão',
-        title_line2: data.services?.title_line2 || 'Além da Contabilidade',
-        description: data.services?.description || 'Atuamos de forma integrada e estratégica para que o seu negócio tenha a melhor performance contábil, fiscal e tributária com 34 anos de experiência.',
-        years_highlight: data.services?.years_highlight || null,
-        background_image_url: data.services?.background_image_url || null,
+      loginPage: {
+        id: response.loginPage.id,
+        background_image_url: response.loginPage.background_image_url || null,
+        welcome_text: response.loginPage.welcome_text || null,
+        title_line1: response.loginPage.title_line1 || null,
+        title_line2: response.loginPage.title_line2 || null,
+        button_text: response.loginPage.button_text || null,
+        button_link: response.loginPage.button_link || null,
+        button_icon: response.loginPage.button_icon || null,
+        createdAt: response.loginPage.created_at ? new Date(response.loginPage.created_at) : new Date(),
+        updatedAt: response.loginPage.updated_at ? new Date(response.loginPage.updated_at) : new Date(),
       }
     };
   }
 
-  async updateServicesSection(data: { badge_text?: string; title_line1?: string; title_line2?: string; description?: string; years_highlight?: string | null; background_image_url?: string | null }): Promise<{ services: any }> {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE_URL}/sections/services`, {
+  async updateLoginPage(data: UpdateLoginPageRequest): Promise<{ loginPage: LoginPage }> {
+    const response = await this.request<{ loginPage: any }>('/login-page', {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Erro ao atualizar seção de serviços');
-    }
-
-    return await response.json();
-  }
-
-  async uploadServicesImage(file: File): Promise<{ services: any; data: { url: string } }> {
-    const token = localStorage.getItem('token');
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch(`${API_BASE_URL}/sections/services/image`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Erro ao fazer upload da imagem');
-    }
-
-    return await response.json();
-  }
-
-  async deleteServicesImage(): Promise<{ services: any }> {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE_URL}/sections/services/image`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Erro ao deletar imagem');
-    }
-
-    return await response.json();
-  }
-
-  // ========== FEATURES ==========
-  async getFeatures(): Promise<{ features: Feature[] }> {
-    const response = await fetch(`${API_BASE_URL}/sections/features`);
-    if (!response.ok) {
-      throw new Error('Erro ao buscar diferenciais');
-    }
-    const data = await response.json();
     return {
-      features: (data.features || []).map((f: any) => ({
-        id: f.id,
-        icon: f.icon,
-        title: f.title,
-        description: f.description,
-        order: f.order ?? 0,
-        isActive: f.is_active !== undefined ? f.is_active : (f.isActive !== undefined ? f.isActive : true),
-        is_active: f.is_active !== undefined ? f.is_active : (f.isActive !== undefined ? f.isActive : true),
-        createdAt: f.created_at ? new Date(f.created_at) : (f.createdAt ? new Date(f.createdAt) : new Date()),
-        updatedAt: f.updated_at ? new Date(f.updated_at) : (f.updatedAt ? new Date(f.updatedAt) : new Date()),
+      loginPage: {
+        id: response.loginPage.id,
+        background_image_url: response.loginPage.background_image_url || null,
+        welcome_text: response.loginPage.welcome_text || null,
+        title_line1: response.loginPage.title_line1 || null,
+        title_line2: response.loginPage.title_line2 || null,
+        button_text: response.loginPage.button_text || null,
+        button_link: response.loginPage.button_link || null,
+        button_icon: response.loginPage.button_icon || null,
+        createdAt: response.loginPage.created_at ? new Date(response.loginPage.created_at) : new Date(),
+        updatedAt: response.loginPage.updated_at ? new Date(response.loginPage.updated_at) : new Date(),
+      }
+    };
+  }
+
+  // Categories
+  async getCategories(): Promise<{ categories: Category[] }> {
+    const response = await this.request<{ categories: any[] }>('/categories');
+    return {
+      categories: (response.categories || []).map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description || null,
+        color: cat.color || null,
+        isActive: cat.is_active !== undefined ? cat.is_active : cat.isActive,
+        is_active: cat.is_active !== undefined ? cat.is_active : cat.isActive,
+        createdAt: cat.created_at ? new Date(cat.created_at) : new Date(cat.createdAt || Date.now()),
+        created_at: cat.created_at || cat.createdAt,
+        updatedAt: cat.updated_at ? new Date(cat.updated_at) : new Date(cat.updatedAt || Date.now()),
+        updated_at: cat.updated_at || cat.updatedAt,
+        _count: cat._count
       }))
     };
   }
 
-  // ========== CATEGORIES ==========
-  private toCategory(db: any): Category {
-    return {
-      id: db.id,
-      name: db.name,
-      slug: db.slug,
-      description: db.description || undefined,
-      color: db.color || '#3bb664',
-      isActive: db.is_active !== undefined ? db.is_active : (db.isActive !== undefined ? db.isActive : true),
-      is_active: db.is_active !== undefined ? db.is_active : (db.isActive !== undefined ? db.isActive : true),
-      createdAt: db.created_at ? new Date(db.created_at) : (db.createdAt ? new Date(db.createdAt) : new Date()),
-      created_at: db.created_at || db.createdAt,
-      updatedAt: db.updated_at ? new Date(db.updated_at) : (db.updatedAt ? new Date(db.updatedAt) : new Date()),
-      updated_at: db.updated_at || db.updatedAt,
-      _count: db._count
-    };
-  }
-
-  async getCategories(active?: boolean): Promise<{ categories: Category[] }> {
-    const url = active !== undefined ? `/categories?active=${active}` : '/categories';
-    const response = await this.request<{ categories: any[] }>(url);
-    return {
-      categories: (response.categories || []).map(c => this.toCategory(c))
-    };
-  }
-
-  async getCategoryById(id: string): Promise<Category> {
-    const response = await this.request<any>(`/categories/${id}`);
-    return this.toCategory(response);
-  }
-
-  async createCategory(category: CreateCategoryRequest): Promise<{ category: Category }> {
-    const response = await this.request<any>('/categories', {
+  async createCategory(data: CreateCategoryRequest): Promise<{ category: Category }> {
+    const response = await this.request<{ category: any }>('/categories', {
       method: 'POST',
-      body: JSON.stringify({
-        name: category.name,
-        description: category.description,
-        color: category.color,
-        is_active: category.isActive !== undefined ? category.isActive : true
-      })
+      body: JSON.stringify(data),
     });
-    return { category: this.toCategory(response) };
+    return {
+      category: {
+        id: response.category.id,
+        name: response.category.name,
+        slug: response.category.slug,
+        description: response.category.description || null,
+        color: response.category.color || null,
+        isActive: response.category.is_active !== undefined ? response.category.is_active : response.category.isActive,
+        is_active: response.category.is_active !== undefined ? response.category.is_active : response.category.isActive,
+        createdAt: response.category.created_at ? new Date(response.category.created_at) : new Date(),
+        created_at: response.category.created_at,
+        updatedAt: response.category.updated_at ? new Date(response.category.updated_at) : new Date(),
+        updated_at: response.category.updated_at,
+        _count: response.category._count
+      }
+    };
   }
 
-  async updateCategory(id: string, category: UpdateCategoryRequest): Promise<{ category: Category }> {
-    const response = await this.request<any>(`/categories/${id}`, {
+  async updateCategory(id: string, data: UpdateCategoryRequest): Promise<{ category: Category }> {
+    const response = await this.request<{ category: any }>(`/categories/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({
-        name: category.name,
-        description: category.description,
-        color: category.color,
-        is_active: category.isActive
-      })
+      body: JSON.stringify(data),
     });
-    return { category: this.toCategory(response) };
-  }
-
-  async deleteCategory(id: string): Promise<{ message: string }> {
-    return this.request(`/categories/${id}`, {
-      method: 'DELETE'
-    });
-  }
-
-  // ========== TAGS ==========
-  private toTag(db: any): Tag {
     return {
-      id: db.id,
-      name: db.name,
-      slug: db.slug,
-      description: db.description || undefined,
-      color: db.color || '#6b7280',
-      isActive: db.is_active !== undefined ? db.is_active : (db.isActive !== undefined ? db.isActive : true),
-      is_active: db.is_active !== undefined ? db.is_active : (db.isActive !== undefined ? db.isActive : true),
-      createdAt: db.created_at ? new Date(db.created_at) : (db.createdAt ? new Date(db.createdAt) : new Date()),
-      created_at: db.created_at || db.createdAt,
-      updatedAt: db.updated_at ? new Date(db.updated_at) : (db.updatedAt ? new Date(db.updatedAt) : new Date()),
-      updated_at: db.updated_at || db.updatedAt,
-      _count: db._count
+      category: {
+        id: response.category.id,
+        name: response.category.name,
+        slug: response.category.slug,
+        description: response.category.description || null,
+        color: response.category.color || null,
+        isActive: response.category.is_active !== undefined ? response.category.is_active : response.category.isActive,
+        is_active: response.category.is_active !== undefined ? response.category.is_active : response.category.isActive,
+        createdAt: response.category.created_at ? new Date(response.category.created_at) : new Date(),
+        created_at: response.category.created_at,
+        updatedAt: response.category.updated_at ? new Date(response.category.updated_at) : new Date(),
+        updated_at: response.category.updated_at,
+        _count: response.category._count
+      }
     };
   }
 
-  async getTags(active?: boolean): Promise<{ tags: Tag[] }> {
-    const url = active !== undefined ? `/tags?active=${active}` : '/tags';
-    const response = await this.request<{ tags: any[] }>(url);
+  async deleteCategory(id: string): Promise<void> {
+    await this.request(`/categories/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Tags
+  async getTags(): Promise<{ tags: Tag[] }> {
+    const response = await this.request<{ tags: any[] }>('/tags');
     return {
-      tags: (response.tags || []).map(t => this.toTag(t))
+      tags: (response.tags || []).map(tag => ({
+        id: tag.id,
+        name: tag.name,
+        slug: tag.slug,
+        description: tag.description || null,
+        color: tag.color || null,
+        isActive: tag.is_active !== undefined ? tag.is_active : tag.isActive,
+        is_active: tag.is_active !== undefined ? tag.is_active : tag.isActive,
+        createdAt: tag.created_at ? new Date(tag.created_at) : new Date(tag.createdAt || Date.now()),
+        created_at: tag.created_at || tag.createdAt,
+        updatedAt: tag.updated_at ? new Date(tag.updated_at) : new Date(tag.updatedAt || Date.now()),
+        updated_at: tag.updated_at || tag.updatedAt,
+        _count: tag._count
+      }))
     };
   }
 
-  async getTagById(id: string): Promise<Tag> {
-    const response = await this.request<any>(`/tags/${id}`);
-    return this.toTag(response);
-  }
-
-  async createTag(tag: CreateTagRequest): Promise<{ tag: Tag }> {
-    const response = await this.request<any>('/tags', {
+  async createTag(data: CreateTagRequest): Promise<{ tag: Tag }> {
+    const response = await this.request<{ tag: any }>('/tags', {
       method: 'POST',
-      body: JSON.stringify({
-        name: tag.name,
-        description: tag.description,
-        color: tag.color,
-        is_active: tag.isActive !== undefined ? tag.isActive : true
-      })
+      body: JSON.stringify(data),
     });
-    return { tag: this.toTag(response) };
+    return {
+      tag: {
+        id: response.tag.id,
+        name: response.tag.name,
+        slug: response.tag.slug,
+        description: response.tag.description || null,
+        color: response.tag.color || null,
+        isActive: response.tag.is_active !== undefined ? response.tag.is_active : response.tag.isActive,
+        is_active: response.tag.is_active !== undefined ? response.tag.is_active : response.tag.isActive,
+        createdAt: response.tag.created_at ? new Date(response.tag.created_at) : new Date(),
+        created_at: response.tag.created_at,
+        updatedAt: response.tag.updated_at ? new Date(response.tag.updated_at) : new Date(),
+        updated_at: response.tag.updated_at,
+        _count: response.tag._count
+      }
+    };
   }
 
-  async updateTag(id: string, tag: UpdateTagRequest): Promise<{ tag: Tag }> {
-    const response = await this.request<any>(`/tags/${id}`, {
+  async updateTag(id: string, data: UpdateTagRequest): Promise<{ tag: Tag }> {
+    const response = await this.request<{ tag: any }>(`/tags/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({
-        name: tag.name,
-        description: tag.description,
-        color: tag.color,
-        is_active: tag.isActive
-      })
+      body: JSON.stringify(data),
     });
-    return { tag: this.toTag(response) };
+    return {
+      tag: {
+        id: response.tag.id,
+        name: response.tag.name,
+        slug: response.tag.slug,
+        description: response.tag.description || null,
+        color: response.tag.color || null,
+        isActive: response.tag.is_active !== undefined ? response.tag.is_active : response.tag.isActive,
+        is_active: response.tag.is_active !== undefined ? response.tag.is_active : response.tag.isActive,
+        createdAt: response.tag.created_at ? new Date(response.tag.created_at) : new Date(),
+        created_at: response.tag.created_at,
+        updatedAt: response.tag.updated_at ? new Date(response.tag.updated_at) : new Date(),
+        updated_at: response.tag.updated_at,
+        _count: response.tag._count
+      }
+    };
   }
 
-  async deleteTag(id: string): Promise<{ message: string }> {
-    return this.request(`/tags/${id}`, {
-      method: 'DELETE'
+  async deleteTag(id: string): Promise<void> {
+    await this.request(`/tags/${id}`, {
+      method: 'DELETE',
     });
+  }
+
+  // Access Logs
+  async getAccessLogs(params?: { page?: number; limit?: number; email?: string; success?: boolean }): Promise<{ logs: AccessLog[]; pagination: any }> {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.email) queryParams.append('email', params.email);
+    if (params?.success !== undefined) queryParams.append('success', params.success.toString());
+    
+    const query = queryParams.toString();
+    return this.request(`/access-logs${query ? `?${query}` : ''}`);
+  }
+
+  async getAccessLogStats(): Promise<{ total: number; successful: number; failed: number; recent: number; byMethod: { password: number; twoFactor: number } }> {
+    return this.request('/access-logs/stats');
   }
 }
 

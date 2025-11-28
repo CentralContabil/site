@@ -28,12 +28,29 @@ export const getCategories = async (req: Request, res: Response) => {
       orderBy: { name: 'asc' },
       include: {
         _count: {
-          select: { posts: true }
+          select: { 
+            posts: true 
+          }
         }
       }
     });
 
-    res.json({ categories });
+    // Adicionar contagem de posts para cada categoria
+    const categoriesWithCount = await Promise.all(
+      categories.map(async (category) => {
+        const postCount = await prisma.blogPostCategory.count({
+          where: { category_id: category.id }
+        });
+        return {
+          ...category,
+          _count: {
+            posts: postCount
+          }
+        };
+      })
+    );
+
+    res.json({ categories: categoriesWithCount });
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -46,19 +63,26 @@ export const getCategoryById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const category = await prisma.category.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: { posts: true }
-        }
-      }
+      where: { id }
     });
 
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    res.json(category);
+    // Adicionar contagem de posts
+    const postCount = await prisma.blogPostCategory.count({
+      where: { category_id: category.id }
+    });
+
+    res.json({ 
+      category: {
+        ...category,
+        _count: {
+          posts: postCount
+        }
+      }
+    });
   } catch (error) {
     console.error('Error fetching category:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -95,7 +119,7 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    res.status(201).json(category);
+    res.status(201).json({ category });
   } catch (error) {
     console.error('Error creating category:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -143,7 +167,7 @@ export const updateCategory = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    res.json(category);
+    res.json({ category });
   } catch (error) {
     console.error('Error updating category:', error);
     res.status(500).json({ error: 'Internal server error' });

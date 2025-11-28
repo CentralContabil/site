@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, authorizeRoles } from '../middleware/auth';
 import {
   getBlogPosts,
   getBlogPostBySlug,
@@ -24,10 +24,11 @@ router.get('/blog/posts', getBlogPosts);
 router.get('/blog/posts/:slug', getBlogPostBySlug);
 
 // Rotas protegidas (admin)
-router.post('/blog/posts', authenticateToken, createBlogPost);
-router.put('/blog/posts/:id', authenticateToken, updateBlogPost);
-router.delete('/blog/posts/:id', authenticateToken, deleteBlogPost);
-router.post('/blog/posts/:id/image', authenticateToken, upload.single('file'), uploadBlogPostImage);
-router.delete('/blog/posts/:id/image', authenticateToken, deleteBlogPostImage);
+// administrator, editor, author e contributor podem gerenciar posts
+router.post('/blog/posts', authenticateToken, authorizeRoles(['administrator', 'editor', 'author', 'contributor']), createBlogPost);
+router.put('/blog/posts/:id', authenticateToken, authorizeRoles(['administrator', 'editor', 'author', 'contributor']), updateBlogPost);
+router.delete('/blog/posts/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteBlogPost);
+router.post('/blog/posts/:id/image', authenticateToken, authorizeRoles(['administrator', 'editor', 'author', 'contributor']), upload.single('file'), uploadBlogPostImage);
+router.delete('/blog/posts/:id/image', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteBlogPostImage);
 
 export default router;

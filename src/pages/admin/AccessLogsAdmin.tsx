@@ -1,55 +1,26 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { AccessLog } from '../../types';
 import { apiService } from '../../services/api';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Input } from '../../components/ui/Input';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { 
-  Shield, 
-  CheckCircle, 
-  XCircle, 
-  Clock,
-  User,
-  Monitor,
-  Key
-} from 'lucide-react';
-
-interface AccessLog {
-  id: string;
-  admin_id: string;
-  admin_email: string;
-  admin_name: string;
-  ip_address: string | null;
-  user_agent: string | null;
-  login_method: string;
-  success: boolean;
-  created_at: string;
-  admin: {
-    id: string;
-    email: string;
-    name: string;
-  };
-}
-
-interface AccessLogsStats {
-  total: number;
-  successful: number;
-  failed: number;
-  uniqueUsers: number;
-  recentLogs: AccessLog[];
-}
+import { Search, CheckCircle, XCircle, Shield, Clock, User, Mail, Globe } from 'lucide-react';
+import { AdminPageHeader } from '../../components/admin/AdminPageHeader';
 
 export default function AccessLogsAdmin() {
   const [logs, setLogs] = useState<AccessLog[]>([]);
-  const [stats, setStats] = useState<AccessLogsStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats] = useState<any>(null);
+  const [searchEmail, setSearchEmail] = useState('');
   const [filterSuccess, setFilterSuccess] = useState<string>('all');
-  const [selectedAdmin, setSelectedAdmin] = useState<string>('all');
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<any>(null);
 
   useEffect(() => {
     loadLogs();
     loadStats();
-  }, [page, filterSuccess, selectedAdmin]);
+  }, [page, searchEmail, filterSuccess]);
 
   const loadLogs = async () => {
     try {
@@ -59,18 +30,18 @@ export default function AccessLogsAdmin() {
         limit: 50,
       };
       
+      if (searchEmail) {
+        params.email = searchEmail;
+      }
+      
       if (filterSuccess !== 'all') {
-        params.success = filterSuccess === 'success';
+        params.success = filterSuccess === 'true';
       }
-      
-      if (selectedAdmin !== 'all') {
-        params.adminId = selectedAdmin;
-      }
-      
+
       const response = await apiService.getAccessLogs(params);
-      setLogs(response.logs);
-      setTotalPages(response.pagination.totalPages);
-    } catch (error) {
+      setLogs(response.logs || []);
+      setPagination(response.pagination);
+    } catch (error: any) {
       console.error('Erro ao carregar logs:', error);
     } finally {
       setLoading(false);
@@ -79,235 +50,244 @@ export default function AccessLogsAdmin() {
 
   const loadStats = async () => {
     try {
-      const response = await apiService.getAccessLogsStats();
+      const response = await apiService.getAccessLogStats();
       setStats(response);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar estatísticas:', error);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR });
-    } catch {
-      return dateString;
-    }
+  const handleSearch = () => {
+    setPage(1);
+    loadLogs();
   };
-
-  const getBrowserInfo = (userAgent: string | null) => {
-    if (!userAgent) return 'Desconhecido';
-    
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
-    if (userAgent.includes('Opera')) return 'Opera';
-    
-    return 'Outro';
-  };
-
-  if (loading && !stats) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3bb664]"></div>
-      </div>
-    );
-  }
 
   return (
     <div>
+      <AdminPageHeader
+        title="Logs de Acesso"
+        subtitle="Visualize todos os acessos ao sistema"
+      />
+
       {/* Estatísticas */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full" style={{ backgroundColor: '#3bb66420' }}>
-                <Shield className="h-6 w-6" style={{ color: '#3bb664' }} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total de Acessos</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                </div>
+                <Shield className="w-8 h-8 text-[#3bb664]" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total de Acessos</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.total}</p>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-full">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Logins Bem-sucedidos</p>
+                  <p className="text-2xl font-bold text-green-600">{stats.successful}</p>
+                </div>
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Logins Bem-sucedidos</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.successful}</p>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-red-100 rounded-full">
-                <XCircle className="h-6 w-6 text-red-600" />
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Tentativas Falhadas</p>
+                  <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
+                </div>
+                <XCircle className="w-8 h-8 text-red-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Tentativas Falhas</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.failed}</p>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <User className="h-6 w-6 text-blue-600" />
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Últimos 30 Dias</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.recent}</p>
+                </div>
+                <Clock className="w-8 h-8 text-blue-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Usuários Únicos</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.uniqueUsers}</p>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
       {/* Filtros */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              value={filterSuccess}
-              onChange={(e) => {
-                setFilterSuccess(e.target.value);
-                setPage(1);
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3bb664] focus:border-transparent"
-            >
-              <option value="all">Todos</option>
-              <option value="success">Bem-sucedidos</option>
-              <option value="failed">Falhas</option>
-            </select>
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Input
+                label="Buscar por email"
+                value={searchEmail}
+                onChange={(value) => setSearchEmail(value)}
+                placeholder="Digite o email..."
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
+              />
+            </div>
+            <div className="w-full md:w-48">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                value={filterSuccess}
+                onChange={(e) => {
+                  setFilterSuccess(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3bb664]"
+              >
+                <option value="all">Todos</option>
+                <option value="true">Bem-sucedidos</option>
+                <option value="false">Falhados</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={handleSearch}
+                className="px-4 py-2 bg-[#3bb664] text-white rounded-lg hover:bg-[#2d9a4f] transition-colors flex items-center gap-2"
+              >
+                <Search className="w-4 h-4" />
+                Buscar
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Tabela de Logs */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Data/Hora
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Usuário
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Método
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  IP
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Navegador
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {logs.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
-                    Nenhum log encontrado
-                  </td>
-                </tr>
-              ) : (
-                logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 text-gray-400 mr-2" />
-                        {formatDate(log.created_at)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <User className="h-4 w-4 text-gray-400 mr-2" />
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{log.admin_name}</div>
-                          <div className="text-sm text-gray-500">{log.admin_email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Key className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-900">
-                          {log.login_method === '2fa' ? '2FA' : 'Senha'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {log.ip_address || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Monitor className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-500">
-                          {getBrowserInfo(log.user_agent)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {log.success ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Sucesso
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          <XCircle className="h-3 w-3 mr-1" />
-                          Falha
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+      {/* Lista de Logs */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico de Acessos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3bb664]"></div>
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              Nenhum log de acesso encontrado.
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Data/Hora</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Usuário</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Email</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Método</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">IP</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.map((log) => (
+                      <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {format(new Date(log.created_at), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-900">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-gray-400" />
+                            {log.name || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-gray-400" />
+                            {log.email}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            log.login_method === '2fa' 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {log.login_method === '2fa' ? '2FA' : 'Senha'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-4 h-4 text-gray-400" />
+                            {log.ip_address || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                            log.success
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {log.success ? (
+                              <>
+                                <CheckCircle className="w-3 h-3" />
+                                Sucesso
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-3 h-3" />
+                                Falhou
+                              </>
+                            )}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Paginação */}
+              {pagination && pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+                  <div className="text-sm text-gray-600">
+                    Mostrando {((pagination.page - 1) * pagination.limit) + 1} a {Math.min(pagination.page * pagination.limit, pagination.total)} de {pagination.total} registros
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={pagination.page === 1}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Anterior
+                    </button>
+                    <span className="px-4 py-2 text-sm text-gray-600">
+                      Página {pagination.page} de {pagination.totalPages}
+                    </span>
+                    <button
+                      onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                      disabled={pagination.page === pagination.totalPages}
+                      className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Próxima
+                    </button>
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Paginação */}
-        {totalPages > 1 && (
-          <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-            <div className="text-sm text-gray-700">
-              Página {page} de {totalPages}
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Anterior
-              </button>
-              <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Próxima
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
 

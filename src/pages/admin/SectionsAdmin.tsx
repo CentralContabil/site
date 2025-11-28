@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Save, Plus, Edit, Trash2, Upload, Image as ImageIcon, ChevronRight, Eye, EyeOff, X, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
@@ -6,9 +7,11 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Textarea } from '../../components/ui/Textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { AdminPageHeader } from '../../components/admin/AdminPageHeader';
 import * as LucideIcons from 'lucide-react';
 import { apiService } from '../../services/api';
 import { Hero, UpdateHeroRequest } from '../../types';
+import { RichTextEditor } from '../../components/ui/RichTextEditor';
 
 type SectionType = 'hero' | 'features' | 'about' | 'specialties' | 'fiscal-benefits' | 'fun-facts' | 'certifications' | 'newsletter' | 'clients' | 'services';
 
@@ -117,9 +120,19 @@ const IconSelect = ({ value, onChange, label }: { value: string; onChange: (valu
 };
 
 export default function SectionsAdmin() {
-  const [activeSection, setActiveSection] = useState<SectionType>('hero');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sectionParam = searchParams.get('section') as SectionType | null;
+  const [activeSection, setActiveSection] = useState<SectionType>(sectionParam || 'hero');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  // Atualizar seção ativa quando o parâmetro da URL mudar
+  useEffect(() => {
+    const sectionParam = searchParams.get('section') as SectionType | null;
+    if (sectionParam && ['hero', 'features', 'about', 'specialties', 'fiscal-benefits', 'fun-facts', 'certifications', 'newsletter', 'clients', 'services'].includes(sectionParam)) {
+      setActiveSection(sectionParam);
+    }
+  }, [searchParams]);
   const [uploadingImage, setUploadingImage] = useState<'background' | 'hero' | 'about' | 'newsletter' | 'fiscal-benefit' | 'services' | null>(null);
   const [uploadingFiscalBenefitImage, setUploadingFiscalBenefitImage] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -1334,62 +1347,16 @@ export default function SectionsAdmin() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
-      {/* Sidebar de Seções */}
-      <div className="w-56 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
-        <div className="p-3">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Seções do Site</h2>
-          <nav className="space-y-1">
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => {
-                  setEditingFeature(null);
-                  setEditingSpecialty(null);
-                  setEditingFiscalBenefit(null);
-                  setEditingFunFact(null);
-                  setEditingCertification(null);
-                  setShowModal(false);
-                  setActiveSection(section.id);
-                  // Carregar dados da seção quando selecionada
-                  loadSectionData();
-                }}
-                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  activeSection === section.id
-                    ? 'bg-[#3bb664] text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <div className="flex items-center">
-                  <span className="mr-2">{section.icon}</span>
-                  {section.label}
-                </div>
-                {activeSection === section.id && <ChevronRight className="h-4 w-4" />}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {/* Conteúdo Principal */}
-      <div className="flex-1 overflow-y-auto p-3">
+    <div className="space-y-4">
         {/* Hero Section */}
         {activeSection === 'hero' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Hero / Início</h1>
-                <p className="text-gray-600 mt-1">Configure a seção principal da home page</p>
-              </div>
-              <Button
-                onClick={handleSaveHero}
-                disabled={saving}
-                className="bg-[#3bb664] hover:bg-[#2d9a4f] text-white"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {saving ? 'Salvando...' : 'Salvar Alterações'}
-              </Button>
-            </div>
+            <AdminPageHeader
+              title="Hero / Início"
+              subtitle="Configure a seção principal da home page"
+              onSave={handleSaveHero}
+              saving={saving}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <Card>
@@ -1665,20 +1632,12 @@ export default function SectionsAdmin() {
         {/* About Section */}
         {activeSection === 'about' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Seção Sobre</h1>
-                <p className="text-gray-600 mt-1">Configure a seção "Sobre Nós"</p>
-              </div>
-              <Button
-                onClick={handleSaveAbout}
-                disabled={saving}
-                className="bg-[#3bb664] hover:bg-[#2d9a4f] text-white"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {saving ? 'Salvando...' : 'Salvar'}
-              </Button>
-            </div>
+            <AdminPageHeader
+              title="Seção Sobre"
+              subtitle="Configure a seção Sobre Nós"
+              onSave={handleSaveAbout}
+              saving={saving}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <Card>
@@ -1927,20 +1886,12 @@ export default function SectionsAdmin() {
         {/* Newsletter Section */}
         {activeSection === 'newsletter' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Seção Newsletter</h1>
-                <p className="text-gray-600 mt-1">Configure a seção de Newsletter</p>
-              </div>
-              <Button
-                onClick={handleSaveNewsletter}
-                disabled={saving}
-                className="bg-[#3bb664] hover:bg-[#2d9a4f] text-white"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {saving ? 'Salvando...' : 'Salvar'}
-              </Button>
-            </div>
+            <AdminPageHeader
+              title="Seção Newsletter"
+              subtitle="Configure a seção de Newsletter"
+              onSave={handleSaveNewsletter}
+              saving={saving}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <Card>
@@ -2031,20 +1982,12 @@ export default function SectionsAdmin() {
         {/* Clients Section */}
         {activeSection === 'clients' && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Seção Clientes</h1>
-                <p className="text-gray-600 mt-1">Configure a seção de Clientes</p>
-              </div>
-              <Button
-                onClick={handleSaveClients}
-                disabled={saving}
-                className="bg-[#3bb664] hover:bg-[#2d9a4f] text-white"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {saving ? 'Salvando...' : 'Salvar Alterações'}
-              </Button>
-            </div>
+            <AdminPageHeader
+              title="Seção Clientes"
+              subtitle="Configure a seção de Clientes"
+              onSave={handleSaveClients}
+              saving={saving}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
@@ -2415,9 +2358,17 @@ export default function SectionsAdmin() {
 
             {/* Modal de Edição/Criação */}
             {showModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-backdrop" onClick={handleCloseModal}>
-                <Card 
-                  className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content ${isClosing ? 'closing' : ''}`}
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-backdrop"
+                onClick={(e) => {
+                  // Só fecha se o clique for diretamente no backdrop (fora do card)
+                  if (e.target === e.currentTarget) {
+                    handleCloseModal();
+                  }
+                }}
+              >
+                <Card
+                  className={`w-full max-w-4xl max-h-[90vh] overflow-y-auto modal-content ${isClosing ? 'closing' : ''}`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <CardHeader>
@@ -2531,12 +2482,12 @@ export default function SectionsAdmin() {
                         />
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Conteúdo Detalhado (HTML)</label>
-                          <textarea
-                            value={fiscalBenefitForm.content}
-                            onChange={(e) => setFiscalBenefitForm({ ...fiscalBenefitForm, content: e.target.value })}
-                            rows={10}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-sm"
-                            placeholder="Digite o conteúdo em HTML..."
+                          <RichTextEditor
+                            value={fiscalBenefitForm.content || ''}
+                            onChange={(value) =>
+                              setFiscalBenefitForm({ ...fiscalBenefitForm, content: value })
+                            }
+                            placeholder="Digite o conteúdo detalhado em HTML..."
                           />
                         </div>
                         <div>
@@ -2850,7 +2801,6 @@ export default function SectionsAdmin() {
             </Card>
           </div>
         )}
-      </div>
     </div>
   );
 }

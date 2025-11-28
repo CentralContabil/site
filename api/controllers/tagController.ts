@@ -25,15 +25,25 @@ export const getTags = async (req: Request, res: Response) => {
 
     const tags = await prisma.tag.findMany({
       where,
-      orderBy: { name: 'asc' },
-      include: {
-        _count: {
-          select: { posts: true }
-        }
-      }
+      orderBy: { name: 'asc' }
     });
 
-    res.json({ tags });
+    // Adicionar contagem de posts para cada tag
+    const tagsWithCount = await Promise.all(
+      tags.map(async (tag) => {
+        const postCount = await prisma.blogPostTag.count({
+          where: { tag_id: tag.id }
+        });
+        return {
+          ...tag,
+          _count: {
+            posts: postCount
+          }
+        };
+      })
+    );
+
+    res.json({ tags: tagsWithCount });
   } catch (error) {
     console.error('Error fetching tags:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -46,19 +56,26 @@ export const getTagById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const tag = await prisma.tag.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: { posts: true }
-        }
-      }
+      where: { id }
     });
 
     if (!tag) {
       return res.status(404).json({ error: 'Tag not found' });
     }
 
-    res.json(tag);
+    // Adicionar contagem de posts
+    const postCount = await prisma.blogPostTag.count({
+      where: { tag_id: tag.id }
+    });
+
+    res.json({ 
+      tag: {
+        ...tag,
+        _count: {
+          posts: postCount
+        }
+      }
+    });
   } catch (error) {
     console.error('Error fetching tag:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -95,7 +112,7 @@ export const createTag = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    res.status(201).json(tag);
+    res.status(201).json({ tag });
   } catch (error) {
     console.error('Error creating tag:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -143,7 +160,7 @@ export const updateTag = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    res.json(tag);
+    res.json({ tag });
   } catch (error) {
     console.error('Error updating tag:', error);
     res.status(500).json({ error: 'Internal server error' });

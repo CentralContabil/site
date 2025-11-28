@@ -54,18 +54,36 @@ export const FooterBlake: React.FC<FooterProps> = ({ configuration }) => {
                'Mais de 34 anos oferecendo soluções contábeis estratégicas para empresas que buscam crescimento sustentável.'}
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-[#3bb664] transition-colors">
-                <Facebook size={20} />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[#3bb664] transition-colors">
-                <Twitter size={20} />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[#3bb664] transition-colors">
-                <Instagram size={20} />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[#3bb664] transition-colors">
-                <Linkedin size={20} />
-              </a>
+              {configuration?.facebookUrl || configuration?.facebook_url ? (
+                <a
+                  href={configuration.facebookUrl || configuration.facebook_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#3bb664] transition-colors"
+                >
+                  <Facebook size={20} />
+                </a>
+              ) : null}
+              {configuration?.instagramUrl || configuration?.instagram_url ? (
+                <a
+                  href={configuration.instagramUrl || configuration.instagram_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#3bb664] transition-colors"
+                >
+                  <Instagram size={20} />
+                </a>
+              ) : null}
+              {configuration?.linkedinUrl || configuration?.linkedin_url ? (
+                <a
+                  href={configuration.linkedinUrl || configuration.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#3bb664] transition-colors"
+                >
+                  <Linkedin size={20} />
+                </a>
+              ) : null}
             </div>
           </div>
 
@@ -125,9 +143,9 @@ export const FooterBlake: React.FC<FooterProps> = ({ configuration }) => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[#3bb664] transition-colors">
+                <Link to="/carreiras" className="hover:text-[#3bb664] transition-colors">
                   Carreiras
-                </a>
+                </Link>
               </li>
               <li>
                 <Link to="/" className="hover:text-[#3bb664] transition-colors">

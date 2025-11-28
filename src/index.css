@@ -86,6 +86,15 @@
   animation: modalContentZoomOut 0.2s ease-in;
 }
 
+/* Rich text editor height (ReactQuill) */
+.rich-text-editor .ql-container {
+  min-height: 260px;
+}
+
+.rich-text-editor .ql-editor {
+  min-height: 220px;
+}
+
 /* Message Details Animations */
 @keyframes messageDetailsFadeIn {
   from {
@@ -539,4 +548,28 @@ main {
   width: 100%;
   max-width: 100%;
   display: block;
+}
+
+/* Esconder scrollbar mas manter funcionalidade de scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;  /* Chrome, Safari and Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Esconder scrollbar em elementos com overflow-y-auto dentro do dropdown */
+.fixed.bg-gray-800 ul::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.fixed.bg-gray-800 ul {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }

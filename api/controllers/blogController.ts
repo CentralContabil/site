@@ -204,7 +204,21 @@ export const createBlogPost = async (req: Request, res: Response) => {
 export const updateBlogPost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, excerpt, content, featured_image_url, author, is_published, category_ids, tag_ids } = req.body;
+    const { 
+      title, 
+      excerpt, 
+      content, 
+      featured_image_url, 
+      author, 
+      is_published, 
+      category_ids, 
+      tag_ids,
+      publishToFacebook,
+      publishToInstagram,
+      publishToLinkedIn,
+      publishToTwitter,
+      publishToThreads
+    } = req.body;
 
     const existingPost = await prisma.blogPost.findUnique({
       where: { id },
@@ -245,13 +259,17 @@ export const updateBlogPost = async (req: Request, res: Response) => {
       });
 
       // Criar novas associações se houver categorias
-      if (category_ids && category_ids.length > 0) {
-        await prisma.blogPostCategory.createMany({
-          data: category_ids.map((categoryId: string) => ({
-            blog_post_id: id,
-            category_id: categoryId
-          }))
-        });
+      if (category_ids && Array.isArray(category_ids) && category_ids.length > 0) {
+        // Filtrar apenas IDs válidos (strings não vazias)
+        const validCategoryIds = category_ids.filter((id: any) => id && typeof id === 'string' && id.trim() !== '');
+        if (validCategoryIds.length > 0) {
+          await prisma.blogPostCategory.createMany({
+            data: validCategoryIds.map((categoryId: string) => ({
+              blog_post_id: id,
+              category_id: categoryId
+            }))
+          });
+        }
       }
     }
 
@@ -263,13 +281,17 @@ export const updateBlogPost = async (req: Request, res: Response) => {
       });
 
       // Criar novas associações se houver tags
-      if (tag_ids && tag_ids.length > 0) {
-        await prisma.blogPostTag.createMany({
-          data: tag_ids.map((tagId: string) => ({
-            blog_post_id: id,
-            tag_id: tagId
-          }))
-        });
+      if (tag_ids && Array.isArray(tag_ids) && tag_ids.length > 0) {
+        // Filtrar apenas IDs válidos (strings não vazias)
+        const validTagIds = tag_ids.filter((id: any) => id && typeof id === 'string' && id.trim() !== '');
+        if (validTagIds.length > 0) {
+          await prisma.blogPostTag.createMany({
+            data: validTagIds.map((tagId: string) => ({
+              blog_post_id: id,
+              tag_id: tagId
+            }))
+          });
+        }
       }
     }
 
@@ -336,9 +358,18 @@ export const updateBlogPost = async (req: Request, res: Response) => {
     }
 
     res.json(post);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating blog post:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      code: error?.code,
+      meta: error?.meta
+    });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error?.message || 'Erro desconhecido ao atualizar post'
+    });
   }
 };
 

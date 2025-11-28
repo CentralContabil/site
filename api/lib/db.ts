@@ -53,6 +53,8 @@ export interface DbAdmin {
   email: string;
   password_hash: string;
   name: string;
+  // Papel inspirado nos níveis do WordPress (administrator, editor, author, contributor, subscriber)
+  role: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -88,6 +90,7 @@ class InMemoryDB {
       email: 'sistema@central-rnc.com.br',
       password_hash: '$2b$10$3AXl3Zw5F5PE6TE45YzT/unrX7krjhdEyR7CBROWPU6MF5KUoO5UO', // admin123
       name: 'Administrador Central RNC',
+      role: 'administrator',
       created_at: new Date(),
       updated_at: new Date(),
     }];

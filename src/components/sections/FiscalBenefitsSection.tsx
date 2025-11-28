@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { TrendingDown } from 'lucide-react';
 import { Button } from '../ui/Button';
 import * as LucideIcons from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 interface Benefit {
   id: string;
@@ -16,7 +15,6 @@ interface Benefit {
 }
 
 export const FiscalBenefitsSection: React.FC = () => {
-  const { t } = useTranslation();
   const [benefits, setBenefits] = useState<Benefit[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -64,20 +62,21 @@ export const FiscalBenefitsSection: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-10 sm:mb-14 lg:mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 bg-[#3bb664] text-white text-xs font-semibold mb-4 sm:mb-6 uppercase tracking-wider">
-            {t('fiscalBenefits.badge')}
+            Benefícios Fiscais do ES
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight px-4">
-            {t('fiscalBenefits.heading')}
-            <span className="block text-[#3bb664]">{t('fiscalBenefits.headingHighlight')}</span>
+            Já pensou em pagar somente
+            <span className="block text-[#3bb664]">1% de ICMS?</span>
           </h2>
           <div className="w-16 sm:w-20 h-1 bg-[#3bb664] mx-auto mb-4 sm:mb-6"></div>
           <p className="text-base sm:text-lg text-gray-700 max-w-3xl mx-auto mb-4 sm:mb-6 px-4">
-            {t('fiscalBenefits.description')}
+            Conheça os principais Incentivos Fiscais do Espírito Santo e como eles podem 
+            beneficiar a sua empresa com economia tributária!
           </p>
           <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-gray-100 border-2 border-[#3bb664] mx-4">
             <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#3bb664]" />
             <span className="text-sm sm:text-base font-bold text-[#3bb664] uppercase tracking-wider">
-              {t('fiscalBenefits.reduceTax')}
+              Reduza sua alíquota de ICMS para até 1%
             </span>
           </div>
         </div>
@@ -157,7 +156,7 @@ export const FiscalBenefitsSection: React.FC = () => {
                 onClick={() => document.querySelector('#contato')?.scrollIntoView({ behavior: 'smooth' })}
                 className="bg-[#3bb664] hover:bg-[#2d9a4f] text-white px-6 sm:px-8 py-2.5 sm:py-3 font-semibold uppercase tracking-wider text-xs sm:text-sm transition-colors duration-300 w-full sm:w-auto"
               >
-                {t('fiscalBenefits.learnMore')}
+                Saiba Mais
               </Button>
               <Button 
                 size="xl" 

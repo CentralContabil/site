@@ -3,14 +3,12 @@ import { Link } from 'react-router-dom';
 import { Configuration } from '../../types';
 import { Mail, Phone, MapPin, Clock, Facebook, Instagram, Linkedin, Calculator, Building2, ArrowRight } from 'lucide-react';
 import { Logo } from '../ui/Logo';
-import { useTranslation } from 'react-i18next';
 
 interface FooterProps {
   configuration: Configuration | null;
 }
 
 export const Footer: React.FC<FooterProps> = ({ configuration }) => {
-  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -68,34 +66,49 @@ export const Footer: React.FC<FooterProps> = ({ configuration }) => {
 
           {/* Services */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-6">{t('services.title')}</h4>
+            <h4 className="text-lg font-semibold text-white mb-6">Nossos Serviços</h4>
             <div className="space-y-3">
-              <div className="flex items-center text-green-100 hover:text-white transition-colors duration-200">
+              <Link
+                to="/#servicos"
+                className="flex items-center text-green-100 hover:text-white transition-colors duration-200"
+              >
                 <ArrowRight className="w-4 h-4 mr-2" />
                 <span>Abertura de Empresa</span>
-              </div>
-              <div className="flex items-center text-green-100 hover:text-white transition-colors duration-200">
+              </Link>
+              <Link
+                to="/#servicos"
+                className="flex items-center text-green-100 hover:text-white transition-colors duration-200"
+              >
                 <ArrowRight className="w-4 h-4 mr-2" />
                 <span>Contabilidade Consultiva</span>
-              </div>
-              <div className="flex items-center text-green-100 hover:text-white transition-colors duration-200">
+              </Link>
+              <Link
+                to="/#servicos"
+                className="flex items-center text-green-100 hover:text-white transition-colors duration-200"
+              >
                 <ArrowRight className="w-4 h-4 mr-2" />
                 <span>Departamento Pessoal</span>
-              </div>
-              <div className="flex items-center text-green-100 hover:text-white transition-colors duration-200">
+              </Link>
+              <Link
+                to="/#servicos"
+                className="flex items-center text-green-100 hover:text-white transition-colors duration-200"
+              >
                 <ArrowRight className="w-4 h-4 mr-2" />
                 <span>Planejamento Tributário</span>
-              </div>
-              <div className="flex items-center text-green-100 hover:text-white transition-colors duration-200">
+              </Link>
+              <Link
+                to="/#servicos"
+                className="flex items-center text-green-100 hover:text-white transition-colors duration-200"
+              >
                 <ArrowRight className="w-4 h-4 mr-2" />
                 <span>Assessoria Financeira</span>
-              </div>
+              </Link>
             </div>
           </div>
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-6">{t('footer.contact')}</h4>
+            <h4 className="text-lg font-semibold text-white mb-6">Entre em Contato</h4>
             <div className="space-y-4">
               {configuration?.phone && (
                 <div className="flex items-center space-x-3">
@@ -103,7 +116,7 @@ export const Footer: React.FC<FooterProps> = ({ configuration }) => {
                     <Phone className="w-5 h-5 text-green-300" />
                   </div>
                   <div>
-                    <p className="text-white font-medium">{t('footer.phone')}</p>
+                    <p className="text-white font-medium">Telefone</p>
                     <p className="text-green-200 text-sm">{configuration.phone}</p>
                   </div>
                 </div>
@@ -114,7 +127,7 @@ export const Footer: React.FC<FooterProps> = ({ configuration }) => {
                     <Mail className="w-5 h-5 text-green-300" />
                   </div>
                   <div>
-                    <p className="text-white font-medium">{t('footer.email')}</p>
+                    <p className="text-white font-medium">E-mail</p>
                     <p className="text-green-200 text-sm">{configuration.email}</p>
                   </div>
                 </div>
@@ -125,7 +138,7 @@ export const Footer: React.FC<FooterProps> = ({ configuration }) => {
                     <MapPin className="w-5 h-5 text-green-300" />
                   </div>
                   <div>
-                    <p className="text-white font-medium">{t('footer.address')}</p>
+                    <p className="text-white font-medium">Endereço</p>
                     <p className="text-green-200 text-sm">{configuration.address}</p>
                   </div>
                 </div>
@@ -149,19 +162,19 @@ export const Footer: React.FC<FooterProps> = ({ configuration }) => {
         <div className="border-t border-white/20 pt-12 pb-8">
           <div className="max-w-4xl mx-auto text-center">
             <h3 className="text-3xl font-bold text-white mb-4">
-              {t('footer.newsletterTitle')}
+              Fique por dentro das novidades contábeis
             </h3>
             <p className="text-green-100 mb-8 max-w-2xl mx-auto">
-              {t('footer.newsletterSubtitle')}
+              Receba dicas, atualizações fiscais e novidades diretamente no seu e-mail
             </p>
             <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
               <input 
                 type="email" 
-                placeholder={t('footer.newsletterPlaceholder')}
+                placeholder="Seu melhor e-mail"
                 className="flex-1 px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-green-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
               />
               <button className="px-8 py-4 bg-gradient-to-r from-green-400 to-green-500 text-green-900 rounded-xl font-semibold hover:from-green-500 hover:to-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
-                {t('footer.newsletterButton')}
+                Assinar
               </button>
             </div>
           </div>
@@ -172,12 +185,12 @@ export const Footer: React.FC<FooterProps> = ({ configuration }) => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-green-200">
               © {currentYear} {configuration?.companyName || 'Contábil Premium'}. 
-              {t('footer.allRightsReserved')}
+              Todos os direitos reservados.
             </p>
             <div className="flex gap-6 text-sm text-green-300">
-              <Link to="/politica-de-privacidade" className="hover:text-white transition-colors duration-200">{t('footer.privacyPolicy')}</Link>
-              <a href="#" className="hover:text-white transition-colors duration-200">{t('footer.termsOfUse')}</a>
-              <a href="/admin" className="hover:text-white transition-colors duration-200">{t('footer.adminArea')}</a>
+              <Link to="/politica-de-privacidade" className="hover:text-white transition-colors duration-200">Política de Privacidade</Link>
+              <Link to="/termos-de-uso" className="hover:text-white transition-colors duration-200">Termos de Uso</Link>
+              <a href="/admin" className="hover:text-white transition-colors duration-200">Área Administrativa</a>
             </div>
           </div>
         </div>

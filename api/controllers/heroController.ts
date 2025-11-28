@@ -7,7 +7,6 @@ import { FileService } from '../services/fileService';
 // Esquema de validação
 const updateHeroSchema = z.object({
   badge_text: z.string().min(1, 'Texto do badge é obrigatório').optional(),
-  welcome_text: z.string().optional().nullable(),
   title_line1: z.string().min(1, 'Primeira linha do título é obrigatória').optional(),
   title_line2: z.string().min(1, 'Segunda linha do título é obrigatória').optional(),
   description: z.string().min(1, 'Descrição é obrigatória').optional(),
@@ -15,10 +14,8 @@ const updateHeroSchema = z.object({
   hero_image_url: z.string().nullable().optional(),
   button1_text: z.string().optional().nullable(),
   button1_link: z.string().optional().nullable(),
-  button1_icon: z.string().optional().nullable(),
   button2_text: z.string().optional().nullable(),
   button2_link: z.string().optional().nullable(),
-  button2_icon: z.string().optional().nullable(),
   stat_years: z.string().optional().nullable(), // Mantido para compatibilidade
   stat_clients: z.string().optional().nullable(), // Mantido para compatibilidade
   stat_network: z.string().optional().nullable(), // Mantido para compatibilidade
@@ -67,7 +64,6 @@ export const getHero = async (req: Request, res: Response) => {
       hero: {
         id: hero.id,
         badgeText: hero.badge_text,
-        welcomeText: hero.welcome_text,
         titleLine1: hero.title_line1,
         titleLine2: hero.title_line2,
         description: hero.description,
@@ -75,10 +71,8 @@ export const getHero = async (req: Request, res: Response) => {
         heroImageUrl: hero.hero_image_url,
         button1Text: hero.button1_text,
         button1Link: hero.button1_link,
-        button1Icon: hero.button1_icon,
         button2Text: hero.button2_text,
         button2Link: hero.button2_link,
-        button2Icon: hero.button2_icon,
         statYears: hero.stat_years,
         statClients: hero.stat_clients,
         statNetwork: hero.stat_network,
@@ -118,7 +112,6 @@ export const updateHero = async (req: AuthRequest, res: Response) => {
     // Converter camelCase para snake_case
     const updateData: any = {};
     if (data.badge_text !== undefined) updateData.badge_text = data.badge_text;
-    if (data.welcome_text !== undefined) updateData.welcome_text = data.welcome_text;
     if (data.title_line1 !== undefined) updateData.title_line1 = data.title_line1;
     if (data.title_line2 !== undefined) updateData.title_line2 = data.title_line2;
     if (data.description !== undefined) updateData.description = data.description;
@@ -126,10 +119,8 @@ export const updateHero = async (req: AuthRequest, res: Response) => {
     if (data.hero_image_url !== undefined) updateData.hero_image_url = data.hero_image_url;
     if (data.button1_text !== undefined) updateData.button1_text = data.button1_text;
     if (data.button1_link !== undefined) updateData.button1_link = data.button1_link;
-    if (data.button1_icon !== undefined) updateData.button1_icon = data.button1_icon;
     if (data.button2_text !== undefined) updateData.button2_text = data.button2_text;
     if (data.button2_link !== undefined) updateData.button2_link = data.button2_link;
-    if (data.button2_icon !== undefined) updateData.button2_icon = data.button2_icon;
     if (data.stat_years !== undefined) updateData.stat_years = data.stat_years;
     if (data.stat_clients !== undefined) updateData.stat_clients = data.stat_clients;
     if (data.stat_network !== undefined) updateData.stat_network = data.stat_network;
@@ -179,7 +170,6 @@ export const updateHero = async (req: AuthRequest, res: Response) => {
       hero: {
         id: hero.id,
         badgeText: hero.badge_text,
-        welcomeText: hero.welcome_text,
         titleLine1: hero.title_line1,
         titleLine2: hero.title_line2,
         description: hero.description,
@@ -187,10 +177,8 @@ export const updateHero = async (req: AuthRequest, res: Response) => {
         heroImageUrl: hero.hero_image_url,
         button1Text: hero.button1_text,
         button1Link: hero.button1_link,
-        button1Icon: hero.button1_icon,
         button2Text: hero.button2_text,
         button2Link: hero.button2_link,
-        button2Icon: hero.button2_icon,
         statYears: hero.stat_years,
         statClients: hero.stat_clients,
         statNetwork: hero.stat_network,
@@ -319,10 +307,8 @@ export const uploadHeroImage = async (req: AuthRequest, res: Response) => {
         heroImageUrl: hero.hero_image_url,
         button1Text: hero.button1_text,
         button1Link: hero.button1_link,
-        button1Icon: hero.button1_icon,
         button2Text: hero.button2_text,
         button2Link: hero.button2_link,
-        button2Icon: hero.button2_icon,
         statYears: hero.stat_years,
         statClients: hero.stat_clients,
         statNetwork: hero.stat_network,
@@ -394,10 +380,8 @@ export const deleteHeroImage = async (req: AuthRequest, res: Response) => {
         heroImageUrl: hero.hero_image_url,
         button1Text: hero.button1_text,
         button1Link: hero.button1_link,
-        button1Icon: hero.button1_icon,
         button2Text: hero.button2_text,
         button2Link: hero.button2_link,
-        button2Icon: hero.button2_icon,
         statYears: hero.stat_years,
         statClients: hero.stat_clients,
         statNetwork: hero.stat_network,

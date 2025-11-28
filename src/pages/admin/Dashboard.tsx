@@ -4,18 +4,22 @@ import {
   FileText, 
   Users, 
   MessageSquare,
-  UserCheck
+  UserCheck,
+  TrendingUp
 } from 'lucide-react';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
-} from 'recharts';
 import { apiService } from '../../services/api';
+import { format, subMonths, startOfMonth } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
 
 interface DashboardStats {
   services: number;
@@ -24,10 +28,9 @@ interface DashboardStats {
   users: number;
 }
 
-interface MonthlyMessageData {
-  month: string;
+interface MessageChartData {
+  date: string;
   count: number;
-  fullMonth: string;
 }
 
 export default function Dashboard() {
@@ -37,35 +40,23 @@ export default function Dashboard() {
     messages: 0,
     users: 0
   });
-  const [monthlyData, setMonthlyData] = useState<MonthlyMessageData[]>([]);
+  const [messageChartData, setMessageChartData] = useState<MessageChartData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [chartLoading, setChartLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadStats();
-    loadMonthlyData();
   }, []);
 
   const loadStats = async () => {
     try {
       setLoading(true);
-      setError(null);
-      console.log('🔄 Carregando estatísticas do dashboard...');
-      
-      const [servicesRes, testimonialsRes, usersRes, messagesRes] = await Promise.all([
+      const [servicesRes, testimonialsRes, usersRes, messagesRes, messagesListRes] = await Promise.all([
         apiService.getAllServices(),
         apiService.getAllTestimonials(),
         apiService.getUsers(),
-        apiService.getTotalContactMessagesCount()
+        apiService.getTotalContactMessagesCount(),
+        apiService.getContactMessages()
       ]);
-
-      console.log('✅ Dados recebidos:', {
-        services: servicesRes,
-        testimonials: testimonialsRes,
-        users: usersRes,
-        messages: messagesRes
-      });
 
       setStats({
         services: servicesRes.services?.length || 0,
@@ -73,33 +64,35 @@ export default function Dashboard() {
         messages: messagesRes.count || 0,
         users: usersRes.users?.length || 0
       });
-    } catch (error: any) {
-      console.error('❌ Erro ao carregar estatísticas:', error);
-      setError(error?.message || 'Erro ao carregar dados do dashboard');
-      // Mesmo com erro, definir valores padrão para não quebrar a UI
-      setStats({
-        services: 0,
-        testimonials: 0,
-        messages: 0,
-        users: 0
+
+      // Processar dados para o gráfico (últimos 12 meses)
+      const messages = messagesListRes.messages || [];
+      const last12Months = Array.from({ length: 12 }, (_, i) => {
+        const date = startOfMonth(subMonths(new Date(), 11 - i));
+        return {
+          date: format(date, 'MMM/yyyy', { locale: ptBR }),
+          dateKey: format(date, 'yyyy-MM'),
+          count: 0
+        };
       });
+
+      messages.forEach((msg: any) => {
+        const msgDate = msg.createdAt || msg.created_at;
+        if (msgDate) {
+          const date = new Date(msgDate);
+          const dateKey = format(startOfMonth(date), 'yyyy-MM');
+          const monthData = last12Months.find(d => d.dateKey === dateKey);
+          if (monthData) {
+            monthData.count++;
+          }
+        }
+      });
+
+      setMessageChartData(last12Months.map(d => ({ date: d.date, count: d.count })));
+    } catch (error) {
+      console.error('Error loading stats:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadMonthlyData = async () => {
-    try {
-      setChartLoading(true);
-      console.log('🔄 Carregando dados mensais...');
-      const response = await apiService.getContactMessagesByMonth();
-      console.log('✅ Dados mensais recebidos:', response);
-      setMonthlyData(response.data || []);
-    } catch (error: any) {
-      console.error('❌ Erro ao carregar dados mensais:', error);
-      setMonthlyData([]);
-    } finally {
-      setChartLoading(false);
     }
   };
 
@@ -112,23 +105,6 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
-    {error && (
-      <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-        <p className="font-semibold">Erro ao carregar dados</p>
-        <p className="text-sm">{error}</p>
-        <button
-          onClick={() => {
-            setError(null);
-            loadStats();
-            loadMonthlyData();
-          }}
-          className="mt-2 text-sm underline hover:no-underline"
-        >
-          Tentar novamente
-        </button>
-      </div>
-    )}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {/* Users Card */}
       <div className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
@@ -211,50 +187,129 @@ export default function Dashboard() {
           Ver mensagens →
         </Link>
       </div>
-    </div>
 
-    {/* Gráfico de Mensagens */}
-    <div className="mt-8 bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">
-        Mensagens de Contato - Últimos 12 Meses
-      </h2>
-      {chartLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3bb664]"></div>
+      {/* Messages Chart */}
+      <div className="col-span-full bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Mensagens Recebidas</h3>
+            <p className="text-sm text-gray-500 mt-1">Últimos 12 meses</p>
+          </div>
+          <Link
+            to="/admin/messages"
+            className="text-sm font-medium transition-colors hover:underline"
+            style={{ color: '#3bb664' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#2d9a4f'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#3bb664'}
+          >
+            Ver todas →
+          </Link>
         </div>
-      ) : (
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis 
-              dataKey="month" 
-              stroke="#6b7280"
-              style={{ fontSize: '12px' }}
-            />
-            <YAxis 
-              stroke="#6b7280"
-              style={{ fontSize: '12px' }}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: '#fff', 
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px'
-              }}
-              labelStyle={{ color: '#374151', fontWeight: 'bold' }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="count" 
-              stroke="#3bb664" 
-              strokeWidth={3}
-              dot={{ fill: '#3bb664', r: 5 }}
-              activeDot={{ r: 7 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      )}
+        
+        {messageChartData.length > 0 ? (
+          <div className="w-full">
+            {/* Estatísticas rápidas */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Total</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {messageChartData.reduce((sum, d) => sum + d.count, 0)}
+                    </p>
+                  </div>
+                  <MessageSquare className="h-8 w-8 text-gray-400" />
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Média Mensal</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {Math.round(messageChartData.reduce((sum, d) => sum + d.count, 0) / 12)}
+                    </p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-gray-400" />
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">Mês Atual</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {messageChartData[messageChartData.length - 1]?.count || 0}
+                    </p>
+                  </div>
+                  <div className="h-8 w-8 flex items-center justify-center rounded-full bg-green-100">
+                    <div className="h-2 w-2 rounded-full bg-green-600"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Gráfico */}
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={messageChartData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="date"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    interval={0}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12, fill: '#6b7280' }}
+                    label={{ value: 'Mensagens', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6b7280' } }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                    formatter={(value: number) => [
+                      `${value} mensagem${value !== 1 ? 's' : ''}`,
+                      'Mensagens'
+                    ]}
+                    labelStyle={{ fontWeight: 600, color: '#111827' }}
+                  />
+                  <Bar
+                    dataKey="count"
+                    radius={[8, 8, 0, 0]}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {messageChartData.map((entry, index) => {
+                      const maxCount = Math.max(...messageChartData.map(d => d.count), 1);
+                      const intensity = entry.count / maxCount;
+                      const opacity = Math.max(0.6, intensity);
+                      const color = entry.count > 0 
+                        ? `rgba(59, 182, 100, ${opacity})` 
+                        : '#e5e7eb';
+                      
+                      return (
+                        <Cell key={`cell-${index}`} fill={color} />
+                      );
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        ) : (
+          <div className="h-64 flex flex-col items-center justify-center text-gray-500">
+            <MessageSquare className="h-12 w-12 text-gray-300 mb-4" />
+            <p className="text-lg font-medium">Nenhuma mensagem nos últimos 12 meses</p>
+            <p className="text-sm mt-2">As mensagens recebidas aparecerão aqui</p>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
   );
 }

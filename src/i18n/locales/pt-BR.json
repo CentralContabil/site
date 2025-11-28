@@ -1,147 +1,34 @@
 {
   "common": {
-    "home": "Início",
-    "about": "Sobre",
-    "aboutUs": "Sobre Nós",
-    "services": "Serviços",
-    "fiscalBenefits": "Benefícios Fiscais ES",
-    "testimonials": "Depoimentos",
-    "blog": "Blog",
-    "contact": "Contato",
-    "readMore": "Ler mais",
-    "scheduleConsultation": "Agendar Consulta",
-    "scheduleConsultationFull": "Agende uma Consultoria",
-    "knowOurServices": "Conheça Nossos Serviços",
-    "back": "Voltar",
+    "welcome": "Bem-vindo",
     "loading": "Carregando...",
     "error": "Erro",
-    "success": "Sucesso"
+    "success": "Sucesso",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "actions": "Ações"
   },
-  "header": {
-    "menu": "Menu",
-    "close": "Fechar"
+  "nav": {
+    "home": "Início",
+    "about": "Sobre",
+    "services": "Serviços",
+    "blog": "Blog",
+    "contact": "Contato"
   },
-  "home": {
-    "title": "Bem-vindo",
-    "subtitle": "Soluções contábeis para sua empresa"
-  },
-  "blog": {
-    "title": "Blog",
-    "subtitle": "Fique por dentro das últimas novidades",
-    "backToHome": "Voltar para Home",
-    "backToBlog": "Voltar para o Blog",
-    "noPosts": "Nenhum post publicado ainda.",
-    "comingSoon": "Em breve traremos conteúdos incríveis para você!",
-    "readingTime": "min de leitura",
-    "author": "Autor",
-    "published": "Publicado",
-    "draft": "Rascunho",
-    "share": "Compartilhe este post"
-  },
-  "contact": {
-    "title": "Entre em Contato",
-    "subtitle": "Nossa equipe está pronta para atender você. Entre em contato e descubra como podemos ajudar sua empresa a alcançar melhores resultados.",
-    "sendMessage": "Envie sua Mensagem",
-    "sendMessageSubtitle": "Preencha o formulário abaixo e retornaremos em breve",
-    "contactInfo": "Informações de Contato",
-    "fullName": "Nome completo",
-    "fullNamePlaceholder": "Seu nome completo",
-    "email": "Email",
-    "emailPlaceholder": "seu@email.com",
-    "phone": "Telefone",
-    "phonePlaceholder": "(27) 99999-9999",
-    "serviceType": "Tipo de serviço",
-    "selectService": "Selecione um serviço",
-    "message": "Mensagem",
-    "messagePlaceholder": "Descreva como podemos ajudar você...",
-    "send": "Enviar Mensagem",
-    "sending": "Enviando...",
-    "success": "Mensagem enviada com sucesso! Entraremos em contato em breve.",
-    "error": "Erro ao enviar mensagem",
-    "whatsapp": "WhatsApp",
-    "address": "Endereço",
-    "businessHours": "Horário de Atendimento",
-    "ourLocation": "Nossa Localização",
-    "openInMaps": "Abrir no Google Maps",
-    "configureAddress": "Configure o endereço nas configurações para exibir o mapa"
-  },
-  "services": {
-    "title": "Nossos Serviços",
-    "viewDetails": "Ver detalhes"
-  },
-  "hero": {
-    "badge": "Contabilidade Consultiva",
-    "titleLine1": "Soluções que Vão",
-    "titleLine2": "Além da Contabilidade",
-    "description": "Com mais de 34 anos de atuação, oferecemos consultoria contábil estratégica para impulsionar o crescimento do seu negócio com segurança e inovação.",
-    "button1": "Agende uma Consultoria",
-    "button2": "Conheça Nossos Serviços",
-    "years": "Anos",
-    "clients": "Clientes",
-    "associated": "Associado"
-  },
-  "about": {
-    "title": "Sobre Nós",
-    "subtitle": "Mais de 34 anos de experiência"
-  },
-  "testimonials": {
-    "title": "Depoimentos",
-    "subtitle": "O que nossos clientes dizem",
-    "badge": "Depoimentos de Clientes",
-    "heading": "O que nossos clientes",
-    "headingHighlight": "dizem sobre nós"
-  },
-  "footer": {
-    "companyInfo": "Informações da Empresa",
-    "quickLinks": "Links Rápidos",
-    "contact": "Contato",
-    "phone": "Telefone",
-    "email": "E-mail",
-    "address": "Endereço",
-    "allRightsReserved": "Todos os direitos reservados",
-    "privacyPolicy": "Política de Privacidade",
-    "newsletterTitle": "Fique por dentro das novidades contábeis",
-    "newsletterSubtitle": "Receba dicas, atualizações fiscais e novidades diretamente no seu e-mail",
-    "newsletterPlaceholder": "Seu melhor e-mail",
-    "newsletterButton": "Assinar",
-    "termsOfUse": "Termos de Uso",
-    "adminArea": "Área Administrativa"
-  },
-  "fiscalBenefits": {
-    "title": "Benefícios Fiscais",
-    "subtitle": "Otimize sua carga tributária",
-    "badge": "Benefícios Fiscais do ES",
-    "heading": "Já pensou em pagar somente",
-    "headingHighlight": "1% de ICMS?",
-    "description": "Conheça os principais Incentivos Fiscais do Espírito Santo e como eles podem beneficiar a sua empresa com economia tributária!",
-    "reduceTax": "Reduza sua alíquota de ICMS para até 1%",
-    "learnMore": "Saiba Mais"
-  },
-  "certifications": {
-    "title": "Certificações e Associações",
-    "badge": "Certificações e Parcerias",
-    "heading": "Reconhecimento e Credibilidade",
-    "description": "Nossas certificações e parcerias estratégicas garantem a excelência e confiabilidade dos nossos serviços contábeis."
-  },
-  "specialties": {
-    "title": "Nossas Especialidades",
-    "badge": "Especialidades",
-    "heading": "Nossas",
-    "headingHighlight": "Especialidades",
-    "description": "Oferecemos especializações em segmentos específicos para atender às necessidades únicas do seu negócio com expertise e conhecimento especializado."
-  },
-  "clients": {
-    "title": "Nossos Clientes",
-    "defaultTitle": "Empresas que Confiam em Nosso Trabalho"
-  },
-  "funFacts": {
-    "title": "Nossos Números",
-    "subtitle": "Números que Falam por Si",
-    "description": "Mais de três décadas construindo histórias de sucesso e transformando a gestão contábil de empresas em todo o Espírito Santo.",
-    "readyToJoin": "Pronto para fazer parte desses números?",
-    "startNow": "COMECE AGORA"
+  "admin": {
+    "dashboard": "Dashboard",
+    "logout": "Sair",
+    "login": "Entrar",
+    "users": "Usuários",
+    "settings": "Configurações"
   }
 }
+
 
 
 

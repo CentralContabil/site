@@ -5,12 +5,12 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { apiService } from '../../services/api';
 import { toast } from 'sonner';
-import { User } from '../../types';
+import { AdminRole, User } from '../../types';
 
 interface UserFormData {
   email: string;
   name: string;
-  password: string;
+  role: AdminRole;
 }
 
 const UsersAdmin: React.FC = () => {
@@ -21,7 +21,7 @@ const UsersAdmin: React.FC = () => {
   const [formData, setFormData] = useState<UserFormData>({
     email: '',
     name: '',
-    password: '',
+    role: 'administrator',
   });
 
   // Carregar usuários ao montar o componente
@@ -47,13 +47,8 @@ const UsersAdmin: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.name || (!editingUser && !formData.password)) {
+    if (!formData.email || !formData.name) {
       toast.error('Por favor, preencha todos os campos obrigatórios');
-      return;
-    }
-
-    if (formData.password && formData.password.length < 6) {
-      toast.error('A senha deve ter no mínimo 6 caracteres');
       return;
     }
 
@@ -63,19 +58,20 @@ const UsersAdmin: React.FC = () => {
         const updateData: any = {
           email: formData.email,
           name: formData.name,
+          role: formData.role,
         };
-        
-        if (formData.password) {
-          updateData.password = formData.password;
-        }
 
         await apiService.updateUser(editingUser.id, updateData);
         
         toast.success('Usuário atualizado com sucesso!');
       } else {
-        // Criar novo usuário
-        await apiService.createUser(formData);
-        
+        // Criar novo usuário (sem senha, apenas 2FA)
+        await apiService.createUser({
+          email: formData.email,
+          name: formData.name,
+          role: formData.role,
+        });
+
         toast.success('Usuário criado com sucesso!');
       }
       
@@ -92,7 +88,7 @@ const UsersAdmin: React.FC = () => {
     setFormData({
       email: user.email,
       name: user.name,
-      password: '', // Não preenchemos a senha por segurança
+      role: (user.role as AdminRole) || 'administrator',
     });
     setShowForm(true);
   };
@@ -115,7 +111,7 @@ const UsersAdmin: React.FC = () => {
     setFormData({
       email: '',
       name: '',
-      password: '',
+      role: 'administrator',
     });
     setEditingUser(null);
     setShowForm(false);
@@ -193,14 +189,24 @@ const UsersAdmin: React.FC = () => {
                 required
               />
               
-              <Input
-                label={editingUser ? 'Nova Senha (deixe vazio para manter atual)' : 'Senha'}
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(value) => setFormData({ ...formData, password: value })}
-                required={!editingUser}
-              />
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Nível de acesso
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value as AdminRole })
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 bg-white text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3bb664] focus:border-[#3bb664] transition-colors rounded"
+                >
+                  <option value="administrator">Administrador</option>
+                  <option value="editor">Editor</option>
+                  <option value="author">Autor</option>
+                  <option value="contributor">Colaborador</option>
+                  <option value="subscriber">Assinante</option>
+                </select>
+              </div>
               
               <div className="flex justify-end space-x-3">
                 <Button
@@ -255,7 +261,18 @@ const UsersAdmin: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-4">
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 border border-gray-200">
+                        {user.role === 'administrator' && 'Administrador'}
+                        {user.role === 'editor' && 'Editor'}
+                        {user.role === 'author' && 'Autor'}
+                        {user.role === 'contributor' && 'Colaborador'}
+                        {user.role === 'subscriber' && 'Assinante'}
+                        {!user.role && 'Administrador'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleEdit(user)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"

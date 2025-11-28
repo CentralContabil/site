@@ -2,13 +2,10 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { PrismaClient } from '@prisma/client';
 import { db } from '../lib/db.js';
 import { AuthRequest } from '../middleware/auth';
 import { authCodeService } from '../services/authCodeService';
-import { AccessLogService } from '../services/accessLogService.js';
-
-const prisma = new PrismaClient();
+import { AccessLogService } from '../services/accessLogService';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -22,10 +19,7 @@ const sendCodeSchema = z.object({
 
 const verifyCodeSchema = z.object({
   email: z.string().email('Email inválido'),
-  code: z.string()
-    .min(6, 'Código deve ter 6 dígitos')
-    .max(6, 'Código deve ter 6 dígitos')
-    .regex(/^\d{6}$/, 'Código deve conter apenas números'),
+  code: z.string().length(6, 'Código deve ter 6 dígitos'),
 });
 
 export const login = async (req: Request, res: Response) => {
@@ -34,51 +28,25 @@ export const login = async (req: Request, res: Response) => {
     const admin = db.getAdminByEmail(email);
 
     if (!admin) {
-      // Registrar tentativa de login falha (sem admin)
-      await AccessLogService.logAccess({
-        adminId: '',
-        adminEmail: email,
-        adminName: 'Desconhecido',
-        ipAddress: AccessLogService.getClientIp(req),
-        userAgent: AccessLogService.getUserAgent(req),
-        loginMethod: 'password',
-        success: false,
-      });
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
     const isValidPassword = await bcrypt.compare(password, admin.password_hash);
 
     if (!isValidPassword) {
-      // Registrar tentativa de login falha (senha incorreta)
-      await AccessLogService.logAccess({
-        adminId: admin.id,
-        adminEmail: admin.email,
-        adminName: admin.name,
-        ipAddress: AccessLogService.getClientIp(req),
-        userAgent: AccessLogService.getUserAgent(req),
-        loginMethod: 'password',
-        success: false,
-      });
+      // Log de tentativa de login falhada
+      await AccessLogService.logAccess(null, email, null, req, 'password', false);
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
     const token = jwt.sign(
-      { id: admin.id, email: admin.email, name: admin.name },
+      { id: admin.id, email: admin.email, name: admin.name, role: (admin as any).role || 'administrator' },
       process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     );
 
-    // Registrar log de acesso
-    await AccessLogService.logAccess({
-      adminId: admin.id,
-      adminEmail: admin.email,
-      adminName: admin.name,
-      ipAddress: AccessLogService.getClientIp(req),
-      userAgent: AccessLogService.getUserAgent(req),
-      loginMethod: 'password',
-      success: true,
-    });
+    // Log de login bem-sucedido
+    await AccessLogService.logAccess(admin.id, admin.email, admin.name, req, 'password', true);
 
     res.json({
       token,
@@ -86,6 +54,7 @@ export const login = async (req: Request, res: Response) => {
         id: admin.id,
         email: admin.email,
         name: admin.name,
+        role: (admin as any).role || 'administrator',
       },
     });
   } catch (error) {
@@ -109,6 +78,7 @@ export const me = async (req: AuthRequest, res: Response) => {
       id: admin.id,
       email: admin.email,
       name: admin.name,
+      role: (admin as any).role || 'administrator',
       created_at: admin.created_at,
       updated_at: admin.updated_at,
     });
@@ -125,11 +95,7 @@ export const sendCode = async (req: Request, res: Response) => {
   try {
     const { email, type } = sendCodeSchema.parse(req.body);
     
-    console.log(`📧 Recebida solicitação para enviar código para: ${email}`);
-    
     const result = await authCodeService.sendAuthCode(email, type);
-    
-    console.log(`📧 Resultado do envio:`, result);
     
     if (result.success) {
       res.json({ 
@@ -138,11 +104,9 @@ export const sendCode = async (req: Request, res: Response) => {
         email: email 
       });
     } else {
-      // Retorna 400 para erros de validação/configuração
       res.status(400).json({ 
         success: false, 
-        error: result.message || 'Erro ao enviar código de verificação',
-        message: result.message 
+        error: result.message 
       });
     }
   } catch (error) {
@@ -153,11 +117,10 @@ export const sendCode = async (req: Request, res: Response) => {
         details: error.issues 
       });
     }
-    console.error('❌ Erro ao enviar código:', error);
+    console.error('Send code error:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Erro interno ao enviar código de verificação',
-      message: 'Erro interno ao processar solicitação. Tente novamente mais tarde.'
+      error: 'Erro ao enviar código de verificação' 
     });
   }
 };
@@ -170,26 +133,22 @@ export const verifyCode = async (req: Request, res: Response) => {
     const { email, code } = verifyCodeSchema.parse(req.body);
     
     console.log(`🔐 Tentativa de verificação de código 2FA para: ${email}`);
-    console.log(`🔐 Código recebido: ${code}`);
     
     const result = await authCodeService.validateAuthCode(email, code);
-    
-    console.log(`🔐 Resultado da validação:`, { success: result.success, message: result.message });
     
     if (result.success) {
       console.log(`✅ Código 2FA verificado com sucesso para: ${email}`);
       
-      // Registrar log de acesso 2FA
+      // Log de login bem-sucedido via 2FA
       if (result.user) {
-        await AccessLogService.logAccess({
-          adminId: result.user.id,
-          adminEmail: result.user.email,
-          adminName: result.user.name,
-          ipAddress: AccessLogService.getClientIp(req),
-          userAgent: AccessLogService.getUserAgent(req),
-          loginMethod: '2fa',
-          success: true,
-        });
+        await AccessLogService.logAccess(
+          result.user.id,
+          result.user.email,
+          result.user.name,
+          req,
+          '2fa',
+          true
+        );
       }
       
       res.json({ 
@@ -201,44 +160,14 @@ export const verifyCode = async (req: Request, res: Response) => {
         }
       });
     } else {
-      console.warn(`⚠️ Falha na verificação do código 2FA para: ${email}`);
-      console.warn(`⚠️ Motivo: ${result.message}`);
+      console.warn(`⚠️ Falha na verificação do código 2FA para: ${email} - ${result.message}`);
       
-      // Registrar tentativa de login 2FA falha
-      try {
-        const admin = await prisma.admin.findUnique({
-          where: { email: email.toLowerCase().trim() }
-        });
-        
-        if (admin) {
-          await AccessLogService.logAccess({
-            adminId: admin.id,
-            adminEmail: admin.email,
-            adminName: admin.name,
-            ipAddress: AccessLogService.getClientIp(req),
-            userAgent: AccessLogService.getUserAgent(req),
-            loginMethod: '2fa',
-            success: false,
-          });
-        } else {
-          await AccessLogService.logAccess({
-            adminId: '',
-            adminEmail: email,
-            adminName: 'Desconhecido',
-            ipAddress: AccessLogService.getClientIp(req),
-            userAgent: AccessLogService.getUserAgent(req),
-            loginMethod: '2fa',
-            success: false,
-          });
-        }
-      } catch (logError) {
-        console.error('Erro ao registrar log de acesso:', logError);
-      }
+      // Log de tentativa de login falhada via 2FA
+      await AccessLogService.logAccess(null, email, null, req, '2fa', false);
       
       res.status(400).json({ 
         success: false, 
-        error: result.message || 'Código inválido ou expirado',
-        message: result.message || 'Código inválido ou expirado. Solicite um novo código.'
+        error: result.message 
       });
     }
   } catch (error) {
@@ -252,8 +181,7 @@ export const verifyCode = async (req: Request, res: Response) => {
     console.error('❌ Erro ao verificar código 2FA:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Erro ao verificar código de autenticação',
-      message: 'Erro interno ao processar solicitação. Tente novamente mais tarde.'
+      error: 'Erro ao verificar código de autenticação' 
     });
   }
 };

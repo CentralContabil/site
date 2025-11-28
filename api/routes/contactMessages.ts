@@ -8,7 +8,6 @@ const router = express.Router();
 router.get('/', authenticateToken, ContactMessagesController.getAllMessages);
 router.get('/unread-count', authenticateToken, ContactMessagesController.getUnreadCount);
 router.get('/total-count', authenticateToken, ContactMessagesController.getTotalCount);
-router.get('/by-month', authenticateToken, ContactMessagesController.getMessagesByMonth);
 router.get('/:id', authenticateToken, ContactMessagesController.getMessage);
 router.put('/:id/read', authenticateToken, ContactMessagesController.markAsRead);
 router.post('/:id/reply', authenticateToken, ContactMessagesController.sendReply);

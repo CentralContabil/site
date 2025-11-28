@@ -5,16 +5,18 @@ import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 
 // Esquemas de validação
+const roleEnum = z.enum(['administrator', 'editor', 'author', 'contributor', 'subscriber']);
+
 const createUserSchema = z.object({
   email: z.string().email('Email inválido'),
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  role: roleEnum.optional().default('administrator'),
 });
 
 const updateUserSchema = z.object({
   email: z.string().email('Email inválido').optional(),
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').optional(),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').optional(),
+  role: roleEnum.optional(),
 });
 
 /**
@@ -22,18 +24,21 @@ const updateUserSchema = z.object({
  */
 export const getUsers = async (req: AuthRequest, res: Response) => {
   try {
-    const users = await prisma.admin.findMany({
+    // Usamos 'as any' aqui porque o Prisma Client ainda não foi regenerado com o campo 'role'
+    const users = (await prisma.admin.findMany({
       select: {
         id: true,
         email: true,
         name: true,
+        // @ts-ignore - campo adicionado recentemente no Prisma
+        role: true,
         created_at: true,
         updated_at: true,
       },
       orderBy: {
         created_at: 'desc',
       },
-    });
+    } as any)) as any[];
 
     res.json({
       success: true,
@@ -41,6 +46,7 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role || 'administrator',
         createdAt: user.created_at,
         updatedAt: user.updated_at,
       })),
@@ -59,7 +65,7 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
  */
 export const createUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { email, name, password } = createUserSchema.parse(req.body);
+    const { email, name, role } = createUserSchema.parse(req.body);
 
     // Verificar se já existe um usuário com este email
     const existingUser = await prisma.admin.findUnique({
@@ -73,34 +79,37 @@ export const createUser = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Hash da senha
-    const passwordHash = await bcrypt.hash(password, 10);
-
     // Criar novo usuário
     const user = await prisma.admin.create({
       data: {
         email,
         name,
-        password_hash: passwordHash,
+        // Não usamos senha com 2FA; gravamos um hash placeholder apenas para satisfazer o schema
+        password_hash: '2fa-only',
+        // @ts-ignore - campo adicionado recentemente no Prisma
+        role: role || 'administrator', // por padrão, novos usuários são administradores
       },
       select: {
         id: true,
         email: true,
         name: true,
+        // @ts-ignore
+        role: true,
         created_at: true,
         updated_at: true,
       },
-    });
+    } as any);
 
     res.status(201).json({
       success: true,
       message: 'Usuário criado com sucesso',
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at,
+        id: (user as any).id,
+        email: (user as any).email,
+        name: (user as any).name,
+        role: (user as any).role || 'administrator',
+        createdAt: (user as any).created_at,
+        updatedAt: (user as any).updated_at,
       },
     });
   } catch (error) {
@@ -132,9 +141,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     const updateData: any = {};
     if (data.email) updateData.email = data.email;
     if (data.name) updateData.name = data.name;
-    if (data.password) {
-      updateData.password_hash = await bcrypt.hash(data.password, 10);
-    }
+    if (data.role) updateData.role = data.role;
 
     // Atualizar usuário
     const user = await prisma.admin.update({
@@ -144,20 +151,23 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
         id: true,
         email: true,
         name: true,
+        // @ts-ignore
+        role: true,
         created_at: true,
         updated_at: true,
       },
-    });
+    } as any);
 
     res.json({
       success: true,
       message: 'Usuário atualizado com sucesso',
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at,
+        id: (user as any).id,
+        email: (user as any).email,
+        name: (user as any).name,
+        role: (user as any).role || 'administrator',
+        createdAt: (user as any).created_at,
+        updatedAt: (user as any).updated_at,
       },
     });
   } catch (error) {

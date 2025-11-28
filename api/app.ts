@@ -19,16 +19,17 @@ import testimonialsRoutes from './routes/testimonials.js'
 import configurationRoutes from './routes/configuration.js'
 import blogRoutes from './routes/blogRoutes.js'
 import heroRoutes from './routes/hero.js'
-import loginPageRoutes from './routes/loginPageRoutes.js'
 import sectionsRoutes from './routes/sections.js'
 import newsletterRoutes from './routes/newsletter.js'
 import clientsRoutes from './routes/clients.js'
 import contactMessagesRoutes from './routes/contactMessages.js'
 import privacyPolicyRoutes from './routes/privacyPolicy.js'
-import sitemapRoutes from './routes/sitemap.js'
 import categoryRoutes from './routes/categoryRoutes.js'
 import tagRoutes from './routes/tagRoutes.js'
+import loginPageRoutes from './routes/loginPageRoutes.js'
 import accessLogsRoutes from './routes/accessLogs.js'
+import jobApplicationsRoutes from './routes/jobApplications.js'
+import careersPageRoutes from './routes/careersPageRoutes.js'
 import { errorHandler } from './middleware/errorHandler.js'
 
 // for esm mode
@@ -47,12 +48,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')))
 
-// Serve static files from dist (frontend build) in production
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../dist')
-  app.use(express.static(distPath))
-}
-
 /**
  * API Routes
  */
@@ -64,7 +59,6 @@ app.use('/api/testimonials', testimonialsRoutes)
 app.use('/api/configurations', configurationRoutes)
 app.use('/api', blogRoutes)
 app.use('/api/hero', heroRoutes)
-app.use('/api/login-page', loginPageRoutes)
 app.use('/api/sections', sectionsRoutes)
 app.use('/api/newsletter', newsletterRoutes)
 app.use('/api/clients', clientsRoutes)
@@ -72,8 +66,10 @@ app.use('/api/contact-messages', contactMessagesRoutes)
 app.use('/api/privacy-policy', privacyPolicyRoutes)
 app.use('/api', categoryRoutes)
 app.use('/api', tagRoutes)
+app.use('/api/login-page', loginPageRoutes)
 app.use('/api/access-logs', accessLogsRoutes)
-app.use('/sitemap.xml', sitemapRoutes)
+app.use('/api/job-applications', jobApplicationsRoutes)
+app.use('/api/careers-page', careersPageRoutes)
 
 /**
  * health
@@ -110,28 +106,18 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 /**
- * 404 handler for API routes (must be before frontend serving)
- */
-app.use('/api/*', (req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    error: 'API not found',
-  })
-})
-
-/**
  * error handler middleware
  */
 app.use(errorHandler)
 
 /**
- * Serve frontend in production (SPA routing)
+ * 404 handler
  */
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req: Request, res: Response) => {
-    // Serve index.html for all non-API routes (SPA routing)
-    res.sendFile(path.join(__dirname, '../dist/index.html'))
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    error: 'API not found',
   })
-}
+})
 
 export default app

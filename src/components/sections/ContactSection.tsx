@@ -7,14 +7,12 @@ import { apiService } from '../../services/api';
 import { toast } from 'sonner';
 import { Mail, Phone, MapPin, Clock, MessageCircle } from 'lucide-react';
 import { ReCaptcha } from '../ReCaptcha';
-import { useTranslation } from 'react-i18next';
 
 interface ContactSectionProps {
   configuration: any;
 }
 
 export const ContactSection: React.FC<ContactSectionProps> = ({ configuration }) => {
-  const { t } = useTranslation();
   const [formData, setFormData] = useState<ContactRequest>({
     name: '',
     email: '',
@@ -126,7 +124,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
         captchaToken: captchaToken || undefined,
         honeypot: honeypot, // Enviar honeypot para validação no backend
       } as any);
-      toast.success(t('contact.success'));
+      toast.success('Mensagem enviada com sucesso! Entraremos em contato em breve.');
       setFormData({
         name: '',
         email: '',
@@ -142,7 +140,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
       }
     } catch (error: any) {
       console.error('Erro ao enviar mensagem:', error);
-      const errorMessage = error?.response?.data?.error || error?.message || t('contact.error');
+      const errorMessage = error?.response?.data?.error || error?.message || 'Erro ao enviar mensagem. Tente novamente.';
       toast.error(errorMessage);
       setCaptchaToken(null);
     } finally {
@@ -169,14 +167,15 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#3bb664] text-white text-xs font-semibold mb-6 uppercase tracking-wider">
-            {t('common.contact')}
+            Contato
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            {t('contact.title')}
+            Entre em Contato
           </h2>
           <div className="w-20 h-1 bg-[#3bb664] mx-auto mb-6"></div>
           <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-            {t('contact.subtitle')}
+            Nossa equipe está pronta para atender você. Entre em contato e descubra como podemos 
+            ajudar sua empresa a alcançar melhores resultados.
           </p>
         </div>
 
@@ -184,15 +183,15 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
           {/* Contact Form */}
           <div className="bg-white border border-gray-200 shadow-sm">
             <div className="p-6 sm:p-8 border-b border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-900">{t('contact.sendMessage')}</h3>
-              <p className="text-gray-600 mt-2">{t('contact.sendMessageSubtitle')}</p>
+              <h3 className="text-2xl font-bold text-gray-900">Envie sua Mensagem</h3>
+              <p className="text-gray-600 mt-2">Preencha o formulário abaixo e retornaremos em breve</p>
             </div>
             <div className="p-6 sm:p-8">
               <form onSubmit={handleSubmit} className="space-y-5 relative">
                 <div>
                   <Input
-                    label={t('contact.fullName')}
-                    placeholder={t('contact.fullNamePlaceholder')}
+                    label="Nome completo"
+                    placeholder="Seu nome completo"
                     value={formData.name}
                     onChange={(value) => handleInputChange('name', value)}
                     error={errors.name}
@@ -203,9 +202,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
                     <Input
-                      label={t('contact.email')}
+                      label="Email"
                       type="email"
-                      placeholder={t('contact.emailPlaceholder')}
+                      placeholder="seu@email.com"
                       value={formData.email}
                       onChange={(value) => handleInputChange('email', value)}
                       error={errors.email}
@@ -215,9 +214,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                   
                   <div>
                     <Input
-                      label={t('contact.phone')}
+                      label="Telefone"
                       type="tel"
-                      placeholder={t('contact.phonePlaceholder')}
+                      placeholder="(27) 99999-9999"
                       value={formData.phone}
                       onChange={(value) => handleInputChange('phone', value)}
                       error={errors.phone}
@@ -227,7 +226,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                 
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    {t('contact.serviceType')}
+                    Tipo de serviço
                   </label>
                   <select
                     value={formData.serviceType}
@@ -240,7 +239,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                       paddingRight: '2.5rem'
                     }}
                   >
-                    <option value="" style={{ color: '#111827', backgroundColor: 'white' }}>{t('contact.selectService')}</option>
+                    <option value="" style={{ color: '#111827', backgroundColor: 'white' }}>Selecione um serviço</option>
                     {serviceTypes.map((type) => (
                       <option key={type} value={type} style={{ color: '#111827', backgroundColor: 'white' }}>
                         {type}
@@ -251,9 +250,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                 
                 <div>
                   <Input
-                    label={t('contact.message')}
+                    label="Mensagem"
                     type="textarea"
-                    placeholder={t('contact.messagePlaceholder')}
+                    placeholder="Descreva como podemos ajudar você..."
                     value={formData.message}
                     onChange={(value) => handleInputChange('message', value)}
                     error={errors.message}
@@ -341,7 +340,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                     className="w-full bg-[#3bb664] hover:bg-[#2d9a4f] text-white font-semibold py-3 transition-colors"
                     disabled={isLoading}
                   >
-                    {isLoading ? t('contact.sending') : t('contact.send')}
+                    {isLoading ? 'Enviando...' : 'Enviar Mensagem'}
                   </Button>
               </form>
             </div>
@@ -352,7 +351,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
             {/* Contact Information */}
             <div className="bg-white border border-gray-200 shadow-sm">
               <div className="p-6 sm:p-8 border-b border-gray-200">
-                <h3 className="text-2xl font-bold text-gray-900">{t('contact.contactInfo')}</h3>
+                <h3 className="text-2xl font-bold text-gray-900">Informações de Contato</h3>
               </div>
               <div className="p-6 sm:p-8">
                 <div className="space-y-6">
@@ -362,7 +361,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                         <Phone className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 mb-1">{t('contact.phone')}</p>
+                        <p className="font-semibold text-gray-900 mb-1">Telefone</p>
                         <a 
                           href={`tel:${configuration.phone.replace(/\s/g, '')}`}
                           className="text-gray-700 hover:text-[#3bb664] transition-colors"
@@ -374,24 +373,22 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                   )}
                   
                   {/* WhatsApp */}
-                  {(configuration?.whatsapp_number || configuration?.whatsappNumber) && (
-                    <div className="flex items-start gap-4 pb-6 border-b border-gray-100">
-                      <div className="flex-shrink-0 w-12 h-12 bg-[#3bb664] flex items-center justify-center">
-                        <MessageCircle className="w-5 h-5 text-white" />
-                      </div>
-                    <div>
-                      <p className="font-semibold text-gray-900 mb-1">{t('contact.whatsapp')}</p>
-                        <a 
-                          href={`https://wa.me/${(configuration.whatsapp_number || configuration.whatsappNumber || '').replace(/\D/g, '')}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-gray-700 hover:text-[#3bb664] transition-colors"
-                        >
-                          {configuration.whatsapp_number || configuration.whatsappNumber}
-                        </a>
-                      </div>
+                  <div className="flex items-start gap-4 pb-6 border-b border-gray-100">
+                    <div className="flex-shrink-0 w-12 h-12 bg-[#3bb664] flex items-center justify-center">
+                      <MessageCircle className="w-5 h-5 text-white" />
                     </div>
-                  )}
+                    <div>
+                      <p className="font-semibold text-gray-900 mb-1">WhatsApp</p>
+                      <a 
+                        href="https://wa.me/5527981922299" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-gray-700 hover:text-[#3bb664] transition-colors"
+                      >
+                        (27) 98192-2299
+                      </a>
+                    </div>
+                  </div>
                   
                   {configuration?.email && (
                     <div className="flex items-start gap-4 pb-6 border-b border-gray-100">
@@ -399,7 +396,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                         <Mail className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 mb-1">{t('contact.email')}</p>
+                        <p className="font-semibold text-gray-900 mb-1">Email</p>
                         <a 
                           href={`mailto:${configuration.email}`}
                           className="text-gray-700 hover:text-[#3bb664] transition-colors"
@@ -416,7 +413,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                         <MapPin className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 mb-1">{t('contact.address')}</p>
+                        <p className="font-semibold text-gray-900 mb-1">Endereço</p>
                         <p className="text-gray-700 leading-relaxed">{configuration.address}</p>
                       </div>
                     </div>
@@ -428,7 +425,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                         <Clock className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 mb-1">{t('contact.businessHours')}</p>
+                        <p className="font-semibold text-gray-900 mb-1">Horário de Atendimento</p>
                         <p className="text-gray-700">{configuration.businessHours}</p>
                       </div>
                     </div>
@@ -440,7 +437,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
             {/* Map */}
             <div className="bg-white border border-gray-200 shadow-sm">
               <div className="p-6 sm:p-8 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900">{t('contact.ourLocation')}</h3>
+                <h3 className="text-xl font-bold text-gray-900">Nossa Localização</h3>
               </div>
               <div className="p-6 sm:p-8">
                 {configuration?.address ? (
@@ -478,14 +475,14 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                         className="inline-flex items-center gap-2 text-[#3bb664] hover:text-[#2d9a4f] font-medium text-sm transition-colors"
                       >
                         <MapPin className="w-4 h-4" />
-                        {t('contact.openInMaps')}
+                        Abrir no Google Maps
                       </a>
                     </div>
                   </div>
                 ) : (
                   <div className="aspect-video bg-gray-100 flex items-center justify-center border border-gray-200">
                     <p className="text-gray-500 text-center px-4">
-                      {t('contact.configureAddress')}
+                      Configure o endereço nas configurações para exibir o mapa
                     </p>
                   </div>
                 )}

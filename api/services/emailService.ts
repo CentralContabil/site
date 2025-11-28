@@ -1,7 +1,4 @@
 import nodemailer from 'nodemailer';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 interface EmailConfig {
   host: string;
@@ -60,39 +57,6 @@ class EmailService {
       console.log('📧 Host:', process.env.SMTP_HOST || 'smtp.gmail.com');
       console.log('📧 Port:', process.env.SMTP_PORT || '587');
 
-      // Busca configuração da empresa
-      const config = await prisma.configuration.findFirst();
-      const companyName = config?.company_name || 'Central Contábil';
-      const logoUrl = config?.logo_url || '';
-      
-      // Converte URL relativa em absoluta se necessário
-      let absoluteLogoUrl = logoUrl;
-      if (logoUrl && !logoUrl.startsWith('http://') && !logoUrl.startsWith('https://')) {
-        // Se a logo começa com /uploads, é uma URL do servidor backend
-        if (logoUrl.startsWith('/uploads/')) {
-          // Em produção, usar a URL completa do servidor
-          // Em desenvolvimento, usar localhost:3006 (porta do backend)
-          const serverUrl = process.env.BASE_URL || 
-                           process.env.SERVER_URL || 
-                           process.env.API_URL ||
-                           (process.env.NODE_ENV === 'production' 
-                             ? (process.env.FRONTEND_URL || 'https://seudominio.com.br')
-                             : 'http://localhost:3006');
-          absoluteLogoUrl = `${serverUrl}${logoUrl}`;
-          console.log('📧 Logo URL (/uploads) convertida:', absoluteLogoUrl);
-        } else {
-          // Para outras URLs relativas, usar o frontend
-          const baseUrl = process.env.FRONTEND_URL || 
-                         process.env.BASE_URL || 
-                         'http://localhost:5173';
-          absoluteLogoUrl = logoUrl.startsWith('/') ? `${baseUrl}${logoUrl}` : `${baseUrl}/${logoUrl}`;
-          console.log('📧 Logo URL (outra) convertida:', absoluteLogoUrl);
-        }
-      } else if (logoUrl) {
-        absoluteLogoUrl = logoUrl;
-        console.log('📧 Logo URL absoluta:', absoluteLogoUrl);
-      }
-
       // Verifica conexão com o servidor SMTP antes de enviar
       try {
         await this.transporter.verify();
@@ -105,134 +69,66 @@ class EmailService {
       }
 
       const mailOptions = {
-        from: `"${companyName}" <${smtpUser}>`,
+        from: `"Central Contábil" <${smtpUser}>`,
         to: email,
-        subject: `Código de Verificação - ${companyName}`,
+        subject: 'Código de Verificação - Central Contábil',
         html: `
-          <!DOCTYPE html>
-          <html lang="pt-BR">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Código de Verificação</title>
-          </head>
-          <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f3f4f6;">
-              <tr>
-                <td align="center" style="padding: 40px 20px;">
-                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                    <!-- Header com Logo -->
-                    <tr>
-                      <td style="background: linear-gradient(135deg, #3bb664 0%, #2d9a4f 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
-                        ${absoluteLogoUrl ? `
-                          <img src="${absoluteLogoUrl}" alt="${companyName}" style="max-width: 200px; max-height: 80px; height: auto; margin-bottom: 15px;" />
-                        ` : `
-                          <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">${companyName}</h1>
-                          <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 14px; opacity: 0.95;">Soluções Empresariais</p>
-                        `}
-                      </td>
-                    </tr>
-                    
-                    <!-- Conteúdo Principal -->
-                    <tr>
-                      <td style="padding: 40px 30px;">
-                        <h2 style="margin: 0 0 10px 0; color: #111827; font-size: 24px; font-weight: 600;">Código de Verificação</h2>
-                        <div style="width: 60px; height: 4px; background: linear-gradient(90deg, #3bb664 0%, #2d9a4f 100%); border-radius: 2px; margin-bottom: 30px;"></div>
-                        
-                        <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #374151;">
-                          Olá${name ? ` <strong>${name}</strong>` : ''},
-                        </p>
-                        
-                        <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #374151;">
-                          Você solicitou acesso à área administrativa da <strong>${companyName}</strong>. 
-                          Use o código abaixo para completar seu login:
-                        </p>
-                        
-                        <!-- Código de Verificação -->
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                          <tr>
-                            <td align="center" style="padding: 0 0 30px 0;">
-                              <div style="
-                                background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-                                border: 2px solid #3bb664;
-                                border-radius: 12px;
-                                padding: 25px 40px;
-                                display: inline-block;
-                                box-shadow: 0 2px 4px rgba(59, 182, 100, 0.1);
-                              ">
-                                <div style="
-                                  font-size: 32px;
-                                  font-weight: 700;
-                                  color: #3bb664;
-                                  letter-spacing: 4px;
-                                  font-family: 'Courier New', monospace;
-                                  text-align: center;
-                                ">
-                                  ${code}
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        </table>
-                        
-                        <!-- Informações Adicionais -->
-                        <div style="background-color: #f9fafb; border-left: 4px solid #3bb664; padding: 15px 20px; border-radius: 6px; margin-bottom: 30px;">
-                          <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5;">
-                            <strong style="color: #374151;">⏱️ Este código expira em 10 minutos.</strong><br>
-                            Por segurança, não compartilhe este código com ninguém.
-                          </p>
-                        </div>
-                        
-                        <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.6;">
-                          Se você não solicitou este código, por favor ignore este email ou entre em contato conosco imediatamente.
-                        </p>
-                      </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                      <td style="background-color: #f9fafb; padding: 25px 30px; text-align: center; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
-                        <p style="margin: 0 0 10px 0; font-size: 13px; color: #6b7280; line-height: 1.5;">
-                          <strong style="color: #374151;">${companyName}</strong><br>
-                          ${config?.footer_years_text || '34 anos de excelência em serviços contábeis'}
-                        </p>
-                        ${config?.phone ? `
-                          <p style="margin: 5px 0; font-size: 12px; color: #9ca3af;">
-                            📞 ${config.phone}
-                          </p>
-                        ` : ''}
-                        ${config?.email || config?.contact_email ? `
-                          <p style="margin: 5px 0; font-size: 12px; color: #9ca3af;">
-                            ✉️ ${config.email || config.contact_email}
-                          </p>
-                        ` : ''}
-                      </td>
-                    </tr>
-                  </table>
-                  
-                  <!-- Rodapé Externo -->
-                  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; margin-top: 20px;">
-                    <tr>
-                      <td align="center" style="padding: 20px 0;">
-                        <p style="margin: 0; font-size: 12px; color: #9ca3af; line-height: 1.5;">
-                          Este é um email automático, por favor não responda.<br>
-                          © ${new Date().getFullYear()} ${companyName}. Todos os direitos reservados.
-                        </p>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
-          </body>
-          </html>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #3bb664; padding: 20px; text-align: center; color: white;">
+              <h1 style="margin: 0;">Central Contábil</h1>
+              <p style="margin: 10px 0 0 0; font-size: 14px;">Soluções Empresariais</p>
+            </div>
+            
+            <div style="padding: 30px; background-color: #f9fafb;">
+              <h2 style="color: #3bb664; margin-bottom: 20px;">Código de Verificação</h2>
+              
+              <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+                Olá${name ? ' ' + name : ''},
+              </p>
+              
+              <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+                Você solicitou acesso à área administrativa da Central Contábil. 
+                Use o código abaixo para completar seu login:
+              </p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <div style="
+                  background-color: #ffffff;
+                  border: 2px solid #3bb664;
+                  border-radius: 8px;
+                  padding: 20px;
+                  display: inline-block;
+                  font-size: 24px;
+                  font-weight: bold;
+                  color: #3bb664;
+                  letter-spacing: 2px;
+                ">
+                  ${code}
+                </div>
+              </div>
+              
+              <p style="font-size: 14px; color: #6b7280; text-align: center;">
+                Este código expira em 10 minutos.
+              </p>
+              
+              <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">
+                Se você não solicitou este código, por favor ignore este email.
+              </p>
+            </div>
+            
+            <div style="background-color: #3bb664; padding: 15px; text-align: center;">
+              <p style="color: white; font-size: 12px; margin: 0;">
+                Central Contábil - 34 anos de excelência em serviços contábeis
+              </p>
+            </div>
+          </div>
         `,
         text: `
-          ${companyName} - Código de Verificação
+          Central Contábil - Código de Verificação
           
           Olá${name ? ' ' + name : ''},
           
-          Você solicitou acesso à área administrativa da ${companyName}.
+          Você solicitou acesso à área administrativa da Central Contábil.
           Use o código abaixo para completar seu login:
           
           Código: ${code}
@@ -241,9 +137,7 @@ class EmailService {
           
           Se você não solicitou este código, por favor ignore este email.
           
-          ${companyName} - ${config?.footer_years_text || '34 anos de excelência em serviços contábeis'}
-          ${config?.phone ? `\nTelefone: ${config.phone}` : ''}
-          ${config?.email || config?.contact_email ? `\nEmail: ${config.email || config.contact_email}` : ''}
+          Central Contábil - 34 anos de excelência em serviços contábeis
         `,
       };
 

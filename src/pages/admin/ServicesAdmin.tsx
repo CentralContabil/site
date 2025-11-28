@@ -6,7 +6,9 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  GripVertical
+  GripVertical,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import {
@@ -134,6 +136,7 @@ export default function ServicesAdmin() {
   const [showModal, setShowModal] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -251,6 +254,51 @@ export default function ServicesAdmin() {
       order: 0,
       isActive: true
     });
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!editingService) {
+      toast.error('Salve o serviço primeiro antes de adicionar imagem');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const result = await apiService.uploadServiceImage(editingService.id, file);
+      setFormData((prev) => ({ ...prev, imageUrl: result.data.url }));
+      toast.success('Imagem enviada com sucesso!');
+      loadServices();
+    } catch (error: any) {
+      console.error('Erro ao fazer upload da imagem do serviço:', error);
+      toast.error(error.message || 'Erro ao fazer upload da imagem');
+    } finally {
+      setUploadingImage(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    if (!editingService) return;
+
+    if (!window.confirm('Tem certeza que deseja remover a imagem do serviço?')) {
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      await apiService.deleteServiceImage(editingService.id);
+      setFormData((prev) => ({ ...prev, imageUrl: '' }));
+      toast.success('Imagem removida com sucesso!');
+      loadServices();
+    } catch (error: any) {
+      console.error('Erro ao remover imagem do serviço:', error);
+      toast.error(error.message || 'Erro ao remover imagem');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   // Handler para quando o drag termina
@@ -451,14 +499,113 @@ export default function ServicesAdmin() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">URL da Imagem</label>
-                  <input
-                    type="text"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                    placeholder="https://exemplo.com/imagem.jpg"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Imagem do Serviço
+                  </label>
+                  {formData.imageUrl ? (
+                    <div className="space-y-3">
+                      <img
+                        src={formData.imageUrl}
+                        alt="Pré-visualização"
+                        className="w-full h-48 object-cover rounded-lg border"
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={uploadingImage || !editingService}
+                          id="service-image-upload"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('service-image-upload')?.click()}
+                          disabled={uploadingImage || !editingService}
+                          className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {uploadingImage ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                              Enviando...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4" />
+                              Trocar Imagem
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleDeleteImage}
+                          disabled={uploadingImage || !editingService}
+                          className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Remover
+                        </button>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          URL da imagem (opcional)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.imageUrl}
+                          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                          className="block w-full border border-gray-300 rounded-md px-3 py-2 text-xs"
+                          placeholder="https://exemplo.com/imagem.jpg"
+                        />
+                      </div>
+                      {!editingService && (
+                        <p className="text-xs text-gray-500">
+                          Salve o serviço primeiro para fazer upload de imagem
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={uploadingImage || !editingService}
+                        id="service-image-upload-empty"
+                      />
+                      <div
+                        className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-[#3bb664] transition-colors flex flex-col items-center gap-2"
+                        onClick={() => {
+                          if (!uploadingImage && editingService) {
+                            document.getElementById('service-image-upload-empty')?.click();
+                          } else if (!editingService) {
+                            toast.error('Salve o serviço primeiro antes de adicionar imagem');
+                          }
+                        }}
+                      >
+                        <ImageIcon className="w-8 h-8 text-gray-400 mb-1" />
+                        <p className="text-sm text-gray-600">
+                          Clique para enviar uma imagem do serviço
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          PNG, JPG ou WEBP até 5MB
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Ou informe a URL da imagem
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.imageUrl}
+                          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                          className="block w-full border border-gray-300 rounded-md px-3 py-2 text-xs"
+                          placeholder="https://exemplo.com/imagem.jpg"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div>

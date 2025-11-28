@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Service } from '../../types';
-import { apiService } from '../../services/api';
-import { useTranslation } from 'react-i18next';
 import { 
   Building2, 
   Calculator, 
@@ -18,15 +16,6 @@ import {
 
 interface ServicesSectionProps {
   services: Service[];
-}
-
-interface ServicesSectionData {
-  badge_text: string;
-  title_line1: string;
-  title_line2: string;
-  description: string;
-  years_highlight?: string | null;
-  background_image_url?: string | null;
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -92,100 +81,19 @@ const defaultServices: Service[] = [
 ];
 
 export const ServicesSection: React.FC<ServicesSectionProps> = ({ services = defaultServices }) => {
-  const { t } = useTranslation();
-  const [sectionData, setSectionData] = useState<ServicesSectionData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSectionData = async () => {
-      try {
-        const response = await apiService.getServicesSection();
-        setSectionData(response.services);
-      } catch (error) {
-        console.error('Erro ao carregar dados da seção de serviços:', error);
-        // Usar dados padrão em caso de erro
-        setSectionData({
-          badge_text: t('services.title'),
-          title_line1: t('services.title'),
-          title_line2: '',
-          description: 'Atuamos de forma integrada e estratégica para que o seu negócio tenha a melhor performance contábil, fiscal e tributária com 34 anos de experiência.',
-          years_highlight: '34',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSectionData();
-  }, []);
-
-  // Função para formatar a descrição com destaque no número de anos
-  const formatDescription = (description: string, yearsHighlight?: string | null) => {
-    if (!yearsHighlight || !description) return description;
-    
-    // Substituir o número de anos por uma versão destacada
-    const regex = new RegExp(`\\b${yearsHighlight}\\b`, 'g');
-    const parts = description.split(regex);
-    
-    if (parts.length > 1) {
-      return (
-        <>
-          {parts.map((part, index) => (
-            <React.Fragment key={index}>
-              {part}
-              {index < parts.length - 1 && (
-                <span className="font-semibold text-orange-500">{yearsHighlight}</span>
-              )}
-            </React.Fragment>
-          ))}
-        </>
-      );
-    }
-    
-    return description;
-  };
-
-  if (loading || !sectionData) {
-    return (
-      <section id="servicos" className="py-12 sm:py-16 lg:py-20 bg-white relative overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3bb664] mx-auto"></div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const backgroundStyle = sectionData.background_image_url
-    ? {
-        backgroundImage: `url(${sectionData.background_image_url})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }
-    : {};
-
   return (
     <section id="servicos" className="py-12 sm:py-16 lg:py-20 bg-white relative overflow-hidden">
       {/* Top Divider */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gray-300 z-20"></div>
       
       {/* Background Image */}
-      <div className="absolute inset-0" style={backgroundStyle}>
-        {sectionData.background_image_url ? (
-          <>
-            <div className="absolute inset-0 bg-white/95"></div>
-          </>
-        ) : (
-          <>
-            <img 
-              src="https://images.unsplash.com/photo-1554224155-6726b468ff31?w=1920&h=1080&fit=crop&q=80" 
-              alt="Background"
-              className="w-full h-full object-cover opacity-[0.08]"
-            />
-            <div className="absolute inset-0 bg-white/95"></div>
-          </>
-        )}
+      <div className="absolute inset-0">
+        <img 
+          src="https://images.unsplash.com/photo-1554224155-6726b468ff31?w=1920&h=1080&fit=crop&q=80" 
+          alt="Background"
+          className="w-full h-full object-cover opacity-[0.08]"
+        />
+        <div className="absolute inset-0 bg-white/95"></div>
       </div>
       
       {/* Subtle Background Pattern */}
@@ -197,31 +105,37 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ services = def
         {/* Header */}
         <div className="text-center mb-10 sm:mb-14 lg:mb-16 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 bg-[#3bb664] text-white text-xs font-semibold mb-4 sm:mb-6 uppercase tracking-wider">
-            {sectionData.badge_text}
+            Nossos Serviços
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight px-4">
-            {sectionData.title_line1}
-            <span className="block text-[#3bb664]">{sectionData.title_line2}</span>
+            Nossas Soluções Vão
+            <span className="block text-[#3bb664]">Além da Contabilidade</span>
           </h2>
           <div className="w-16 sm:w-20 h-1 bg-[#3bb664] mx-auto mb-4 sm:mb-6"></div>
           <p className="text-base sm:text-lg text-gray-700 max-w-2xl mx-auto px-4">
-            {formatDescription(sectionData.description, sectionData.years_highlight)}
+            Atuamos de forma integrada e estratégica para que o seu negócio tenha a 
+            <span className="font-semibold text-gray-900">melhor performance contábil, fiscal e tributária</span> com 34 anos de experiência.
           </p>
         </div>
 
         {/* Services Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-14 lg:mb-16">
-          {services.map((service, index) => {
-            // Imagens diferentes para cada serviço
-            const serviceImages = [
-              'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop&q=80', // Contábeis
-              'https://images.unsplash.com/photo-1554224155-6726b468ff31?w=600&h=400&fit=crop&q=80', // Fiscal
-              'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&h=400&fit=crop&q=80', // Trabalhista
-              'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop&q=80', // Legalização
-              'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop&q=80', // Benefícios
-            ];
-            
-            return (
+        {services.map((service, index) => {
+          // Usa a imagem enviada no admin (imageUrl/image_url) ou cai no fallback padrão
+          const fallbackImages = [
+            'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop&q=80', // Contábeis
+            'https://images.unsplash.com/photo-1554224155-6726b468ff31?w=600&h=400&fit=crop&q=80', // Fiscal
+            'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&h=400&fit=crop&q=80', // Trabalhista
+            'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop&q=80', // Legalização
+            'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop&q=80', // Benefícios
+          ];
+
+          const imageSrc =
+            service.imageUrl ||
+            (service as any).image_url ||
+            fallbackImages[index % fallbackImages.length];
+
+          return (
               <div 
                 key={service.id} 
                 className="group relative bg-gray-50 border-l-4 border-gray-300 hover:border-[#3bb664] transition-all duration-300 shadow-md hover:shadow-lg overflow-hidden"
@@ -229,7 +143,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ services = def
                 {/* Service Image */}
                 <div className="relative h-32 sm:h-40 overflow-hidden">
                   <img 
-                    src={serviceImages[index % serviceImages.length]} 
+                    src={imageSrc} 
                     alt={service.name}
                     className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                   />

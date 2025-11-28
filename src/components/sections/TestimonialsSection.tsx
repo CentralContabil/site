@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Testimonial } from '../../types';
 import { ChevronLeft, ChevronRight, User, Quote } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 interface TestimonialsSectionProps {
   testimonials: Testimonial[];
@@ -41,7 +40,6 @@ const defaultTestimonials: Testimonial[] = [
 ];
 
 export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testimonials = defaultTestimonials }) => {
-  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -88,11 +86,11 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({ testim
         <div className="text-center mb-20 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-6 py-3 rounded-full text-sm font-medium mb-6">
             <Quote className="w-4 h-4" />
-            {t('testimonials.badge')}
+            Depoimentos de Clientes
           </div>
           <h2 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            {t('testimonials.heading')}
-            <span className="block text-green-200">{t('testimonials.headingHighlight')}</span>
+            O que nossos clientes
+            <span className="block text-green-200">dizem sobre nós</span>
           </h2>
           <p className="text-xl text-green-100 leading-relaxed max-w-2xl mx-auto">
             A confiança e satisfação de nossos clientes são a prova do nosso compromisso com a excelência contábil

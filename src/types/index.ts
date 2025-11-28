@@ -67,28 +67,6 @@ export interface Configuration {
   whatsapp_number?: string;
   footer_years_text?: string;
   footerYearsText?: string;
-  head_scripts?: string;
-  headScripts?: string;
-  body_scripts?: string;
-  bodyScripts?: string;
-  // Configurações de Redes Sociais
-  facebook_api_enabled?: boolean;
-  facebook_access_token?: string;
-  facebook_page_id?: string;
-  instagram_api_enabled?: boolean;
-  instagram_access_token?: string;
-  instagram_account_id?: string;
-  linkedin_api_enabled?: boolean;
-  linkedin_access_token?: string;
-  linkedin_organization_id?: string;
-  twitter_api_enabled?: boolean;
-  twitter_api_key?: string;
-  twitter_api_secret?: string;
-  twitter_access_token?: string;
-  twitter_access_token_secret?: string;
-  threads_api_enabled?: boolean;
-  threads_access_token?: string;
-  threads_account_id?: string;
   updatedAt: Date;
 }
 
@@ -110,6 +88,50 @@ export interface ContactMessage {
   replies?: ContactMessageReply[];
 }
 
+export interface JobApplication {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  position?: string;
+  linkedinUrl?: string;
+  message?: string;
+  cvUrl?: string;
+  isRead: boolean;
+  createdAt: Date;
+}
+
+export interface CareersPage {
+  id: string;
+  background_image_url?: string | null;
+  hero_title?: string | null;
+  hero_subtitle?: string | null;
+  culture_title?: string | null;
+  culture_text?: string | null;
+  vacancies_title?: string | null;
+  vacancies_text?: string | null;
+  benefits_title?: string | null;
+  benefits_text?: string | null;
+  profile_title?: string | null;
+  profile_text?: string | null;
+  created_at?: Date | string;
+  updated_at?: Date | string;
+}
+
+export interface UpdateCareersPageRequest {
+  background_image_url?: string | null;
+  hero_title?: string | null;
+  hero_subtitle?: string | null;
+  culture_title?: string | null;
+  culture_text?: string | null;
+  vacancies_title?: string | null;
+  vacancies_text?: string | null;
+  benefits_title?: string | null;
+  benefits_text?: string | null;
+  profile_title?: string | null;
+  profile_text?: string | null;
+}
+
 export interface NewsletterSubscription {
   id: string;
   email: string;
@@ -118,22 +140,13 @@ export interface NewsletterSubscription {
   updatedAt: Date;
 }
 
-export interface Feature {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-  order: number;
-  isActive: boolean;
-  is_active?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type AdminRole = 'administrator' | 'editor' | 'author' | 'contributor' | 'subscriber';
 
 export interface Admin {
   id: string;
   email: string;
   name: string;
+  role: AdminRole;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -187,6 +200,8 @@ export interface User {
   id: string;
   email: string;
   name: string;
+   // Papel inspirado nos níveis do WordPress (administrator, editor, author, contributor, subscriber)
+  role?: AdminRole;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -194,7 +209,6 @@ export interface User {
 export interface Hero {
   id: string;
   badgeText: string;
-  welcomeText?: string | null;
   titleLine1: string;
   titleLine2: string;
   description: string;
@@ -202,10 +216,8 @@ export interface Hero {
   heroImageUrl?: string | null;
   button1Text?: string | null;
   button1Link?: string | null;
-  button1Icon?: string | null; // Ícone do botão 1 (ex: "play", "arrow-right")
   button2Text?: string | null;
   button2Link?: string | null;
-  button2Icon?: string | null; // Ícone do botão 2 (ex: "play", "arrow-right")
   statYears?: string | null; // Mantido para compatibilidade
   statClients?: string | null; // Mantido para compatibilidade
   statNetwork?: string | null; // Mantido para compatibilidade
@@ -220,7 +232,6 @@ export interface Hero {
 
 export interface UpdateHeroRequest {
   badgeText?: string;
-  welcomeText?: string | null;
   titleLine1?: string;
   titleLine2?: string;
   description?: string;
@@ -228,10 +239,8 @@ export interface UpdateHeroRequest {
   heroImageUrl?: string | null;
   button1Text?: string | null;
   button1Link?: string | null;
-  button1Icon?: string | null;
   button2Text?: string | null;
   button2Link?: string | null;
-  button2Icon?: string | null;
   statYears?: string | null; // Mantido para compatibilidade
   statClients?: string | null; // Mantido para compatibilidade
   statNetwork?: string | null; // Mantido para compatibilidade
@@ -243,86 +252,16 @@ export interface UpdateHeroRequest {
   indicator3Value?: string | null;
 }
 
-export interface LoginPage {
-  id: string;
-  backgroundImageUrl?: string | null;
-  welcomeText?: string | null;
-  titleLine1?: string | null;
-  titleLine2?: string | null;
-  buttonText?: string | null;
-  buttonLink?: string | null;
-  buttonIcon?: string | null;
-  updatedAt: Date | string;
-}
-
-export interface UpdateLoginPageRequest {
-  backgroundImageUrl?: string | null;
-  welcomeText?: string | null;
-  titleLine1?: string | null;
-  titleLine2?: string | null;
-  buttonText?: string | null;
-  buttonLink?: string | null;
-  buttonIcon?: string | null;
-}
-
 export interface CreateUserRequest {
   email: string;
   name: string;
-  password: string;
+  role?: AdminRole;
 }
 
 export interface UpdateUserRequest {
   email?: string;
   name?: string;
-  password?: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  color?: string;
-  isActive: boolean;
-  is_active?: boolean;
-  createdAt: Date;
-  created_at?: Date | string;
-  updatedAt: Date;
-  updated_at?: Date | string;
-  _count?: {
-    posts: number;
-  };
-}
-
-export interface BlogPostCategory {
-  id: string;
-  blog_post_id: string;
-  category_id: string;
-  category: Category;
-}
-
-export interface Tag {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  color?: string;
-  isActive: boolean;
-  is_active?: boolean;
-  createdAt: Date;
-  created_at?: Date | string;
-  updatedAt: Date;
-  updated_at?: Date | string;
-  _count?: {
-    posts: number;
-  };
-}
-
-export interface BlogPostTag {
-  id: string;
-  blog_post_id: string;
-  tag_id: string;
-  tag: Tag;
+  role?: AdminRole;
 }
 
 export interface BlogPost {
@@ -342,8 +281,8 @@ export interface BlogPost {
   created_at?: Date | string; // Para compatibilidade
   updatedAt: Date;
   updated_at?: Date | string; // Para compatibilidade
-  categories?: BlogPostCategory[];
-  tags?: BlogPostTag[];
+  categories?: Array<{ id: string; category_id?: string; category?: Category }>;
+  tags?: Array<{ id: string; tag_id?: string; tag?: Tag }>;
 }
 
 export interface CreateBlogPostRequest {
@@ -354,14 +293,7 @@ export interface CreateBlogPostRequest {
   author?: string;
   isPublished?: boolean;
   categoryIds?: string[];
-  category_ids?: string[];
   tagIds?: string[];
-  tag_ids?: string[];
-  publishToFacebook?: boolean;
-  publishToInstagram?: boolean;
-  publishToLinkedIn?: boolean;
-  publishToTwitter?: boolean;
-  publishToThreads?: boolean;
 }
 
 export interface UpdateBlogPostRequest {
@@ -372,42 +304,7 @@ export interface UpdateBlogPostRequest {
   author?: string;
   isPublished?: boolean;
   categoryIds?: string[];
-  category_ids?: string[];
   tagIds?: string[];
-  tag_ids?: string[];
-  publishToFacebook?: boolean;
-  publishToInstagram?: boolean;
-  publishToLinkedIn?: boolean;
-  publishToTwitter?: boolean;
-  publishToThreads?: boolean;
-}
-
-export interface CreateCategoryRequest {
-  name: string;
-  description?: string;
-  color?: string;
-  isActive?: boolean;
-}
-
-export interface UpdateCategoryRequest {
-  name?: string;
-  description?: string;
-  color?: string;
-  isActive?: boolean;
-}
-
-export interface CreateTagRequest {
-  name: string;
-  description?: string;
-  color?: string;
-  isActive?: boolean;
-}
-
-export interface UpdateTagRequest {
-  name?: string;
-  description?: string;
-  color?: string;
-  isActive?: boolean;
 }
 
 export interface Client {
@@ -415,7 +312,6 @@ export interface Client {
   name: string;
   logoUrl?: string;
   logo_url?: string;
-  phone?: string;
   websiteUrl?: string;
   website_url?: string;
   facebookUrl?: string;
@@ -437,7 +333,6 @@ export interface Client {
 
 export interface CreateClientRequest {
   name: string;
-  phone?: string;
   websiteUrl?: string;
   facebookUrl?: string;
   instagramUrl?: string;
@@ -449,7 +344,6 @@ export interface CreateClientRequest {
 
 export interface UpdateClientRequest {
   name?: string;
-  phone?: string;
   websiteUrl?: string;
   facebookUrl?: string;
   instagramUrl?: string;
@@ -457,4 +351,101 @@ export interface UpdateClientRequest {
   twitterUrl?: string;
   order?: number;
   isActive?: boolean;
+}
+
+export interface LoginPage {
+  id: string;
+  background_image_url?: string | null;
+  welcome_text?: string | null;
+  title_line1?: string | null;
+  title_line2?: string | null;
+  button_text?: string | null;
+  button_link?: string | null;
+  button_icon?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UpdateLoginPageRequest {
+  background_image_url?: string | null;
+  welcome_text?: string | null;
+  title_line1?: string | null;
+  title_line2?: string | null;
+  button_text?: string | null;
+  button_link?: string | null;
+  button_icon?: string | null;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  color?: string | null;
+  isActive: boolean;
+  is_active?: boolean;
+  createdAt: Date;
+  created_at?: Date | string;
+  updatedAt: Date;
+  updated_at?: Date | string;
+  _count?: {
+    posts: number;
+  };
+}
+
+export interface CreateCategoryRequest {
+  name: string;
+  description?: string;
+  color?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateCategoryRequest {
+  name?: string;
+  description?: string;
+  color?: string;
+  isActive?: boolean;
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  color?: string | null;
+  isActive: boolean;
+  is_active?: boolean;
+  createdAt: Date;
+  created_at?: Date | string;
+  updatedAt: Date;
+  updated_at?: Date | string;
+  _count?: {
+    posts: number;
+  };
+}
+
+export interface CreateTagRequest {
+  name: string;
+  description?: string;
+  color?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateTagRequest {
+  name?: string;
+  description?: string;
+  color?: string;
+  isActive?: boolean;
+}
+
+export interface AccessLog {
+  id: string;
+  admin_id?: string | null;
+  email: string;
+  name?: string | null;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  login_method: 'password' | '2fa';
+  success: boolean;
+  created_at: Date;
 }

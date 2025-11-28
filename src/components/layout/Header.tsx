@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Search, User, ShoppingCart, FileText } from 'lucide-react';
+import { Menu, X, Search, FileText, Mail } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Configuration } from '../../types';
@@ -11,15 +11,35 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ configuration }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('inicio');
   const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
       const scrolled = window.scrollY > 50;
       setIsScrolled(scrolled);
+
+       // Destaque do item de menu conforme a seção visível
+       const sections = ['inicio', 'sobre', 'servicos', 'beneficios', 'depoimentos', 'contato'];
+       let current = 'inicio';
+       let minDistance = Infinity;
+
+       sections.forEach((id) => {
+         const element = document.getElementById(id);
+         if (!element) return;
+         const rect = element.getBoundingClientRect();
+         const distance = Math.abs(rect.top - 140); // ajusta ponto de referência próximo ao topo
+         if (distance < minDistance) {
+           minDistance = distance;
+           current = id;
+         }
+       });
+
+       setActiveSection(current);
     };
 
     window.addEventListener('scroll', handleScroll);
+    handleScroll(); // calcular estado inicial
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -87,43 +107,43 @@ export const Header: React.FC<HeaderProps> = ({ configuration }) => {
               <>
                 <button 
                   onClick={() => scrollToSection('#inicio')}
-                  className={`text-sm font-medium uppercase tracking-wider transition-colors ${
+                  className={`text-sm font-medium uppercase tracking-wider transition-colors border-b-2 ${
                     isScrolled ? 'text-gray-700 hover:text-[#20c997]' : 'text-white hover:text-gray-200'
-                  }`}
+                  } ${activeSection === 'inicio' ? 'border-[#20c997] text-[#20c997]' : 'border-transparent'}`}
                 >
                   Início
                 </button>
                 <button 
                   onClick={() => scrollToSection('#sobre')}
-                  className={`text-sm font-medium uppercase tracking-wider transition-colors ${
+                  className={`text-sm font-medium uppercase tracking-wider transition-colors border-b-2 ${
                     isScrolled ? 'text-gray-700 hover:text-[#20c997]' : 'text-white hover:text-gray-200'
-                  }`}
+                  } ${activeSection === 'sobre' ? 'border-[#20c997] text-[#20c997]' : 'border-transparent'}`}
                 >
                   Sobre
                 </button>
                 <button 
                   onClick={() => scrollToSection('#servicos')}
-                  className={`text-sm font-medium uppercase tracking-wider transition-colors ${
+                  className={`text-sm font-medium uppercase tracking-wider transition-colors border-b-2 ${
                     isScrolled ? 'text-gray-700 hover:text-[#20c997]' : 'text-white hover:text-gray-200'
-                  }`}
+                  } ${activeSection === 'servicos' ? 'border-[#20c997] text-[#20c997]' : 'border-transparent'}`}
                 >
                   Serviços
                 </button>
                 <button 
-                  onClick={() => scrollToSection('#depoimentos')}
-                  className={`text-sm font-medium uppercase tracking-wider transition-colors ${
+                  onClick={() => scrollToSection('#beneficios')}
+                  className={`text-sm font-medium uppercase tracking-wider transition-colors border-b-2 ${
                     isScrolled ? 'text-gray-700 hover:text-[#20c997]' : 'text-white hover:text-gray-200'
-                  }`}
+                  } ${activeSection === 'beneficios' ? 'border-[#20c997] text-[#20c997]' : 'border-transparent'}`}
                 >
-                  Depoimentos
+                  Benefícios Fiscais
                 </button>
                 <button 
-                  onClick={() => scrollToSection('#contato')}
-                  className={`text-sm font-medium uppercase tracking-wider transition-colors ${
+                  onClick={() => scrollToSection('#depoimentos')}
+                  className={`text-sm font-medium uppercase tracking-wider transition-colors border-b-2 ${
                     isScrolled ? 'text-gray-700 hover:text-[#20c997]' : 'text-white hover:text-gray-200'
-                  }`}
+                  } ${activeSection === 'depoimentos' ? 'border-[#20c997] text-[#20c997]' : 'border-transparent'}`}
                 >
-                  Contato
+                  Depoimentos
                 </button>
               </>
             )}
@@ -150,7 +170,8 @@ export const Header: React.FC<HeaderProps> = ({ configuration }) => {
               className="bg-[#20c997] hover:bg-[#1aa37e] text-white"
               onClick={() => scrollToSection('#contato')}
             >
-              Agendar Consulta
+              <Mail className="w-4 h-4 mr-2" />
+              Contato
             </Button>
           </div>
 
@@ -190,16 +211,16 @@ export const Header: React.FC<HeaderProps> = ({ configuration }) => {
                     Serviços
                   </button>
                   <button 
+                    onClick={() => scrollToSection('#beneficios')}
+                    className="px-6 py-3 text-left text-gray-700 hover:text-[#20c997] hover:bg-gray-50 transition-colors"
+                  >
+                    Benefícios Fiscais
+                  </button>
+                  <button 
                     onClick={() => scrollToSection('#depoimentos')}
                     className="px-6 py-3 text-left text-gray-700 hover:text-[#20c997] hover:bg-gray-50 transition-colors"
                   >
                     Depoimentos
-                  </button>
-                  <button 
-                    onClick={() => scrollToSection('#contato')}
-                    className="px-6 py-3 text-left text-gray-700 hover:text-[#20c997] hover:bg-gray-50 transition-colors"
-                  >
-                    Contato
                   </button>
                 </>
               )}
@@ -217,7 +238,8 @@ export const Header: React.FC<HeaderProps> = ({ configuration }) => {
                   className="w-full bg-[#20c997] hover:bg-[#1aa37e] text-white"
                   onClick={() => scrollToSection('#contato')}
                 >
-                  Agendar Consulta
+                  <Mail className="w-4 h-4 mr-2" />
+                  Contato
                 </Button>
               </div>
             </div>

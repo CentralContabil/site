@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
+import { FileService } from '../services/fileService.js';
 
 function slugify(text: string): string {
   return text
@@ -198,6 +199,18 @@ export const deleteService = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Serviço não encontrado' });
     }
 
+    // Deletar imagem do serviço se existir e estiver na pasta de uploads
+    if (existingService.image_url && existingService.image_url.startsWith('/uploads/')) {
+      try {
+        const filename = existingService.image_url.split('/').pop();
+        if (filename) {
+          await FileService.deleteFile(filename);
+        }
+      } catch (error) {
+        console.warn('Erro ao deletar imagem do serviço:', error);
+      }
+    }
+
     await prisma.service.delete({
       where: { id }
     });
@@ -206,5 +219,116 @@ export const deleteService = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Delete service error:', error);
     res.status(500).json({ error: 'Erro ao remover serviço' });
+  }
+};
+
+// Upload de imagem do serviço
+export const uploadServiceImage = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+    }
+
+    const { id } = req.params;
+
+    // Valida o arquivo (apenas imagens)
+    FileService.validateImageFile(req.file);
+
+    // Faz upload do arquivo
+    const uploadResult = await FileService.uploadFile(req.file);
+
+    // Buscar serviço existente
+    const existingService = await prisma.service.findUnique({
+      where: { id },
+    });
+
+    if (!existingService) {
+      // Deletar arquivo se serviço não existir
+      const filename = uploadResult.url.split('/').pop();
+      if (filename) {
+        await FileService.deleteFile(filename);
+      }
+      return res.status(404).json({ error: 'Serviço não encontrado' });
+    }
+
+    // Deletar imagem antiga se existir
+    if (existingService.image_url && existingService.image_url.startsWith('/uploads/')) {
+      try {
+        const oldFilename = existingService.image_url.split('/').pop();
+        if (oldFilename) {
+          await FileService.deleteFile(oldFilename);
+        }
+      } catch (error) {
+        console.warn('Erro ao deletar imagem antiga do serviço:', error);
+      }
+    }
+
+    // Atualizar serviço com nova imagem
+    const service = await prisma.service.update({
+      where: { id },
+      data: {
+        image_url: uploadResult.url,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Imagem enviada com sucesso',
+      data: uploadResult,
+      service,
+    });
+  } catch (error: any) {
+    console.error('Erro ao fazer upload da imagem do serviço:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao fazer upload da imagem',
+      details: error instanceof Error ? error.message : 'Erro desconhecido',
+    });
+  }
+};
+
+// Remover imagem do serviço
+export const deleteServiceImage = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const existingService = await prisma.service.findUnique({
+      where: { id },
+    });
+
+    if (!existingService) {
+      return res.status(404).json({ error: 'Serviço não encontrado' });
+    }
+
+    if (existingService.image_url && existingService.image_url.startsWith('/uploads/')) {
+      try {
+        const filename = existingService.image_url.split('/').pop();
+        if (filename) {
+          await FileService.deleteFile(filename);
+        }
+      } catch (error) {
+        console.warn('Erro ao deletar imagem do serviço:', error);
+      }
+    }
+
+    const service = await prisma.service.update({
+      where: { id },
+      data: {
+        image_url: null,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Imagem removida com sucesso',
+      service,
+    });
+  } catch (error: any) {
+    console.error('Erro ao remover imagem do serviço:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao remover imagem',
+      details: error instanceof Error ? error.message : 'Erro desconhecido',
+    });
   }
 };

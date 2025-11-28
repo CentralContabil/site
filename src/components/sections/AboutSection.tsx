@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';
 import * as LucideIcons from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import 'swiper/css';
 import 'swiper/css/pagination';
 
@@ -33,7 +32,6 @@ interface Feature {
 }
 
 export const AboutSection: React.FC = () => {
-  const { t } = useTranslation();
   const [aboutData, setAboutData] = useState<AboutData | null>(null);
   const [features, setFeatures] = useState<Feature[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,8 +93,8 @@ export const AboutSection: React.FC = () => {
     return `${API_BASE_URL}${url}`;
   };
 
-  const badgeText = aboutData?.badge_text || t('about.title');
-  const title = aboutData?.title || t('about.title');
+  const badgeText = aboutData?.badge_text || 'Sobre Nós';
+  const title = aboutData?.title || 'Quem Somos';
   const description = aboutData?.description || 'Com mais de 34 anos de atuação, a Central Contábil – Soluções Empresariais é uma das maiores e mais experientes empresas de Contabilidade do Estado do Espírito Santo.';
   const statYears = aboutData?.stat_years || '34+';
   const statClients = aboutData?.stat_clients || '500+';
@@ -105,11 +103,11 @@ export const AboutSection: React.FC = () => {
   const backgroundImageUrl = aboutData?.background_image_url;
   
   // Usar os novos campos de indicadores se disponíveis, caso contrário usar os antigos
-  const indicator1Title = aboutData?.indicator1_title || t('hero.years');
+  const indicator1Title = aboutData?.indicator1_title || 'Anos';
   const indicator1Value = aboutData?.indicator1_value || statYears || '34+';
-  const indicator2Title = aboutData?.indicator2_title || t('hero.clients');
+  const indicator2Title = aboutData?.indicator2_title || 'Clientes';
   const indicator2Value = aboutData?.indicator2_value || statClients || '500+';
-  const indicator3Title = aboutData?.indicator3_title || t('hero.associated');
+  const indicator3Title = aboutData?.indicator3_title || 'Rede';
   const indicator3Value = aboutData?.indicator3_value || statNetwork || 'RNC';
 
   if (loading) {

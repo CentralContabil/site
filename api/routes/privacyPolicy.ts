@@ -1,6 +1,6 @@
 import express from 'express';
 import { PrivacyPolicyController } from '../controllers/privacyPolicyController.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, authorizeRoles } from '../middleware/auth.js';
 import multer from 'multer';
 
 const router = express.Router();
@@ -12,12 +12,13 @@ const upload = multer({
 // Rota pública para obter a política
 router.get('/', PrivacyPolicyController.getPrivacyPolicy);
 
-// Rotas administrativas (requerem autenticação)
-router.get('/admin', authenticateToken, PrivacyPolicyController.getPrivacyPolicyAdmin);
-router.put('/admin', authenticateToken, PrivacyPolicyController.updatePrivacyPolicy);
+// Rotas administrativas (requerem autenticação) - administrator e editor
+router.get('/admin', authenticateToken, authorizeRoles(['administrator', 'editor']), PrivacyPolicyController.getPrivacyPolicyAdmin);
+router.put('/admin', authenticateToken, authorizeRoles(['administrator', 'editor']), PrivacyPolicyController.updatePrivacyPolicy);
 router.post(
   '/admin/background-image',
   authenticateToken,
+  authorizeRoles(['administrator', 'editor']),
   upload.single('file'),
   (err: any, req: any, res: any, next: any) => {
     if (err instanceof multer.MulterError) {
