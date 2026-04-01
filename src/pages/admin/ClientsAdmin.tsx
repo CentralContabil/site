@@ -229,10 +229,25 @@ export default function ClientsAdmin() {
   const getLogoUrl = (client: Client) => {
     const logoUrl = client.logoUrl || client.logo_url;
     if (!logoUrl) return null;
-    if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
-      return logoUrl;
+    
+    // Remover http://localhost:3006 se estiver presente (problema de CORS)
+    let cleanUrl = logoUrl;
+    if (cleanUrl.includes('localhost:3006')) {
+      cleanUrl = cleanUrl.replace(/https?:\/\/localhost:3006/, '');
     }
-    return `http://localhost:3006${logoUrl}`;
+    
+    // Se já é uma URL absoluta válida (não localhost), retornar como está
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+      return cleanUrl;
+    }
+    
+    // Garantir que começa com /
+    if (!cleanUrl.startsWith('/')) {
+      cleanUrl = `/${cleanUrl}`;
+    }
+    
+    // Retornar URL relativa (Nginx faz proxy)
+    return cleanUrl;
   };
 
   return (
@@ -294,22 +309,22 @@ export default function ClientsAdmin() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="relative group">
                             {logoUrl ? (
-                              <div className="relative">
+                              <div className="relative h-16 w-16 bg-gray-800 rounded border border-gray-300 flex items-center justify-center p-2">
                                 <img
                                   src={logoUrl}
                                   alt={client.name}
-                                  className="h-16 w-16 object-contain rounded"
+                                  className="max-h-full max-w-full object-contain"
                                 />
                                 <button
                                   onClick={() => handleLogoDelete(client.id)}
-                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                                   title="Remover logo"
                                 >
                                   <X className="h-3 w-3" />
                                 </button>
                               </div>
                             ) : (
-                              <div className="h-16 w-16 bg-gray-100 rounded flex items-center justify-center">
+                              <div className="h-16 w-16 bg-gray-100 rounded flex items-center justify-center border border-gray-300">
                                 <ImageIcon className="h-6 w-6 text-gray-400" />
                               </div>
                             )}
@@ -458,11 +473,11 @@ export default function ClientsAdmin() {
                   </label>
                   <div className="mt-1 flex items-center space-x-4">
                     {logoPreview ? (
-                      <div className="relative">
+                      <div className="relative h-24 w-24 bg-gray-800 rounded-lg border-2 border-gray-300 flex items-center justify-center p-2">
                         <img
                           src={logoPreview}
                           alt="Preview"
-                          className="h-24 w-24 object-contain border-2 border-gray-300 rounded-lg p-2"
+                          className="max-h-full max-w-full object-contain"
                         />
                         <button
                           type="button"
@@ -470,7 +485,7 @@ export default function ClientsAdmin() {
                             setLogoPreview(null);
                             setLogoFile(null);
                           }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 z-10"
                           title="Remover logo"
                         >
                           <X className="h-3 w-3" />

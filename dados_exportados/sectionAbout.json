@@ -1,0 +1,52 @@
+[
+  {
+    "id": "695650d8-226e-4346-a123-5a1bab330e75",
+    "badge_text": "Sobre Nós",
+    "title": "Quem Somos",
+    "subtitle": null,
+    "description": "Com mais de 36 anos de atuação, a Central Contábil – Soluções Empresariais é uma das maiores e mais experientes empresas de Contabilidade do Estado do Espírito Santo. Nossas soluções vão além da contabilidade tradicional: atuamos de forma integrada e estratégica para que o seu negócio tenha a melhor performance contábil, fiscal e tributária.",
+    "background_image_url": "/uploads/0d34157c-00e5-4a87-882c-31b76175a56b.png",
+    "stat_years": "36+",
+    "stat_clients": "500+",
+    "stat_network": "RNC",
+    "indicator1_title": "Anos",
+    "indicator1_value": "36+",
+    "indicator2_title": "Clientes",
+    "indicator2_value": "500+",
+    "indicator3_title": "Associado",
+    "indicator3_value": "RNC",
+    "updated_at": "2025-11-21T18:36:39.696Z",
+    "images": [
+      {
+        "id": "121464a7-fb7c-49c1-9f70-a5d14931f290",
+        "section_about_id": "695650d8-226e-4346-a123-5a1bab330e75",
+        "image_url": "/uploads/6504c2c8-798e-4720-8c0c-bb4f5ca2f2c0.jpg",
+        "description": "Equipe de Especialistas",
+        "order": 0,
+        "is_active": true,
+        "created_at": "2025-11-21T17:26:12.606Z",
+        "updated_at": "2025-11-21T17:26:12.606Z"
+      },
+      {
+        "id": "3bf5dbd5-30b4-4273-9a0c-40d6bed5a998",
+        "section_about_id": "695650d8-226e-4346-a123-5a1bab330e75",
+        "image_url": "/uploads/9477fd4f-b8fa-42be-bbef-24f61614380e.jpg",
+        "description": "Estrutura Moderna",
+        "order": 1,
+        "is_active": true,
+        "created_at": "2025-11-21T17:27:25.086Z",
+        "updated_at": "2025-11-21T17:27:25.086Z"
+      },
+      {
+        "id": "d856421c-9a9a-4a6b-9209-168cae459eea",
+        "section_about_id": "695650d8-226e-4346-a123-5a1bab330e75",
+        "image_url": "/uploads/dcbfc872-fe70-4b8f-b444-544c499efff8.jpg",
+        "description": "Clientes Selecionados",
+        "order": 2,
+        "is_active": true,
+        "created_at": "2025-11-21T17:49:26.286Z",
+        "updated_at": "2025-11-21T17:49:26.286Z"
+      }
+    ]
+  }
+]

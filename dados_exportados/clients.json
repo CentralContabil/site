@@ -1,0 +1,58 @@
+[
+  {
+    "id": "124acb30-f0b4-48cb-b039-3e82b28cce3d",
+    "name": "Bluevix",
+    "logo_url": "/uploads/b74b109f-99cf-47f5-9bdd-87832c587ad4.png",
+    "website_url": "https://bluevix.com.br",
+    "facebook_url": null,
+    "instagram_url": "https://instagram.com/techsolutions",
+    "linkedin_url": "https://linkedin.com/company/techsolutions",
+    "twitter_url": null,
+    "order": 1,
+    "is_active": true,
+    "created_at": "2025-11-24T12:37:33.365Z",
+    "updated_at": "2025-11-24T18:11:49.917Z"
+  },
+  {
+    "id": "ef7a0b0d-1e32-468b-84d1-1dff9a7a1fd3",
+    "name": "Ótima Atacado",
+    "logo_url": "/uploads/7adde803-fc35-47a4-bec3-0ecbd37d6f7f.png",
+    "website_url": "https://www.otimaatacado.com.br",
+    "facebook_url": null,
+    "instagram_url": null,
+    "linkedin_url": null,
+    "twitter_url": null,
+    "order": 2,
+    "is_active": true,
+    "created_at": "2025-11-24T12:37:33.372Z",
+    "updated_at": "2025-11-24T18:04:33.212Z"
+  },
+  {
+    "id": "14d3ea71-9e60-4dc0-a971-fc4345f68459",
+    "name": "Darwin",
+    "logo_url": "/uploads/0e7e85a4-3302-4f49-b956-2248e69553db.png",
+    "website_url": "https://www.darwin.com.br",
+    "facebook_url": null,
+    "instagram_url": null,
+    "linkedin_url": null,
+    "twitter_url": null,
+    "order": 3,
+    "is_active": true,
+    "created_at": "2025-11-24T12:37:33.377Z",
+    "updated_at": "2025-11-24T18:11:59.192Z"
+  },
+  {
+    "id": "c056adf0-2cb8-40ce-8800-cc846fdaf7ea",
+    "name": "Wizard",
+    "logo_url": "/uploads/a06e2d40-2e25-4443-a23d-a106bcf7deb8.png",
+    "website_url": "https://grupowizard.com.br",
+    "facebook_url": null,
+    "instagram_url": null,
+    "linkedin_url": null,
+    "twitter_url": null,
+    "order": 4,
+    "is_active": true,
+    "created_at": "2025-11-24T12:37:33.383Z",
+    "updated_at": "2025-11-24T18:12:05.910Z"
+  }
+]

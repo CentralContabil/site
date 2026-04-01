@@ -5,7 +5,7 @@ import { Hero, UpdateHeroRequest } from '../../types';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Textarea } from '../../components/ui/Textarea';
+import { Textarea } from '../../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 
 export default function HeroAdmin() {
@@ -170,10 +170,11 @@ export default function HeroAdmin() {
 
       try {
         const token = localStorage.getItem('token');
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
         console.log('🔐 Token encontrado:', !!token);
-        console.log('📤 Enviando para: http://localhost:3006/api/hero/image');
+        console.log('📤 Enviando para:', `${API_BASE_URL}/hero/image`);
         
-        const response = await fetch('http://localhost:3006/api/hero/image', {
+        const response = await fetch(`${API_BASE_URL}/hero/image`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -224,7 +225,8 @@ export default function HeroAdmin() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3006/api/hero/image/${type}`, {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/hero/image/${type}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

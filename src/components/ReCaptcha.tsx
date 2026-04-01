@@ -28,8 +28,16 @@ export const ReCaptcha: React.FC<ReCaptchaProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const onVerifyRef = useRef(onVerify);
+  const onExpireRef = useRef(onExpire);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
+
+  // Atualizar refs quando callbacks mudarem
+  useEffect(() => {
+    onVerifyRef.current = onVerify;
+    onExpireRef.current = onExpire;
+  }, [onVerify, onExpire]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -72,25 +80,38 @@ export const ReCaptcha: React.FC<ReCaptchaProps> = ({
           widgetIdRef.current = window.hcaptcha.render(containerRef.current, {
             sitekey: siteKey,
             callback: (token: string) => {
-              console.log('hCaptcha verificado, token recebido');
-              if (mounted) {
-                onVerify(token);
-                setIsLoading(false);
-                setError('');
+              console.log('hCaptcha callback chamado, token recebido:', token ? `${token.substring(0, 20)}...` : 'vazio');
+              if (mounted && token && token.length > 0) {
+                console.log('Token válido, chamando onVerify via ref');
+                try {
+                  // Usar a referência atual do callback (sempre atualizada)
+                  onVerifyRef.current(token);
+                  setIsLoading(false);
+                  setError('');
+                  console.log('onVerify executado com sucesso');
+                } catch (err) {
+                  console.error('Erro ao executar onVerify:', err);
+                  setError('Erro ao processar verificação. Tente novamente.');
+                }
+              } else {
+                console.warn('Token inválido ou componente desmontado. Token:', token ? 'presente mas vazio' : 'ausente');
+                if (!token || token.length === 0) {
+                  setError('Token não recebido. Tente novamente.');
+                }
               }
             },
             'error-callback': () => {
-              console.log('hCaptcha erro');
+              console.log('hCaptcha error-callback chamado');
               if (mounted) {
                 setError('Erro na verificação. Tente novamente.');
                 setIsLoading(false);
               }
             },
             'expired-callback': () => {
-              console.log('hCaptcha expirado');
+              console.log('hCaptcha expired-callback chamado');
               if (mounted) {
-                if (onExpire) {
-                  onExpire();
+                if (onExpireRef.current) {
+                  onExpireRef.current();
                 }
                 setIsLoading(true);
               }
@@ -145,6 +166,10 @@ export const ReCaptcha: React.FC<ReCaptchaProps> = ({
       if (checkInterval) clearInterval(checkInterval);
       if (widgetIdRef.current !== null && containerRef.current) {
         try {
+          // Resetar o widget antes de limpar
+          if (window.hcaptcha && typeof window.hcaptcha.reset === 'function') {
+            window.hcaptcha.reset(widgetIdRef.current);
+          }
           containerRef.current.innerHTML = '';
         } catch (e) {
           // Ignorar erros ao limpar
@@ -153,7 +178,7 @@ export const ReCaptcha: React.FC<ReCaptchaProps> = ({
         (window as any).captchaWidgetId = undefined;
       }
     };
-  }, [siteKey, onVerify, onExpire, theme, size]);
+  }, [siteKey, theme, size]); // Remover onVerify e onExpire das dependências, pois usamos refs
 
   if (error) {
     return (

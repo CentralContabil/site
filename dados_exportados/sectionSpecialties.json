@@ -1,0 +1,32 @@
+[
+  {
+    "id": "specialty-1",
+    "icon": "Store",
+    "name": "Contabilidade Atacadista",
+    "description": "Especialização em contabilidade para empresas do setor atacadista, com conhecimento profundo das particularidades fiscais e tributárias do segmento.",
+    "order": 1,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.504Z",
+    "updated_at": "2025-11-21T14:12:49.504Z"
+  },
+  {
+    "id": "specialty-3",
+    "icon": "ShoppingCart",
+    "name": "Contabilidade E-Commerce",
+    "description": "Especialização em contabilidade para empresas de e-commerce, com foco em compliance fiscal, tributação de vendas online e otimização tributária.",
+    "order": 3,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.504Z",
+    "updated_at": "2025-11-21T14:12:49.504Z"
+  },
+  {
+    "id": "specialty-2",
+    "icon": "TrendingUp",
+    "name": "Planejamento Tributário",
+    "description": "A sua empresa pode estar pagando mais impostos do que deveria. Por meio de um Planejamento Tributário é possível reduzir custos e aumentar o rendimento do seu negócio!",
+    "order": 2,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.504Z",
+    "updated_at": "2025-11-21T14:12:49.504Z"
+  }
+]

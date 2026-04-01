@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -26,9 +26,32 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaError, setCaptchaError] = useState<string>('');
 
+  // Callback estável para o hCaptcha
+  const handleCaptchaVerify = useCallback((token: string) => {
+    console.log('ContactSection: Token recebido do ReCaptcha:', token ? `${token.substring(0, 20)}...` : 'vazio');
+    if (token) {
+      setCaptchaToken(token);
+      setCaptchaError('');
+      console.log('ContactSection: captchaToken atualizado');
+    } else {
+      console.error('ContactSection: Token vazio recebido');
+      setCaptchaError('Erro ao verificar. Tente novamente.');
+    }
+  }, []);
+
+  const handleCaptchaExpire = useCallback(() => {
+    console.log('ContactSection: Captcha expirado');
+    setCaptchaToken(null);
+    setCaptchaError('Verificação expirada. Por favor, confirme novamente.');
+  }, []);
+
   // Em desenvolvimento, simular token válido automaticamente
   useEffect(() => {
-    const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // Detectar desenvolvimento apenas se for realmente localhost
+    // Em produção (VPS), nunca simular token
+    const isDevelopment = (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                         !window.location.hostname.includes('central-rnc.com.br') &&
+                         !window.location.hostname.includes('www.central-rnc.com.br');
     if (isDevelopment && !captchaToken) {
       setCaptchaToken('dev-token-localhost');
     }
@@ -98,7 +121,10 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
     }
 
     // Validação do captcha (desabilitada em desenvolvimento/localhost)
-    const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // Em produção (VPS), sempre validar
+    const isDevelopment = (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                         !window.location.hostname.includes('central-rnc.com.br') &&
+                         !window.location.hostname.includes('www.central-rnc.com.br');
     if (!isDevelopment && !captchaToken) {
       setCaptchaError('Por favor, confirme que você não é um robô');
       return false;
@@ -276,7 +302,11 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
 
                   {/* hCaptcha - Modo desenvolvimento/localhost */}
                   {(() => {
-                    const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    // Detectar desenvolvimento apenas se for realmente localhost
+                    // Em produção (VPS), nunca mostrar o banner
+                    const isDevelopment = (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                                         !window.location.hostname.includes('central-rnc.com.br') &&
+                                         !window.location.hostname.includes('www.central-rnc.com.br');
                     
                     if (isDevelopment) {
                       return (
@@ -294,15 +324,9 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ configuration })
                           Verificação de Segurança
                         </label>
                         <ReCaptcha
-                          siteKey={import.meta.env.VITE_HCAPTCHA_SITE_KEY || '7752cf8c-cc60-4c64-9210-8020448030a4'}
-                          onVerify={(token) => {
-                            setCaptchaToken(token);
-                            setCaptchaError('');
-                          }}
-                          onExpire={() => {
-                            setCaptchaToken(null);
-                            setCaptchaError('Verificação expirada. Por favor, confirme novamente.');
-                          }}
+                          siteKey={configuration?.hcaptcha_site_key || import.meta.env.VITE_HCAPTCHA_SITE_KEY || '7752cf8c-cc60-4c64-9210-8020448030a4'}
+                          onVerify={handleCaptchaVerify}
+                          onExpire={handleCaptchaExpire}
                           theme="light"
                           size="normal"
                         />

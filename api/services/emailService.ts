@@ -8,6 +8,9 @@ interface EmailConfig {
     user: string;
     pass: string;
   };
+  tls?: {
+    rejectUnauthorized: boolean;
+  };
 }
 
 class EmailService {
@@ -261,6 +264,112 @@ class EmailService {
       return true;
     } catch (error: any) {
       console.error('❌ Erro ao enviar email de notificação de contato:');
+      console.error('❌ Mensagem:', error.message);
+      return false;
+    }
+  }
+
+  async sendLandingPageNotification(
+    recipientEmail: string,
+    data: {
+      landingPageTitle: string;
+      landingPageSlug: string;
+      formData: Record<string, any>;
+      formFields: Array<{ field_label: string; field_name: string }>;
+    }
+  ): Promise<boolean> {
+    try {
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.SMTP_PASS;
+      
+      if (!smtpUser || !smtpPass || smtpUser === 'seu-email@gmail.com' || smtpPass === 'sua-senha-app') {
+        console.error('❌ Configuração de email não encontrada ou inválida no .env');
+        return false;
+      }
+
+      console.log('📧 Enviando notificação de landing page...');
+      console.log('📧 Para:', recipientEmail);
+      console.log('📧 Landing Page:', data.landingPageTitle);
+
+      // Criar HTML com os campos do formulário
+      const formFieldsHtml = data.formFields.map(field => {
+        const value = data.formData[field.field_name] || 'Não preenchido';
+        return `<p style="margin: 0 0 10px 0;"><strong>${field.field_label}:</strong> ${String(value)}</p>`;
+      }).join('');
+
+      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const landingPageUrl = `${baseUrl}/${data.landingPageSlug}`;
+
+      const mailOptions = {
+        from: `"Central Contábil" <${smtpUser}>`,
+        to: recipientEmail,
+        subject: `Nova Submissão - Landing Page: ${data.landingPageTitle}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #3bb664; padding: 20px; text-align: center; color: white;">
+              <h1 style="margin: 0;">Central Contábil</h1>
+              <p style="margin: 10px 0 0 0; font-size: 14px;">Nova Submissão de Formulário</p>
+            </div>
+            
+            <div style="padding: 30px; background-color: #f9fafb;">
+              <h2 style="color: #3bb664; margin-bottom: 20px;">Nova submissão recebida</h2>
+              
+              <div style="background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0 0 15px 0; font-weight: bold; color: #3bb664; font-size: 16px;">
+                  Landing Page: ${data.landingPageTitle}
+                </p>
+                <p style="margin: 0 0 10px 0; font-size: 14px;">
+                  <strong>URL:</strong> <a href="${landingPageUrl}" style="color: #3bb664;">${landingPageUrl}</a>
+                </p>
+              </div>
+              
+              <div style="background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="color: #374151; margin-top: 0; margin-bottom: 15px;">Dados do Formulário:</h3>
+                ${formFieldsHtml}
+              </div>
+              
+              <div style="margin-top: 20px; text-align: center;">
+                <a href="${landingPageUrl}" style="
+                  display: inline-block;
+                  background-color: #3bb664;
+                  color: white;
+                  padding: 12px 24px;
+                  text-decoration: none;
+                  border-radius: 6px;
+                  font-weight: bold;
+                ">Ver Landing Page</a>
+              </div>
+            </div>
+            
+            <div style="background-color: #3bb664; padding: 15px; text-align: center;">
+              <p style="color: white; font-size: 12px; margin: 0;">
+                Central Contábil - 34 anos de excelência em serviços contábeis
+              </p>
+            </div>
+          </div>
+        `,
+        text: `
+          Central Contábil - Nova Submissão de Formulário
+          
+          Landing Page: ${data.landingPageTitle}
+          URL: ${landingPageUrl}
+          
+          Dados do Formulário:
+          ${data.formFields.map(field => {
+            const value = data.formData[field.field_name] || 'Não preenchido';
+            return `${field.field_label}: ${String(value)}`;
+          }).join('\n')}
+          
+          Central Contábil - 34 anos de excelência em serviços contábeis
+        `,
+      };
+
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log('✅ Email de notificação de landing page enviado com sucesso!');
+      console.log('✅ Message ID:', result.messageId);
+      return true;
+    } catch (error: any) {
+      console.error('❌ Erro ao enviar email de notificação de landing page:');
       console.error('❌ Mensagem:', error.message);
       return false;
     }

@@ -38,15 +38,30 @@ export const ClientsSection: React.FC = () => {
   const getLogoUrl = (client: Client) => {
     const logoUrl = client.logoUrl || client.logo_url;
     if (!logoUrl) return null;
-    if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
-      return logoUrl;
+    
+    // Remover http://localhost:3006 se estiver presente (problema de CORS)
+    let cleanUrl = logoUrl;
+    if (cleanUrl.includes('localhost:3006')) {
+      cleanUrl = cleanUrl.replace(/https?:\/\/localhost:3006/, '');
     }
-    // Em desenvolvimento, usar o proxy do Vite, em produção usar a URL completa
+    
+    // Se já é uma URL absoluta válida (não localhost), retornar como está
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+      return cleanUrl;
+    }
+    
+    // Garantir que começa com /
+    if (!cleanUrl.startsWith('/')) {
+      cleanUrl = `/${cleanUrl}`;
+    }
+    
+    // Em desenvolvimento, usar o proxy do Vite
     if (import.meta.env.DEV) {
-      return logoUrl;
+      return cleanUrl;
     }
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3006';
-    return `${apiUrl}${logoUrl}`;
+    
+    // Em produção, usar URL relativa (Nginx faz proxy)
+    return cleanUrl;
   };
 
   if (loading) {

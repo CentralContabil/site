@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { RefreshCcw, Loader2, Trash2, Download } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';

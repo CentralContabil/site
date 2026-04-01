@@ -96,20 +96,143 @@ model ContactMessageReply {
   @@index([contact_message_id])
 }
 
+model JobPosition {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  is_active   Boolean  @default(true)
+  order       Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  job_applications JobApplication[]
+  recruitment_processes RecruitmentProcess[]
+
+  @@map("job_positions")
+  @@index([is_active])
+}
+
+model RecruitmentProcess {
+  id              String   @id @default(uuid())
+  title           String   // Título da vaga/processo
+  description     String?  // Descrição detalhada
+  position_id     String   // Área de interesse
+  status          String   @default("open") // open, in_progress, closed, cancelled
+  open_date       DateTime @default(now())
+  close_date      DateTime?
+  expected_start_date DateTime? // Data prevista de início
+  created_by      String?  // ID do usuário que criou
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  position        JobPosition @relation(fields: [position_id], references: [id], onDelete: Restrict)
+  stages          RecruitmentStage[]
+  candidates      RecruitmentCandidate[]
+
+  @@map("recruitment_processes")
+  @@index([position_id])
+  @@index([status])
+  @@index([open_date])
+}
+
+model RecruitmentStage {
+  id                String   @id @default(uuid())
+  process_id        String
+  name              String   // Ex: "Triagem", "Entrevista Técnica", "Avaliação Final"
+  description       String?
+  order             Int      // Ordem da etapa no processo
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  process           RecruitmentProcess @relation(fields: [process_id], references: [id], onDelete: Cascade)
+  candidate_stages  RecruitmentCandidateStage[]
+  candidates_current RecruitmentCandidate[] // Candidatos na etapa atual
+
+  @@map("recruitment_stages")
+  @@index([process_id])
+  @@index([order])
+}
+
+model RecruitmentCandidate {
+  id                String   @id @default(uuid())
+  process_id        String
+  application_id    String?  @unique // Candidatura original (opcional, pode adicionar candidato manualmente)
+  status            String   @default("pending") // pending, in_stage, approved, rejected, withdrawn
+  current_stage_id  String?  // Etapa atual
+  score             Float?   // Nota geral (0-10)
+  notes             String?  // Observações gerais
+  added_at          DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  process           RecruitmentProcess @relation(fields: [process_id], references: [id], onDelete: Cascade)
+  application       JobApplication? @relation(fields: [application_id], references: [id], onDelete: SetNull)
+  current_stage     RecruitmentStage? @relation(fields: [current_stage_id], references: [id], onDelete: SetNull)
+  stage_history     RecruitmentCandidateStage[]
+  notes_history     RecruitmentNote[]
+
+  @@map("recruitment_candidates")
+  @@index([process_id])
+  @@index([application_id])
+  @@index([status])
+  @@index([current_stage_id])
+}
+
+model RecruitmentCandidateStage {
+  id                String   @id @default(uuid())
+  candidate_id      String
+  stage_id          String
+  status            String   @default("pending") // pending, approved, rejected
+  score             Float?   // Nota nesta etapa (0-10)
+  feedback          String?  // Feedback da etapa
+  evaluated_by      String?  // ID do avaliador
+  evaluated_at      DateTime?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  candidate         RecruitmentCandidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+  stage             RecruitmentStage @relation(fields: [stage_id], references: [id], onDelete: Cascade)
+
+  @@map("recruitment_candidate_stages")
+  @@index([candidate_id])
+  @@index([stage_id])
+  @@unique([candidate_id, stage_id])
+}
+
+model RecruitmentNote {
+  id                String   @id @default(uuid())
+  candidate_id      String
+  note              String   // Conteúdo da nota
+  note_type         String   @default("general") // general, interview, evaluation, feedback
+  created_by        String?  // ID do usuário
+  created_at        DateTime @default(now())
+
+  candidate         RecruitmentCandidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
+
+  @@map("recruitment_notes")
+  @@index([candidate_id])
+  @@index([created_at])
+}
+
 model JobApplication {
   id            String   @id @default(uuid())
   name          String
   email         String
   phone         String?
-  position      String?
+  position      String?  // Mantido para compatibilidade
+  position_id  String?  // Nova referência à área de interesse
   linkedin_url  String?
   message       String?
   cv_url        String?
   is_read       Boolean  @default(false)
   created_at    DateTime @default(now())
 
+  job_position  JobPosition? @relation(fields: [position_id], references: [id], onDelete: SetNull)
+  recruitment_candidate RecruitmentCandidate?
+
   @@map("job_applications")
   @@index([created_at])
+  @@index([position_id])
 }
 
 model Configuration {
@@ -128,6 +251,7 @@ model Configuration {
   favicon_url    String?
   whatsapp_number String?
   footer_years_text String? @default("Mais de 34 anos oferecendo soluções contábeis estratégicas para empresas que buscam crescimento sustentável.")
+  hcaptcha_site_key String?
   updated_at     DateTime @updatedAt
 
   @@map("configurations")
@@ -331,6 +455,15 @@ model SectionFiscalBenefit {
   @@index([slug])
 }
 
+model SectionFiscalBenefitsConfig {
+  id                String   @id @default(uuid())
+  calculator_url    String   @default("https://www.usehigh.land/competecentral")
+  calculator_open_type String @default("modal") // "modal", "new_tab", "same_page"
+  updated_at        DateTime @updatedAt
+
+  @@map("section_fiscal_benefits_config")
+}
+
 model SectionFunFact {
   id          String   @id @default(uuid())
   icon        String
@@ -389,6 +522,20 @@ model SectionClients {
   updated_at        DateTime @updatedAt
 
   @@map("section_clients")
+}
+
+model SectionServices {
+  id                String   @id @default(uuid())
+  badge_text        String?  @default("Nossos Serviços")
+  title_line1       String?  @default("Nossas Soluções Vão")
+  title_line2       String?  @default("Além da Contabilidade")
+  description       String?
+  years_highlight   String?
+  background_image_url String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@map("section_services")
 }
 
 model Client {
@@ -467,4 +614,100 @@ model AccessLog {
   @@index([admin_id])
   @@index([email])
   @@index([created_at])
+}
+
+model LandingPage {
+  id                String   @id @default(uuid())
+  title             String
+  slug              String   @unique
+  description       String?
+  hero_title        String?
+  hero_subtitle     String?
+  hero_image_url    String?
+  hero_background_color String?
+  content           String?  // HTML content (pode conter shortcodes como [form id="123"])
+  featured_image_url String?  // Imagem de destaque (similar ao blog)
+  meta_title        String?
+  meta_description  String?
+  meta_keywords     String?
+  is_active         Boolean  @default(true)
+  is_published      Boolean  @default(false)
+  published_at      DateTime?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  form_fields       FormField[]  // Campos diretos (legado)
+  form_submissions  FormSubmission[]
+  forms             Form[]       // Formulários reutilizáveis referenciados
+
+  @@map("landing_pages")
+  @@index([slug])
+  @@index([is_active])
+  @@index([is_published])
+}
+
+// Formulários reutilizáveis (similar ao WPForms)
+model Form {
+  id                String   @id @default(uuid())
+  title             String
+  slug              String   @unique
+  description       String?
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  fields            FormField[]
+  submissions      FormSubmission[]
+  landing_pages    LandingPage[] // Landing pages que usam este formulário
+
+  @@map("forms")
+  @@index([slug])
+  @@index([is_active])
+}
+
+model FormField {
+  id                String   @id @default(uuid())
+  landing_page_id   String?  // Opcional - se null, pertence a um Form
+  form_id           String?  // Opcional - se null, pertence a uma LandingPage
+  field_type        String   // "text", "email", "tel", "textarea", "select", "checkbox", "radio", "number", "date", "file"
+  field_name        String   // Nome técnico do campo (ex: "email", "phone")
+  field_label       String   // Label exibido ao usuário
+  placeholder       String?
+  help_text         String?
+  is_required       Boolean  @default(false)
+  validation_rules  String?  // JSON com regras de validação
+  options           String?  // JSON com opções para select/radio/checkbox
+  order             Int      @default(0)
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  landing_page      LandingPage? @relation(fields: [landing_page_id], references: [id], onDelete: Cascade)
+  form              Form?       @relation(fields: [form_id], references: [id], onDelete: Cascade)
+
+  @@map("form_fields")
+  @@index([landing_page_id])
+  @@index([form_id])
+  @@index([order])
+}
+
+model FormSubmission {
+  id                String   @id @default(uuid())
+  landing_page_id   String?
+  form_id           String?  // Se submissão veio de um formulário reutilizável
+  form_data         String   // JSON com os dados do formulário
+  ip_address        String?
+  user_agent        String?
+  referrer          String?
+  is_read           Boolean  @default(false)
+  created_at        DateTime @default(now())
+
+  landing_page      LandingPage? @relation(fields: [landing_page_id], references: [id], onDelete: Cascade)
+  form              Form?       @relation(fields: [form_id], references: [id], onDelete: Cascade)
+
+  @@map("form_submissions")
+  @@index([landing_page_id])
+  @@index([form_id])
+  @@index([created_at])
+  @@index([is_read])
 }

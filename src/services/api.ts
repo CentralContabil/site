@@ -31,13 +31,16 @@ import {
   ContactMessage,
   ContactMessageReply,
   JobApplication,
+  JobPosition,
+  RecruitmentProcess,
+  RecruitmentCandidate,
   CareersPage,
   UpdateCareersPageRequest
 } from '../types';
 
 // Em desenvolvimento, usar o proxy do Vite (/api)
-// Em produção, usar a variável de ambiente ou fallback
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
+// Em produção, usar a variável de ambiente ou /api (Nginx faz proxy)
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 class ApiService {
   private toUser(db: any): User {
@@ -428,11 +431,11 @@ class ApiService {
 
   // Configuration
   async getConfiguration(): Promise<{ configuration: Configuration }> {
-    return this.request('/configuracoes');
+    return this.request('/configurations');
   }
 
   async updateConfiguration(config: Partial<Configuration>): Promise<{ configuration: Configuration }> {
-    return this.request('/configuracoes', {
+    return this.request('/configurations', {
       method: 'PUT',
       body: JSON.stringify(config),
     });
@@ -550,6 +553,7 @@ class ApiService {
     email: string;
     phone?: string;
     position?: string;
+    positionId?: string;
     linkedinUrl?: string;
     message?: string;
     cvUrl?: string;
@@ -562,8 +566,11 @@ class ApiService {
     });
   }
 
-  async getJobApplications(): Promise<{ applications: JobApplication[] }> {
-    const response = await this.request<{ applications: any[] }>('/job-applications');
+  async getJobApplications(positionId?: string): Promise<{ applications: JobApplication[] }> {
+    const url = positionId && positionId !== 'all' 
+      ? `/job-applications?positionId=${positionId}`
+      : '/job-applications';
+    const response = await this.request<{ applications: any[] }>(url);
     return {
       applications: (response.applications || []).map((app) => ({
         id: app.id,
@@ -571,6 +578,16 @@ class ApiService {
         email: app.email,
         phone: app.phone || undefined,
         position: app.position || undefined,
+        positionId: app.position_id || app.positionId || undefined,
+        jobPosition: app.job_position ? {
+          id: app.job_position.id,
+          name: app.job_position.name,
+          description: app.job_position.description,
+          isActive: app.job_position.is_active !== undefined ? app.job_position.is_active : app.job_position.isActive,
+          order: app.job_position.order,
+          createdAt: app.job_position.created_at ? new Date(app.job_position.created_at) : new Date(app.job_position.createdAt || Date.now()),
+          updatedAt: app.job_position.updated_at ? new Date(app.job_position.updated_at) : new Date(app.job_position.updatedAt || Date.now()),
+        } : undefined,
         linkedinUrl: app.linkedin_url || app.linkedinUrl || undefined,
         message: app.message || undefined,
         cvUrl: app.cv_url || app.cvUrl || undefined,
@@ -590,6 +607,16 @@ class ApiService {
         email: app.email,
         phone: app.phone || undefined,
         position: app.position || undefined,
+        positionId: app.position_id || app.positionId || undefined,
+        jobPosition: app.job_position ? {
+          id: app.job_position.id,
+          name: app.job_position.name,
+          description: app.job_position.description,
+          isActive: app.job_position.is_active !== undefined ? app.job_position.is_active : app.job_position.isActive,
+          order: app.job_position.order,
+          createdAt: app.job_position.created_at ? new Date(app.job_position.created_at) : new Date(app.job_position.createdAt || Date.now()),
+          updatedAt: app.job_position.updated_at ? new Date(app.job_position.updated_at) : new Date(app.job_position.updatedAt || Date.now()),
+        } : undefined,
         linkedinUrl: app.linkedin_url || app.linkedinUrl || undefined,
         message: app.message || undefined,
         cvUrl: app.cv_url || app.cvUrl || undefined,
@@ -611,6 +638,16 @@ class ApiService {
         email: app.email,
         phone: app.phone || undefined,
         position: app.position || undefined,
+        positionId: app.position_id || app.positionId || undefined,
+        jobPosition: app.job_position ? {
+          id: app.job_position.id,
+          name: app.job_position.name,
+          description: app.job_position.description,
+          isActive: app.job_position.is_active !== undefined ? app.job_position.is_active : app.job_position.isActive,
+          order: app.job_position.order,
+          createdAt: app.job_position.created_at ? new Date(app.job_position.created_at) : new Date(app.job_position.createdAt || Date.now()),
+          updatedAt: app.job_position.updated_at ? new Date(app.job_position.updated_at) : new Date(app.job_position.updatedAt || Date.now()),
+        } : undefined,
         linkedinUrl: app.linkedin_url || app.linkedinUrl || undefined,
         message: app.message || undefined,
         cvUrl: app.cv_url || app.cvUrl || undefined,
@@ -624,6 +661,648 @@ class ApiService {
     return this.request(`/job-applications/${id}`, {
       method: 'DELETE',
     });
+  }
+
+  // ========== JOB POSITIONS ==========
+  async getJobPositions(): Promise<{ positions: JobPosition[] }> {
+    const response = await fetch(`${API_BASE_URL}/job-positions`);
+    if (!response.ok) {
+      throw new Error('Erro ao buscar áreas de interesse');
+    }
+    const data = await response.json();
+    return {
+      positions: (data.positions || []).map((pos: any) => ({
+        id: pos.id,
+        name: pos.name,
+        description: pos.description || undefined,
+        isActive: pos.is_active !== undefined ? pos.is_active : pos.isActive,
+        order: pos.order,
+        createdAt: pos.created_at ? new Date(pos.created_at) : new Date(pos.createdAt || Date.now()),
+        updatedAt: pos.updated_at ? new Date(pos.updated_at) : new Date(pos.updatedAt || Date.now()),
+      })),
+    };
+  }
+
+  async getAllJobPositions(): Promise<{ positions: JobPosition[] }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/job-positions/all`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.message || `Erro ao buscar áreas de interesse (${response.status})`);
+    }
+    const data = await response.json();
+    return {
+      positions: (data.positions || []).map((pos: any) => ({
+        id: pos.id,
+        name: pos.name,
+        description: pos.description || undefined,
+        isActive: pos.is_active !== undefined ? pos.is_active : pos.isActive,
+        order: pos.order,
+        createdAt: pos.created_at ? new Date(pos.created_at) : new Date(pos.createdAt || Date.now()),
+        updatedAt: pos.updated_at ? new Date(pos.updated_at) : new Date(pos.updatedAt || Date.now()),
+      })),
+    };
+  }
+
+  async createJobPosition(data: {
+    name: string;
+    description?: string;
+    isActive?: boolean;
+    order?: number;
+  }): Promise<{ position: JobPosition; message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/job-positions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: data.name,
+        description: data.description || null,
+        is_active: data.isActive !== undefined ? data.isActive : true,
+        order: data.order || 0,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao criar área de interesse');
+    }
+
+    const result = await response.json();
+    return {
+      position: {
+        id: result.position.id,
+        name: result.position.name,
+        description: result.position.description || undefined,
+        isActive: result.position.is_active !== undefined ? result.position.is_active : result.position.isActive,
+        order: result.position.order,
+        createdAt: result.position.created_at ? new Date(result.position.created_at) : new Date(result.position.createdAt || Date.now()),
+        updatedAt: result.position.updated_at ? new Date(result.position.updated_at) : new Date(result.position.updatedAt || Date.now()),
+      },
+      message: result.message,
+    };
+  }
+
+  async updateJobPosition(id: string, data: {
+    name?: string;
+    description?: string;
+    isActive?: boolean;
+    order?: number;
+  }): Promise<{ position: JobPosition; message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/job-positions/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: data.name,
+        description: data.description !== undefined ? data.description : null,
+        is_active: data.isActive,
+        order: data.order,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao atualizar área de interesse');
+    }
+
+    const result = await response.json();
+    return {
+      position: {
+        id: result.position.id,
+        name: result.position.name,
+        description: result.position.description || undefined,
+        isActive: result.position.is_active !== undefined ? result.position.is_active : result.position.isActive,
+        order: result.position.order,
+        createdAt: result.position.created_at ? new Date(result.position.created_at) : new Date(result.position.createdAt || Date.now()),
+        updatedAt: result.position.updated_at ? new Date(result.position.updated_at) : new Date(result.position.updatedAt || Date.now()),
+      },
+      message: result.message,
+    };
+  }
+
+  async deleteJobPosition(id: string): Promise<{ message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/job-positions/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao remover área de interesse');
+    }
+
+    const result = await response.json();
+    return { message: result.message };
+  }
+
+  // ========== RECRUITMENT PROCESSES ==========
+  async getRecruitmentProcesses(filters?: { status?: string; positionId?: string }): Promise<{ processes: RecruitmentProcess[] }> {
+    const token = localStorage.getItem('token');
+    let url = `${API_BASE_URL}/recruitment/processes`;
+    const params = new URLSearchParams();
+    if (filters?.status && filters.status !== 'all') {
+      params.append('status', filters.status);
+    }
+    if (filters?.positionId && filters.positionId !== 'all') {
+      params.append('positionId', filters.positionId);
+    }
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao buscar processos seletivos');
+    }
+    const data = await response.json();
+    return {
+      processes: (data.processes || []).map((proc: any) => ({
+        id: proc.id,
+        title: proc.title,
+        description: proc.description,
+        positionId: proc.position_id || proc.positionId,
+        position: proc.position ? {
+          id: proc.position.id,
+          name: proc.position.name,
+          description: proc.position.description,
+          isActive: proc.position.is_active !== undefined ? proc.position.is_active : proc.position.isActive,
+          order: proc.position.order,
+          createdAt: proc.position.created_at ? new Date(proc.position.created_at) : new Date(proc.position.createdAt || Date.now()),
+          updatedAt: proc.position.updated_at ? new Date(proc.position.updated_at) : new Date(proc.position.updatedAt || Date.now()),
+        } : undefined,
+        status: proc.status,
+        requirements: proc.requirements,
+        benefits: proc.benefits,
+        salaryRange: proc.salary_range || proc.salaryRange,
+        workMode: proc.work_mode || proc.workMode,
+        location: proc.location,
+        deadline: proc.deadline ? new Date(proc.deadline) : undefined,
+        createdBy: proc.created_by || proc.createdBy,
+        createdAt: proc.created_at ? new Date(proc.created_at) : new Date(proc.createdAt || Date.now()),
+        updatedAt: proc.updated_at ? new Date(proc.updated_at) : new Date(proc.updatedAt || Date.now()),
+        candidates: proc.candidates?.map((c: any) => this.normalizeRecruitmentCandidate(c)) || [],
+        _count: proc._count,
+      })),
+    };
+  }
+
+  async getRecruitmentProcess(id: string): Promise<{ process: RecruitmentProcess }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/processes/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao buscar processo seletivo');
+    }
+    const data = await response.json();
+    return {
+      process: {
+        id: data.process.id,
+        title: data.process.title,
+        description: data.process.description,
+        positionId: data.process.position_id || data.process.positionId,
+        position: data.process.position ? {
+          id: data.process.position.id,
+          name: data.process.position.name,
+          description: data.process.position.description,
+          isActive: data.process.position.is_active !== undefined ? data.process.position.is_active : data.process.position.isActive,
+          order: data.process.position.order,
+          createdAt: data.process.position.created_at ? new Date(data.process.position.created_at) : new Date(data.process.position.createdAt || Date.now()),
+          updatedAt: data.process.position.updated_at ? new Date(data.process.position.updated_at) : new Date(data.process.position.updatedAt || Date.now()),
+        } : undefined,
+        status: data.process.status,
+        requirements: data.process.requirements,
+        benefits: data.process.benefits,
+        salaryRange: data.process.salary_range || data.process.salaryRange,
+        workMode: data.process.work_mode || data.process.workMode,
+        location: data.process.location,
+        deadline: data.process.deadline ? new Date(data.process.deadline) : undefined,
+        createdBy: data.process.created_by || data.process.createdBy,
+        createdAt: data.process.created_at ? new Date(data.process.created_at) : new Date(data.process.createdAt || Date.now()),
+        updatedAt: data.process.updated_at ? new Date(data.process.updated_at) : new Date(data.process.updatedAt || Date.now()),
+        candidates: (data.process.candidates || []).map((c: any) => this.normalizeRecruitmentCandidate(c)),
+      },
+    };
+  }
+
+  async createRecruitmentProcess(data: {
+    title: string;
+    description?: string;
+    positionId: string;
+    status?: 'draft' | 'open' | 'in_progress' | 'closed' | 'cancelled';
+    requirements?: string;
+    benefits?: string;
+    salaryRange?: string;
+    workMode?: string;
+    location?: string;
+    deadline?: Date | string;
+  }): Promise<{ process: RecruitmentProcess; message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/processes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        title: data.title,
+        description: data.description || null,
+        position_id: data.positionId,
+        status: data.status || 'draft',
+        requirements: data.requirements || null,
+        benefits: data.benefits || null,
+        salary_range: data.salaryRange || null,
+        work_mode: data.workMode || null,
+        location: data.location || null,
+        deadline: data.deadline ? (typeof data.deadline === 'string' ? data.deadline : data.deadline.toISOString()) : null,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao criar processo seletivo');
+    }
+
+    const result = await response.json();
+    return {
+      process: {
+        id: result.process.id,
+        title: result.process.title,
+        description: result.process.description,
+        positionId: result.process.position_id || result.process.positionId,
+        position: result.process.position ? {
+          id: result.process.position.id,
+          name: result.process.position.name,
+          description: result.process.position.description,
+          isActive: result.process.position.is_active !== undefined ? result.process.position.is_active : result.process.position.isActive,
+          order: result.process.position.order,
+          createdAt: result.process.position.created_at ? new Date(result.process.position.created_at) : new Date(result.process.position.createdAt || Date.now()),
+          updatedAt: result.process.position.updated_at ? new Date(result.process.position.updated_at) : new Date(result.process.position.updatedAt || Date.now()),
+        } : undefined,
+        status: result.process.status,
+        requirements: result.process.requirements,
+        benefits: result.process.benefits,
+        salaryRange: result.process.salary_range || result.process.salaryRange,
+        workMode: result.process.work_mode || result.process.workMode,
+        location: result.process.location,
+        deadline: result.process.deadline ? new Date(result.process.deadline) : undefined,
+        createdBy: result.process.created_by || result.process.createdBy,
+        createdAt: result.process.created_at ? new Date(result.process.created_at) : new Date(result.process.createdAt || Date.now()),
+        updatedAt: result.process.updated_at ? new Date(result.process.updated_at) : new Date(result.process.updatedAt || Date.now()),
+      },
+      message: result.message,
+    };
+  }
+
+  async updateRecruitmentProcess(id: string, data: {
+    title?: string;
+    description?: string;
+    positionId?: string;
+    status?: 'draft' | 'open' | 'in_progress' | 'closed' | 'cancelled';
+    requirements?: string;
+    benefits?: string;
+    salaryRange?: string;
+    workMode?: string;
+    location?: string;
+    deadline?: Date | string | null;
+  }): Promise<{ process: RecruitmentProcess; message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/processes/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        title: data.title,
+        description: data.description !== undefined ? data.description : null,
+        position_id: data.positionId,
+        status: data.status,
+        requirements: data.requirements !== undefined ? data.requirements : null,
+        benefits: data.benefits !== undefined ? data.benefits : null,
+        salary_range: data.salaryRange !== undefined ? data.salaryRange : null,
+        work_mode: data.workMode !== undefined ? data.workMode : null,
+        location: data.location !== undefined ? data.location : null,
+        deadline: data.deadline !== undefined ? (data.deadline === null ? null : (typeof data.deadline === 'string' ? data.deadline : data.deadline.toISOString())) : undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao atualizar processo seletivo');
+    }
+
+    const result = await response.json();
+    return {
+      process: {
+        id: result.process.id,
+        title: result.process.title,
+        description: result.process.description,
+        positionId: result.process.position_id || result.process.positionId,
+        position: result.process.position ? {
+          id: result.process.position.id,
+          name: result.process.position.name,
+          description: result.process.position.description,
+          isActive: result.process.position.is_active !== undefined ? result.process.position.is_active : result.process.position.isActive,
+          order: result.process.position.order,
+          createdAt: result.process.position.created_at ? new Date(result.process.position.created_at) : new Date(result.process.position.createdAt || Date.now()),
+          updatedAt: result.process.position.updated_at ? new Date(result.process.position.updated_at) : new Date(result.process.position.updatedAt || Date.now()),
+        } : undefined,
+        status: result.process.status,
+        requirements: result.process.requirements,
+        benefits: result.process.benefits,
+        salaryRange: result.process.salary_range || result.process.salaryRange,
+        workMode: result.process.work_mode || result.process.workMode,
+        location: result.process.location,
+        deadline: result.process.deadline ? new Date(result.process.deadline) : undefined,
+        createdBy: result.process.created_by || result.process.createdBy,
+        createdAt: result.process.created_at ? new Date(result.process.created_at) : new Date(result.process.createdAt || Date.now()),
+        updatedAt: result.process.updated_at ? new Date(result.process.updated_at) : new Date(result.process.updatedAt || Date.now()),
+      },
+      message: result.message,
+    };
+  }
+
+  async deleteRecruitmentProcess(id: string): Promise<{ message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/processes/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao remover processo seletivo');
+    }
+
+    const result = await response.json();
+    return { message: result.message };
+  }
+
+  async getAvailableCandidates(processId: string): Promise<{ candidates: JobApplication[] }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/processes/${processId}/candidates/available`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao buscar candidatos disponíveis');
+    }
+    const data = await response.json();
+    return {
+      candidates: (data.candidates || []).map((app: any) => ({
+        id: app.id,
+        name: app.name,
+        email: app.email,
+        phone: app.phone || undefined,
+        position: app.position || undefined,
+        positionId: app.position_id || app.positionId || undefined,
+        jobPosition: app.job_position ? {
+          id: app.job_position.id,
+          name: app.job_position.name,
+          description: app.job_position.description,
+          isActive: app.job_position.is_active !== undefined ? app.job_position.is_active : app.job_position.isActive,
+          order: app.job_position.order,
+          createdAt: app.job_position.created_at ? new Date(app.job_position.created_at) : new Date(app.job_position.createdAt || Date.now()),
+          updatedAt: app.job_position.updated_at ? new Date(app.job_position.updated_at) : new Date(app.job_position.updatedAt || Date.now()),
+        } : undefined,
+        linkedinUrl: app.linkedin_url || app.linkedinUrl || undefined,
+        message: app.message || undefined,
+        cvUrl: app.cv_url || app.cvUrl || undefined,
+        isRead: app.is_read !== undefined ? app.is_read : !!app.isRead,
+        createdAt: app.created_at ? new Date(app.created_at) : new Date(app.createdAt || Date.now()),
+      })),
+    };
+  }
+
+  async addCandidateToProcess(processId: string, data: {
+    applicationId: string;
+    notes?: string;
+  }): Promise<{ candidate: RecruitmentCandidate; message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/processes/${processId}/candidates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        application_id: data.applicationId,
+        notes: data.notes || null,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao adicionar candidato ao processo');
+    }
+
+    const result = await response.json();
+    return {
+      candidate: this.normalizeRecruitmentCandidate(result.candidate),
+      message: result.message,
+    };
+  }
+
+  async updateCandidateStatus(processId: string, candidateId: string, data: {
+    status?: 'pending' | 'screening' | 'interview' | 'evaluation' | 'approved' | 'rejected' | 'hired';
+    currentStage?: string;
+    notes?: string;
+    rating?: number;
+    interviewDate?: Date | string;
+    interviewNotes?: string;
+    evaluationScore?: number;
+    rejectionReason?: string;
+    hiredDate?: Date | string;
+  }): Promise<{ candidate: RecruitmentCandidate; message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/candidates/${candidateId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        status: data.status,
+        current_stage: data.currentStage,
+        notes: data.notes,
+        rating: data.rating,
+        interview_date: data.interviewDate ? (typeof data.interviewDate === 'string' ? data.interviewDate : data.interviewDate.toISOString()) : null,
+        interview_notes: data.interviewNotes,
+        evaluation_score: data.evaluationScore,
+        rejection_reason: data.rejectionReason,
+        hired_date: data.hiredDate ? (typeof data.hiredDate === 'string' ? data.hiredDate : data.hiredDate.toISOString()) : null,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao atualizar status do candidato');
+    }
+
+    const result = await response.json();
+    return {
+      candidate: this.normalizeRecruitmentCandidate(result.candidate),
+      message: result.message,
+    };
+  }
+
+  async removeCandidateFromProcess(processId: string, candidateId: string): Promise<{ message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/candidates/${candidateId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao remover candidato do processo');
+    }
+
+    const result = await response.json();
+    return { message: result.message };
+  }
+
+  private normalizeRecruitmentCandidate(c: any): RecruitmentCandidate {
+    return {
+      id: c.id,
+      processId: c.process_id || c.processId,
+      applicationId: c.application_id || c.applicationId,
+      status: c.status,
+      currentStage: c.current_stage || c.currentStage,
+      notes: c.notes,
+      rating: c.rating,
+      interviewDate: c.interview_date ? new Date(c.interview_date) : c.interviewDate ? new Date(c.interviewDate) : undefined,
+      interviewNotes: c.interview_notes || c.interviewNotes,
+      evaluationScore: c.evaluation_score || c.evaluationScore,
+      rejectionReason: c.rejection_reason || c.rejectionReason,
+      hiredDate: c.hired_date ? new Date(c.hired_date) : c.hiredDate ? new Date(c.hiredDate) : undefined,
+      createdAt: c.created_at ? new Date(c.created_at) : new Date(c.createdAt || Date.now()),
+      updatedAt: c.updated_at ? new Date(c.updated_at) : new Date(c.updatedAt || Date.now()),
+      application: c.application ? {
+        id: c.application.id,
+        name: c.application.name,
+        email: c.application.email,
+        phone: c.application.phone || undefined,
+        position: c.application.position || undefined,
+        positionId: c.application.position_id || c.application.positionId || undefined,
+        jobPosition: c.application.job_position ? {
+          id: c.application.job_position.id,
+          name: c.application.job_position.name,
+          description: c.application.job_position.description,
+          isActive: c.application.job_position.is_active !== undefined ? c.application.job_position.is_active : c.application.job_position.isActive,
+          order: c.application.job_position.order,
+          createdAt: c.application.job_position.created_at ? new Date(c.application.job_position.created_at) : new Date(c.application.job_position.createdAt || Date.now()),
+          updatedAt: c.application.job_position.updated_at ? new Date(c.application.job_position.updated_at) : new Date(c.application.job_position.updatedAt || Date.now()),
+        } : undefined,
+        linkedinUrl: c.application.linkedin_url || c.application.linkedinUrl || undefined,
+        message: c.application.message || undefined,
+        cvUrl: c.application.cv_url || c.application.cvUrl || undefined,
+        isRead: c.application.is_read !== undefined ? c.application.is_read : !!c.application.isRead,
+        createdAt: c.application.created_at ? new Date(c.application.created_at) : new Date(c.application.createdAt || Date.now()),
+      } : undefined,
+      process: c.process ? {
+        id: c.process.id,
+        title: c.process.title,
+        description: c.process.description,
+        positionId: c.process.position_id || c.process.positionId,
+        status: c.process.status,
+        createdAt: c.process.created_at ? new Date(c.process.created_at) : new Date(c.process.createdAt || Date.now()),
+        updatedAt: c.process.updated_at ? new Date(c.process.updated_at) : new Date(c.process.updatedAt || Date.now()),
+      } : undefined,
+    };
+  }
+
+  async evaluateCandidateStage(candidateId: string, stageId: string, data: {
+    status: 'pending' | 'approved' | 'rejected';
+    score?: number;
+    feedback?: string;
+  }): Promise<{ candidateStage: any; candidate: any; message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/candidates/${candidateId}/stages/${stageId}/evaluate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Erro ao avaliar etapa');
+    }
+
+    const result = await response.json();
+    return { candidateStage: result.candidateStage, candidate: result.candidate, message: result.message };
+  }
+
+  async addNoteToCandidate(candidateId: string, note: string, noteType?: string): Promise<{ note: any; message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/candidates/${candidateId}/notes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        note,
+        note_type: noteType || 'general',
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Erro ao adicionar nota');
+    }
+
+    const result = await response.json();
+    return { note: result.note, message: result.message };
+  }
+
+  async deleteRecruitmentNote(id: string): Promise<{ message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/recruitment/notes/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Erro ao remover nota');
+    }
+
+    const result = await response.json();
+    return { message: result.message };
   }
 
   // Careers Page
@@ -770,6 +1449,26 @@ class ApiService {
     }
   }
 
+  // Features
+  async getFeatures(): Promise<{ features: any[] }> {
+    try {
+      const resp = await this.request<any>('/sections/features');
+      return { features: (resp.features || []).map((f: any) => ({
+        id: f.id,
+        icon: f.icon,
+        title: f.title,
+        description: f.description,
+        order: f.order || 0,
+        isActive: f.is_active !== undefined ? f.is_active : f.isActive !== undefined ? f.isActive : true,
+        createdAt: f.created_at ? new Date(f.created_at) : (f.createdAt ? new Date(f.createdAt) : new Date()),
+        updatedAt: f.updated_at ? new Date(f.updated_at) : (f.updatedAt ? new Date(f.updatedAt) : new Date()),
+      })) };
+    } catch (error) {
+      console.error('Erro ao buscar features:', error);
+      return { features: [] };
+    }
+  }
+
   // Hero
   async getHero(): Promise<{ hero: Hero }> {
     const resp = await this.request<any>('/hero');
@@ -803,6 +1502,48 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify(requestData),
     });
+    return { hero: resp.hero };
+  }
+
+  // Hero Image Upload
+  async uploadHeroImage(file: File, type: 'background' | 'hero'): Promise<{ data: { url: string, type: string }, hero: Hero }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/hero/image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || error.details || 'Erro ao fazer upload');
+    }
+
+    const resp = await response.json();
+    return { data: resp.data, hero: resp.hero };
+  }
+
+  async deleteHeroImage(type: 'background' | 'hero'): Promise<{ hero: Hero }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/hero/image/${type}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao remover imagem');
+    }
+
+    const resp = await response.json();
     return { hero: resp.hero };
   }
 
@@ -1033,6 +1774,81 @@ class ApiService {
     };
   }
 
+  // Services Section
+  async getServicesSection(): Promise<{ services: any }> {
+    const response = await fetch(`${API_BASE_URL}/sections/services`);
+    if (!response.ok) {
+      throw new Error('Erro ao buscar seção de serviços');
+    }
+    const data = await response.json();
+    return { services: data.services };
+  }
+
+  async updateServicesSection(data: {
+    badge_text?: string | null;
+    title_line1?: string | null;
+    title_line2?: string | null;
+    description?: string | null;
+    years_highlight?: string | null;
+    background_image_url?: string | null;
+  }): Promise<{ services: any }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/sections/services`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao atualizar seção de serviços');
+    }
+    const result = await response.json();
+    return { services: result.services };
+  }
+
+  async uploadServicesImage(file: File): Promise<{ data: { url: string }, services: any }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/sections/services/image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || error.details || 'Erro ao fazer upload');
+    }
+
+    const resp = await response.json();
+    return { data: resp.data, services: resp.services };
+  }
+
+  async deleteServicesImage(): Promise<{ services: any }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/sections/services/image`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erro ao remover imagem');
+    }
+
+    const resp = await response.json();
+    return { services: resp.services };
+  }
+
   // Login Page
   async getLoginPage(): Promise<{ loginPage: LoginPage }> {
     const response = await this.request<{ loginPage: any }>('/login-page');
@@ -1233,6 +2049,361 @@ class ApiService {
 
   async getAccessLogStats(): Promise<{ total: number; successful: number; failed: number; recent: number; byMethod: { password: number; twoFactor: number } }> {
     return this.request('/access-logs/stats');
+  }
+
+  // Landing Pages
+  async getLandingPages(publishedOnly?: boolean): Promise<{ landingPages: any[] }> {
+    const query = publishedOnly ? '?published_only=true' : '';
+    const response = await this.request<{ landingPages: any[] }>(`/landing-pages${query}`);
+    return {
+      landingPages: (response.landingPages || []).map(page => ({
+        id: page.id,
+        title: page.title,
+        slug: page.slug,
+        description: page.description,
+        hero_title: page.hero_title,
+        hero_subtitle: page.hero_subtitle,
+        hero_image_url: page.hero_image_url,
+        hero_background_color: page.hero_background_color,
+        content: page.content,
+        featured_image_url: page.featured_image_url,
+        meta_title: page.meta_title,
+        meta_description: page.meta_description,
+        meta_keywords: page.meta_keywords,
+        is_active: page.is_active,
+        is_published: page.is_published,
+        published_at: page.published_at ? new Date(page.published_at) : null,
+        created_at: page.created_at ? new Date(page.created_at) : new Date(),
+        updated_at: page.updated_at ? new Date(page.updated_at) : new Date(),
+        form_fields: page.form_fields || [],
+        _count: page._count,
+      }))
+    };
+  }
+
+  async getLandingPageBySlug(slug: string): Promise<{ landingPage: any }> {
+    const response = await this.request<{ landingPage: any }>(`/landing-pages/slug/${slug}`);
+    return {
+      landingPage: {
+        ...response.landingPage,
+        created_at: response.landingPage.created_at ? new Date(response.landingPage.created_at) : new Date(),
+        updated_at: response.landingPage.updated_at ? new Date(response.landingPage.updated_at) : new Date(),
+        published_at: response.landingPage.published_at ? new Date(response.landingPage.published_at) : null,
+        form_fields: (response.landingPage.form_fields || []).map((field: any) => ({
+          ...field,
+          created_at: field.created_at ? new Date(field.created_at) : new Date(),
+          updated_at: field.updated_at ? new Date(field.updated_at) : new Date(),
+        })),
+      }
+    };
+  }
+
+  async getLandingPageById(id: string): Promise<{ landingPage: any }> {
+    const response = await this.request<{ landingPage: any }>(`/admin/landing-pages/${id}`);
+    return {
+      landingPage: {
+        ...response.landingPage,
+        created_at: response.landingPage.created_at ? new Date(response.landingPage.created_at) : new Date(),
+        updated_at: response.landingPage.updated_at ? new Date(response.landingPage.updated_at) : new Date(),
+        published_at: response.landingPage.published_at ? new Date(response.landingPage.published_at) : null,
+        form_fields: (response.landingPage.form_fields || []).map((field: any) => ({
+          ...field,
+          created_at: field.created_at ? new Date(field.created_at) : new Date(),
+          updated_at: field.updated_at ? new Date(field.updated_at) : new Date(),
+        })),
+      }
+    };
+  }
+
+  async createLandingPage(data: any): Promise<{ landingPage: any }> {
+    const response = await this.request<{ landingPage: any }>('/admin/landing-pages', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return {
+      landingPage: {
+        ...response.landingPage,
+        created_at: response.landingPage.created_at ? new Date(response.landingPage.created_at) : new Date(),
+        updated_at: response.landingPage.updated_at ? new Date(response.landingPage.updated_at) : new Date(),
+        published_at: response.landingPage.published_at ? new Date(response.landingPage.published_at) : null,
+      }
+    };
+  }
+
+  async updateLandingPage(id: string, data: any): Promise<{ landingPage: any }> {
+    const response = await this.request<{ landingPage: any }>(`/admin/landing-pages/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return {
+      landingPage: {
+        ...response.landingPage,
+        created_at: response.landingPage.created_at ? new Date(response.landingPage.created_at) : new Date(),
+        updated_at: response.landingPage.updated_at ? new Date(response.landingPage.updated_at) : new Date(),
+        published_at: response.landingPage.published_at ? new Date(response.landingPage.published_at) : null,
+        form_fields: (response.landingPage.form_fields || []).map((field: any) => ({
+          ...field,
+          created_at: field.created_at ? new Date(field.created_at) : new Date(),
+          updated_at: field.updated_at ? new Date(field.updated_at) : new Date(),
+        })),
+      }
+    };
+  }
+
+  async deleteLandingPage(id: string): Promise<void> {
+    await this.request(`/admin/landing-pages/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async uploadLandingPageImage(file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    const response = await fetch(`${API_BASE_URL}/admin/landing-pages/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Erro ao fazer upload da imagem');
+    }
+
+    const data = await response.json();
+    return { url: data.url };
+  }
+
+  // Form Fields
+  async createFormField(data: any): Promise<{ formField: any }> {
+    const response = await this.request<{ formField: any }>('/admin/form-fields', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return {
+      formField: {
+        ...response.formField,
+        created_at: response.formField.created_at ? new Date(response.formField.created_at) : new Date(),
+        updated_at: response.formField.updated_at ? new Date(response.formField.updated_at) : new Date(),
+      }
+    };
+  }
+
+  async updateFormField(id: string, data: any): Promise<{ formField: any }> {
+    const response = await this.request<{ formField: any }>(`/admin/form-fields/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return {
+      formField: {
+        ...response.formField,
+        created_at: response.formField.created_at ? new Date(response.formField.created_at) : new Date(),
+        updated_at: response.formField.updated_at ? new Date(response.formField.updated_at) : new Date(),
+      }
+    };
+  }
+
+  async deleteFormField(id: string): Promise<void> {
+    await this.request(`/admin/form-fields/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async reorderFormFields(fieldIds: string[]): Promise<void> {
+    await this.request('/admin/form-fields/reorder', {
+      method: 'PUT',
+      body: JSON.stringify({ fieldIds }),
+    });
+  }
+
+  // Form Submissions
+  async getFormSubmissions(landingPageId?: string): Promise<{ submissions: any[] }> {
+    const query = landingPageId ? `?landing_page_id=${landingPageId}` : '';
+    const response = await this.request<{ submissions: any[] }>(`/admin/form-submissions${query}`);
+    return {
+      submissions: (response.submissions || []).map(sub => ({
+        ...sub,
+        created_at: sub.created_at ? new Date(sub.created_at) : new Date(),
+        form_data: typeof sub.form_data === 'string' ? JSON.parse(sub.form_data) : sub.form_data,
+      }))
+    };
+  }
+
+  async getFormSubmissionById(id: string): Promise<{ submission: any }> {
+    const response = await this.request<{ submission: any }>(`/admin/form-submissions/${id}`);
+    return {
+      submission: {
+        ...response.submission,
+        created_at: response.submission.created_at ? new Date(response.submission.created_at) : new Date(),
+        form_data: typeof response.submission.form_data === 'string' 
+          ? JSON.parse(response.submission.form_data) 
+          : response.submission.form_data,
+      }
+    };
+  }
+
+  async submitForm(landingPageId: string, formData: Record<string, any>): Promise<{ message: string; submission: any }> {
+    // Separar captchaToken e honeypot do formData
+    const { captchaToken, honeypot, ...actualFormData } = formData;
+    return this.request(`/landing-pages/${landingPageId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        landing_page_id: landingPageId, 
+        form_data: actualFormData,
+        captchaToken: captchaToken,
+        honeypot: honeypot,
+      }),
+    });
+  }
+
+  async markSubmissionAsRead(id: string, isRead: boolean = true): Promise<{ submission: any }> {
+    return this.request(`/admin/form-submissions/${id}/read`, {
+      method: 'PUT',
+      body: JSON.stringify({ is_read: isRead }),
+    });
+  }
+
+  async deleteFormSubmission(id: string): Promise<void> {
+    await this.request(`/admin/form-submissions/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Formulários Reutilizáveis
+  async getForms(activeOnly?: boolean): Promise<{ forms: any[] }> {
+    const query = activeOnly ? '?active_only=true' : '';
+    const response = await this.request<{ forms: any[] }>(`/forms${query}`);
+    return {
+      forms: (response.forms || []).map(form => ({
+        id: form.id,
+        title: form.title,
+        slug: form.slug,
+        description: form.description,
+        is_active: form.is_active,
+        created_at: form.created_at ? new Date(form.created_at) : new Date(),
+        updated_at: form.updated_at ? new Date(form.updated_at) : new Date(),
+        fields: form.fields || [],
+        _count: form._count,
+      }))
+    };
+  }
+
+  async getFormById(id: string): Promise<{ form: any }> {
+    const response = await this.request<{ form: any }>(`/admin/forms/${id}`);
+    return {
+      form: {
+        ...response.form,
+        created_at: response.form.created_at ? new Date(response.form.created_at) : new Date(),
+        updated_at: response.form.updated_at ? new Date(response.form.updated_at) : new Date(),
+        fields: (response.form.fields || []).map((field: any) => ({
+          ...field,
+          created_at: field.created_at ? new Date(field.created_at) : new Date(),
+          updated_at: field.updated_at ? new Date(field.updated_at) : new Date(),
+        })),
+      }
+    };
+  }
+
+  async getFormBySlug(slug: string): Promise<{ form: any }> {
+    const response = await this.request<{ form: any }>(`/forms/slug/${slug}`);
+    return {
+      form: {
+        ...response.form,
+        created_at: response.form.created_at ? new Date(response.form.created_at) : new Date(),
+        updated_at: response.form.updated_at ? new Date(response.form.updated_at) : new Date(),
+        fields: (response.form.fields || []).map((field: any) => ({
+          ...field,
+          created_at: field.created_at ? new Date(field.created_at) : new Date(),
+          updated_at: field.updated_at ? new Date(field.updated_at) : new Date(),
+        })),
+      }
+    };
+  }
+
+  async createForm(data: any): Promise<{ form: any }> {
+    const response = await this.request<{ form: any }>('/admin/forms', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return {
+      form: {
+        ...response.form,
+        created_at: response.form.created_at ? new Date(response.form.created_at) : new Date(),
+        updated_at: response.form.updated_at ? new Date(response.form.updated_at) : new Date(),
+      }
+    };
+  }
+
+  async updateForm(id: string, data: any): Promise<{ form: any }> {
+    const response = await this.request<{ form: any }>(`/admin/forms/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return {
+      form: {
+        ...response.form,
+        created_at: response.form.created_at ? new Date(response.form.created_at) : new Date(),
+        updated_at: response.form.updated_at ? new Date(response.form.updated_at) : new Date(),
+      }
+    };
+  }
+
+  async deleteForm(id: string): Promise<void> {
+    await this.request(`/admin/forms/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createReusableFormField(data: any): Promise<{ formField: any }> {
+    const response = await this.request<{ formField: any }>('/admin/form-fields/reusable', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return {
+      formField: {
+        ...response.formField,
+        created_at: response.formField.created_at ? new Date(response.formField.created_at) : new Date(),
+        updated_at: response.formField.updated_at ? new Date(response.formField.updated_at) : new Date(),
+      }
+    };
+  }
+
+  async updateReusableFormField(id: string, data: any): Promise<{ formField: any }> {
+    const response = await this.request<{ formField: any }>(`/admin/form-fields/reusable/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return {
+      formField: {
+        ...response.formField,
+        created_at: response.formField.created_at ? new Date(response.formField.created_at) : new Date(),
+        updated_at: response.formField.updated_at ? new Date(response.formField.updated_at) : new Date(),
+      }
+    };
+  }
+
+  async deleteReusableFormField(id: string): Promise<void> {
+    await this.request(`/admin/form-fields/reusable/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async submitReusableForm(formId: string, formData: Record<string, any>, landingPageId?: string): Promise<{ message: string; submission: any }> {
+    const { captchaToken, honeypot, ...actualFormData } = formData;
+    return this.request(`/forms/${formId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        form_id: formId,
+        landing_page_id: landingPageId,
+        form_data: actualFormData,
+        captchaToken: captchaToken,
+        honeypot: honeypot,
+      }),
+    });
   }
 }
 

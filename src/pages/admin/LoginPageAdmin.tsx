@@ -5,7 +5,7 @@ import { LoginPage, UpdateLoginPageRequest } from '../../types';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Textarea } from '../../components/ui/Textarea';
+import { Textarea } from '../../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { AdminPageHeader } from '../../components/admin/AdminPageHeader';
 import * as LucideIcons from 'lucide-react';
@@ -114,7 +114,7 @@ export default function LoginPageAdmin() {
 
     try {
       const token = localStorage.getItem('token');
-      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
       
       const response = await fetch(`${API_BASE_URL}/login-page/image`, {
         method: 'POST',
@@ -151,7 +151,7 @@ export default function LoginPageAdmin() {
 
     try {
       const token = localStorage.getItem('token');
-      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
       
       const response = await fetch(`${API_BASE_URL}/login-page/image/background`, {
         method: 'DELETE',
@@ -296,7 +296,7 @@ export default function LoginPageAdmin() {
                 </label>
                 <Textarea
                   value={formData.welcome_text || ''}
-                  onChange={(e) => setFormData({ ...formData, welcome_text: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, welcome_text: value })}
                   placeholder="Ex: Bem-vindo ao nosso sistema"
                   rows={2}
                 />

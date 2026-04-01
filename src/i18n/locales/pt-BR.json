@@ -11,7 +11,8 @@
     "create": "Criar",
     "search": "Buscar",
     "filter": "Filtrar",
-    "actions": "Ações"
+    "actions": "Ações",
+    "readMore": "Ler Mais"
   },
   "nav": {
     "home": "Início",
@@ -19,6 +20,11 @@
     "services": "Serviços",
     "blog": "Blog",
     "contact": "Contato"
+  },
+  "blog": {
+    "backToHome": "Voltar para o Início",
+    "noPosts": "Nenhum post encontrado",
+    "comingSoon": "Em breve teremos novos conteúdos para você!"
   },
   "admin": {
     "dashboard": "Dashboard",
@@ -28,6 +34,7 @@
     "settings": "Configurações"
   }
 }
+
 
 
 

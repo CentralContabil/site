@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Save, Plus, Edit, Trash2, Upload, Image as ImageIcon, ChevronRight, Eye, EyeOff, X, ChevronDown } from 'lucide-react';
+import { Save, Plus, Edit, Trash2, Upload, Image as ImageIcon, ChevronRight, Eye, EyeOff, X, ChevronDown, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Textarea } from '../../components/ui/Textarea';
+import { Textarea } from '../../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { AdminPageHeader } from '../../components/admin/AdminPageHeader';
 import * as LucideIcons from 'lucide-react';
@@ -194,7 +194,8 @@ export default function SectionsAdmin() {
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
-  const baseUrl = 'http://localhost:3006/api/sections';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+  const baseUrl = `${API_BASE_URL}/sections`;
 
   // Specialties
   const [specialties, setSpecialties] = useState<SectionItem[]>([]);
@@ -214,6 +215,12 @@ export default function SectionsAdmin() {
     featured_image_url: '',
     order: 0, 
     is_active: true 
+  });
+  
+  // Fiscal Benefits Config (Calculadora)
+  const [fiscalBenefitsConfig, setFiscalBenefitsConfig] = useState({
+    calculator_url: 'https://www.usehigh.land/competecentral',
+    calculator_open_type: 'modal' as 'modal' | 'new_tab' | 'same_page',
   });
 
   // Fun Facts
@@ -262,6 +269,9 @@ export default function SectionsAdmin() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado. Faça login novamente.');
+      }
 
       switch (activeSection) {
         case 'hero':
@@ -295,14 +305,24 @@ export default function SectionsAdmin() {
           const featuresRes = await fetch(`${baseUrl}/features/all`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
+          if (!featuresRes.ok) {
+            throw new Error(`Erro ao carregar features: ${featuresRes.status}`);
+          }
           const featuresData = await featuresRes.json();
-          if (featuresData.success) setFeatures(featuresData.features || []);
+          if (featuresData.success) {
+            setFeatures(featuresData.features || []);
+          } else {
+            throw new Error(featuresData.error || 'Erro ao carregar features');
+          }
           break;
 
         case 'about':
           const aboutRes = await fetch(`${baseUrl}/about`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
+          if (!aboutRes.ok) {
+            throw new Error(`Erro ao carregar about: ${aboutRes.status}`);
+          }
           const aboutData = await aboutRes.json();
           if (aboutData.success && aboutData.about) {
             setAbout(aboutData.about);
@@ -324,9 +344,13 @@ export default function SectionsAdmin() {
             });
             // Carregar imagens do carrossel
             const imagesRes = await fetch(`${baseUrl}/about/images`);
-            const imagesData = await imagesRes.json();
-            if (imagesData.success) {
-              setAboutImages(imagesData.images || []);
+            if (!imagesRes.ok) {
+              console.warn('Erro ao carregar imagens do about:', imagesRes.status);
+            } else {
+              const imagesData = await imagesRes.json();
+              if (imagesData.success) {
+                setAboutImages(imagesData.images || []);
+              }
             }
           }
           break;
@@ -335,38 +359,83 @@ export default function SectionsAdmin() {
           const specialtiesRes = await fetch(`${baseUrl}/specialties/all`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
+          if (!specialtiesRes.ok) {
+            throw new Error(`Erro ao carregar specialties: ${specialtiesRes.status}`);
+          }
           const specialtiesData = await specialtiesRes.json();
-          if (specialtiesData.success) setSpecialties(specialtiesData.specialties || []);
+          if (specialtiesData.success) {
+            setSpecialties(specialtiesData.specialties || []);
+          } else {
+            throw new Error(specialtiesData.error || 'Erro ao carregar specialties');
+          }
           break;
 
         case 'fiscal-benefits':
           const benefitsRes = await fetch(`${baseUrl}/fiscal-benefits/all`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
+          if (!benefitsRes.ok) {
+            throw new Error(`Erro ao carregar fiscal-benefits: ${benefitsRes.status}`);
+          }
           const benefitsData = await benefitsRes.json();
-          if (benefitsData.success) setFiscalBenefits(benefitsData.benefits || []);
+          if (benefitsData.success) {
+            setFiscalBenefits(benefitsData.benefits || []);
+          } else {
+            throw new Error(benefitsData.error || 'Erro ao carregar fiscal-benefits');
+          }
+          
+          // Carregar configuração da calculadora
+          const configRes = await fetch(`${baseUrl}/fiscal-benefits/config`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (configRes.ok) {
+            const configData = await configRes.json();
+            if (configData.success && configData.config) {
+              setFiscalBenefitsConfig({
+                calculator_url: configData.config.calculator_url || 'https://www.usehigh.land/competecentral',
+                calculator_open_type: configData.config.calculator_open_type || 'modal',
+              });
+            }
+          }
           break;
 
         case 'fun-facts':
           const funFactsRes = await fetch(`${baseUrl}/fun-facts/all`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
+          if (!funFactsRes.ok) {
+            throw new Error(`Erro ao carregar fun-facts: ${funFactsRes.status}`);
+          }
           const funFactsData = await funFactsRes.json();
-          if (funFactsData.success) setFunFacts(funFactsData.funFacts || []);
+          if (funFactsData.success) {
+            setFunFacts(funFactsData.funFacts || []);
+          } else {
+            throw new Error(funFactsData.error || 'Erro ao carregar fun-facts');
+          }
           break;
 
         case 'certifications':
           const certsRes = await fetch(`${baseUrl}/certifications/all`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
+          if (!certsRes.ok) {
+            throw new Error(`Erro ao carregar certifications: ${certsRes.status}`);
+          }
           const certsData = await certsRes.json();
-          if (certsData.success) setCertifications(certsData.certifications || []);
+          if (certsData.success) {
+            setCertifications(certsData.certifications || []);
+          } else {
+            throw new Error(certsData.error || 'Erro ao carregar certifications');
+          }
           break;
 
         case 'newsletter':
           const newsletterRes = await fetch(`${baseUrl}/newsletter`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
+          if (!newsletterRes.ok) {
+            throw new Error(`Erro ao carregar newsletter: ${newsletterRes.status}`);
+          }
           const newsletterData = await newsletterRes.json();
           if (newsletterData.success && newsletterData.newsletter) {
             setNewsletter(newsletterData.newsletter);
@@ -382,6 +451,9 @@ export default function SectionsAdmin() {
 
         case 'clients':
           const clientsRes = await fetch(`${baseUrl}/clients`);
+          if (!clientsRes.ok) {
+            throw new Error(`Erro ao carregar clients: ${clientsRes.status}`);
+          }
           const clientsData = await clientsRes.json();
           if (clientsData.success && clientsData.clients) {
             setClients(clientsData.clients);
@@ -392,7 +464,12 @@ export default function SectionsAdmin() {
           }
           break;
         case 'services':
-          const servicesRes = await fetch(`${baseUrl}/services`);
+          const servicesRes = await fetch(`${baseUrl}/services`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (!servicesRes.ok) {
+            throw new Error(`Erro ao carregar services: ${servicesRes.status}`);
+          }
           const servicesData = await servicesRes.json();
           if (servicesData.success && servicesData.services) {
             setServices(servicesData.services);
@@ -407,9 +484,15 @@ export default function SectionsAdmin() {
           }
           break;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar dados:', error);
-      toast.error('Erro ao carregar dados da seção');
+      const errorMessage = error?.message || 'Erro ao carregar dados da seção';
+      console.error('Detalhes do erro:', {
+        section: activeSection,
+        error: errorMessage,
+        stack: error?.stack
+      });
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -480,11 +563,20 @@ export default function SectionsAdmin() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3006/api/hero/image', {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      
+      const response = await fetch(`${API_BASE_URL}/hero/image`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || error.details || 'Erro ao enviar imagem');
+      }
 
       const result = await response.json();
       if (result.success) {
@@ -497,11 +589,11 @@ export default function SectionsAdmin() {
         }
         toast.success('Imagem enviada com sucesso!');
       } else {
-        toast.error(result.error || 'Erro ao enviar imagem');
+        throw new Error(result.error || 'Erro ao enviar imagem');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao enviar imagem:', error);
-      toast.error('Erro ao enviar imagem');
+      toast.error(error.message || 'Erro ao enviar imagem');
     } finally {
       setUploadingImage(null);
       event.target.value = '';
@@ -514,10 +606,19 @@ export default function SectionsAdmin() {
     setUploadingImage(type);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3006/api/hero/image/${type}`, {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      
+      const response = await fetch(`${API_BASE_URL}/hero/image/${type}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao remover imagem');
+      }
 
       const result = await response.json();
       if (result.success) {
@@ -530,11 +631,11 @@ export default function SectionsAdmin() {
         }
         toast.success('Imagem removida com sucesso!');
       } else {
-        toast.error(result.error || 'Erro ao remover imagem');
+        throw new Error(result.error || 'Erro ao remover imagem');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao remover imagem:', error);
-      toast.error('Erro ao remover imagem');
+      toast.error(error.message || 'Erro ao remover imagem');
     } finally {
       setUploadingImage(null);
     }
@@ -587,7 +688,8 @@ export default function SectionsAdmin() {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3006/api/sections/newsletter', {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/sections/newsletter`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -621,7 +723,8 @@ export default function SectionsAdmin() {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3006/api/sections/clients', {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/sections/clients`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -660,12 +763,8 @@ export default function SectionsAdmin() {
         background_image_url: servicesForm.background_image_url || null,
       });
 
-      if (response.success) {
-        setServices(response.services);
-        toast.success('✅ Seção de Serviços atualizada com sucesso!');
-      } else {
-        toast.error('Erro ao salvar');
-      }
+      setServices(response.services);
+      toast.success('✅ Seção de Serviços atualizada com sucesso!');
     } catch (error: any) {
       console.error('Erro ao salvar:', error);
       toast.error(error.message || 'Erro ao salvar dados');
@@ -720,17 +819,16 @@ export default function SectionsAdmin() {
       let response;
       if (section === 'services') {
         const result = await apiService.uploadServicesImage(file);
-        if (result.success) {
-          setServicesForm(prev => ({ ...prev, background_image_url: result.data.url }));
-          setServices(result.services);
-          toast.success('Imagem enviada com sucesso!');
-        }
+        setServicesForm(prev => ({ ...prev, background_image_url: result.data.url }));
+        setServices(result.services);
+        toast.success('Imagem enviada com sucesso!');
         setUploadingImage(null);
         return;
       }
 
       const token = localStorage.getItem('token');
-      response = await fetch(`http://localhost:3006/api/sections/${section}/image`, {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      response = await fetch(`${API_BASE_URL}/sections/${section}/image`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
@@ -964,13 +1062,24 @@ export default function SectionsAdmin() {
           }),
         });
 
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: `Erro ${response.status}: ${errorText || 'Erro ao atualizar imagem'}` };
+          }
+          throw new Error(errorData.error || `Erro ${response.status} ao atualizar imagem`);
+        }
+
         const result = await response.json();
         if (result.success) {
           toast.success('Imagem atualizada com sucesso!');
           handleCloseImageModal();
           loadSectionData('about');
         } else {
-          toast.error(result.error || 'Erro ao atualizar imagem');
+          throw new Error(result.error || 'Erro ao atualizar imagem');
         }
       } else {
         // Criar nova imagem com upload
@@ -984,6 +1093,17 @@ export default function SectionsAdmin() {
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData,
         });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: `Erro ${response.status}: ${errorText || 'Erro ao adicionar imagem'}` };
+          }
+          throw new Error(errorData.error || `Erro ${response.status} ao adicionar imagem`);
+        }
 
         const result = await response.json();
         if (result.success) {
@@ -1008,7 +1128,7 @@ export default function SectionsAdmin() {
               confirmButtonColor: '#3bb664',
             });
           } else {
-            toast.error(result.error || 'Erro ao adicionar imagem');
+            throw new Error(result.error || 'Erro ao adicionar imagem');
           }
         }
       }
@@ -1024,7 +1144,14 @@ export default function SectionsAdmin() {
           confirmButtonColor: '#3bb664',
         });
       } else {
-        toast.error('Erro ao salvar imagem. Tente novamente.');
+        const errorMessage = error?.message || 'Erro ao salvar imagem. Tente novamente.';
+        console.error('Detalhes do erro:', {
+          error,
+          message: errorMessage,
+          stack: error?.stack
+        });
+        toast.error(errorMessage);
+        // NÃO fechar o modal em caso de erro para que o usuário possa tentar novamente
       }
     } finally {
       setUploadingAboutImage(false);
@@ -1062,7 +1189,8 @@ export default function SectionsAdmin() {
           break;
       }
 
-      const response = await fetch(`http://localhost:3006/api/sections${endpoint}`, {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/sections${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1118,7 +1246,8 @@ export default function SectionsAdmin() {
           break;
       }
 
-      const response = await fetch(`http://localhost:3006/api/sections${endpoint}`, {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/sections${endpoint}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -1169,7 +1298,8 @@ export default function SectionsAdmin() {
           break;
       }
 
-      const response = await fetch(`http://localhost:3006/api/sections${endpoint}`, {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/sections${endpoint}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -1760,7 +1890,7 @@ export default function SectionsAdmin() {
                       {aboutImages.map((image) => {
                         const imageUrl = image.image_url?.startsWith('http') 
                           ? image.image_url 
-                          : `http://localhost:3006${image.image_url}`;
+                          : image.image_url;
                         return (
                           <div key={image.id} className="relative group border border-gray-200 rounded-lg overflow-hidden">
                             <img
@@ -2192,8 +2322,11 @@ export default function SectionsAdmin() {
                             variant="outline"
                             onClick={async () => {
                               try {
-                                await apiService.deleteServicesImage();
+                                const result = await apiService.deleteServicesImage();
                                 setServicesForm(prev => ({ ...prev, background_image_url: '' }));
+                                if (result.services) {
+                                  setServices(result.services);
+                                }
                                 toast.success('Imagem removida com sucesso!');
                               } catch (error: any) {
                                 toast.error(error.message || 'Erro ao remover imagem');
@@ -2247,6 +2380,83 @@ export default function SectionsAdmin() {
                 Novo Item
               </Button>
             </div>
+
+            {/* Configuração da Calculadora - Apenas para Fiscal Benefits */}
+            {activeSection === 'fiscal-benefits' && (
+              <Card className="border-2 border-[#3bb664]/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Calculator className="mr-2 h-5 w-5 text-[#3bb664]" />
+                    Configuração da Calculadora
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      URL da Calculadora
+                    </label>
+                    <Input
+                      value={fiscalBenefitsConfig.calculator_url}
+                      onChange={(value) => setFiscalBenefitsConfig({ ...fiscalBenefitsConfig, calculator_url: value })}
+                      placeholder="https://www.usehigh.land/competecentral"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Link que será aberto ao clicar no botão "Acessar Calculadora"
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Como Abrir o Link
+                    </label>
+                    <select
+                      value={fiscalBenefitsConfig.calculator_open_type}
+                      onChange={(e) => setFiscalBenefitsConfig({ ...fiscalBenefitsConfig, calculator_open_type: e.target.value as 'modal' | 'new_tab' | 'same_page' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3bb664] focus:border-[#3bb664] transition-colors text-gray-900"
+                    >
+                      <option value="modal">Modal (Janela Pop-up)</option>
+                      <option value="new_tab">Nova Aba</option>
+                      <option value="same_page">Mesma Página</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Escolha como o link da calculadora será aberto
+                    </p>
+                  </div>
+                  <Button
+                    onClick={async () => {
+                      setSaving(true);
+                      try {
+                        const token = localStorage.getItem('token');
+                        const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+                        const response = await fetch(`${API_BASE_URL}/sections/fiscal-benefits/config`, {
+                          method: 'PUT',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                          },
+                          body: JSON.stringify(fiscalBenefitsConfig),
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                          toast.success('✅ Configuração da calculadora salva com sucesso!');
+                        } else {
+                          toast.error(data.error || 'Erro ao salvar configuração');
+                        }
+                      } catch (error: any) {
+                        console.error('Erro ao salvar configuração:', error);
+                        toast.error('Erro ao salvar configuração');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                    disabled={saving}
+                    className="bg-[#3bb664] hover:bg-[#2d9a4f] text-white"
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {saving ? 'Salvando...' : 'Salvar Configuração'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Lista de Itens */}
             <Card>
@@ -2509,7 +2719,7 @@ export default function SectionsAdmin() {
                                 <img
                                   src={fiscalBenefitForm.featured_image_url.startsWith('http') 
                                     ? fiscalBenefitForm.featured_image_url 
-                                    : `http://localhost:3006${fiscalBenefitForm.featured_image_url}`}
+                                    : fiscalBenefitForm.featured_image_url}
                                   alt="Preview"
                                   className="w-full h-48 object-cover rounded border"
                                 />
@@ -2670,25 +2880,42 @@ export default function SectionsAdmin() {
 
         {/* Modal para Carrossel de Imagens do About */}
         {showAboutImageModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-backdrop" onClick={handleCloseImageModal}>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-backdrop" 
+            onClick={(e) => {
+              // Só fecha se o clique for diretamente no backdrop (não em elementos filhos)
+              if (e.target === e.currentTarget) {
+                handleCloseImageModal();
+              }
+            }}
+            onMouseDown={(e) => {
+              // Prevenir que eventos de mouse fechem o modal quando o diálogo do Windows abre
+              if (e.target !== e.currentTarget) {
+                e.stopPropagation();
+              }
+            }}
+          >
             <Card 
               className={`w-full max-w-2xl modal-content ${isClosingImageModal ? 'closing' : ''}`}
               onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             >
               <CardHeader>
                 <CardTitle>{editingAboutImage ? 'Editar Imagem' : 'Adicionar Imagem ao Carrossel'}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {!editingAboutImage && (
-                  <div>
+                  <div onClick={(e) => e.stopPropagation()}>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Imagem *</label>
-                    <label className="block cursor-pointer">
+                    <div className="relative">
                       <input
                         type="file"
+                        id="about-image-input"
                         accept="image/*"
                         onChange={handleImageFileSelect}
                         className="hidden"
                         disabled={uploadingAboutImage}
+                        onClick={(e) => e.stopPropagation()}
                       />
                       {imagePreviewUrl ? (
                         <div className="relative">
@@ -2701,6 +2928,7 @@ export default function SectionsAdmin() {
                             type="button"
                             onClick={(e) => {
                               e.preventDefault();
+                              e.stopPropagation();
                               setSelectedImageFile(null);
                               setImagePreviewUrl(null);
                             }}
@@ -2710,13 +2938,22 @@ export default function SectionsAdmin() {
                           </button>
                         </div>
                       ) : (
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#3bb664] transition-colors">
+                        <div 
+                          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#3bb664] transition-colors cursor-pointer"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const input = document.getElementById('about-image-input') as HTMLInputElement;
+                            input?.click();
+                          }}
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
                           <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600">Clique para selecionar uma imagem</p>
                           <p className="text-xs text-gray-500 mt-1">JPG, PNG, GIF ou WebP (máx. 5MB)</p>
                         </div>
                       )}
-                    </label>
+                    </div>
                   </div>
                 )}
                 {editingAboutImage && (
@@ -2725,7 +2962,7 @@ export default function SectionsAdmin() {
                     <img
                       src={editingAboutImage.image_url?.startsWith('http') 
                         ? editingAboutImage.image_url 
-                        : `http://localhost:3006${editingAboutImage.image_url}`}
+                        : editingAboutImage.image_url}
                       alt={editingAboutImage.description || 'Imagem'}
                       className="w-full h-48 object-cover rounded border"
                     />

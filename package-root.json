@@ -1,0 +1,9 @@
+{
+  "name": "site-root",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Root package.json for KingHost Node.js application"
+}
+
+
+

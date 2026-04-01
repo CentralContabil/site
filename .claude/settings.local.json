@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(winget upgrade:*)",
+      "Bash(xargs grep:*)",
+      "Bash(ls -la /c/Users/wagner/Desktop/PROJETOS/SITE/*.config.* /c/Users/wagner/Desktop/PROJETOS/SITE/*.json)",
+      "Bash(git fetch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(xargs sed:*)"
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Briefcase, ArrowRight, Mail, Upload } from 'lucide-react';
 import { Input } from '../components/ui/Input';
@@ -30,9 +30,11 @@ export const CareersPage: React.FC = () => {
     email: '',
     phone: '',
     position: '',
+    positionId: '',
     linkedinUrl: '',
     message: '',
   });
+  const [jobPositions, setJobPositions] = useState<Array<{ id: string; name: string }>>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [honeypot, setHoneypot] = useState('');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -40,6 +42,25 @@ export const CareersPage: React.FC = () => {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [uploadingCv, setUploadingCv] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Callback estável para o hCaptcha
+  const handleCaptchaVerify = useCallback((token: string) => {
+    console.log('CareersPage: Token recebido do ReCaptcha:', token ? `${token.substring(0, 20)}...` : 'vazio');
+    if (token) {
+      setCaptchaToken(token);
+      setCaptchaError('');
+      console.log('CareersPage: captchaToken atualizado');
+    } else {
+      console.error('CareersPage: Token vazio recebido');
+      setCaptchaError('Erro ao verificar. Tente novamente.');
+    }
+  }, []);
+
+  const handleCaptchaExpire = useCallback(() => {
+    console.log('CareersPage: Captcha expirado');
+    setCaptchaToken(null);
+    setCaptchaError('Verificação expirada. Por favor, confirme novamente.');
+  }, []);
 
   useEffect(() => {
     const loadCareersContent = async () => {
@@ -51,16 +72,27 @@ export const CareersPage: React.FC = () => {
       }
     };
 
-    loadCareersContent();
+    const loadJobPositions = async () => {
+      try {
+        const response = await apiService.getJobPositions();
+        setJobPositions(response.positions || []);
+      } catch (error) {
+        console.error('Erro ao carregar áreas de interesse:', error);
+      }
+    };
 
-    const isDevelopment =
-      import.meta.env.DEV ||
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1';
+    loadCareersContent();
+    loadJobPositions();
+
+    // Em desenvolvimento, simular token válido automaticamente
+    const isDevelopment = (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                         !window.location.hostname.includes('central-rnc.com.br') &&
+                         !window.location.hostname.includes('www.central-rnc.com.br');
     if (isDevelopment && !captchaToken) {
       setCaptchaToken('dev-token-localhost');
     }
-  }, [captchaToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -76,10 +108,11 @@ export const CareersPage: React.FC = () => {
       return false;
     }
 
-    const isDevelopment =
-      import.meta.env.DEV ||
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1';
+    // Validação do captcha (desabilitada em desenvolvimento/localhost)
+    // Em produção (VPS), sempre validar
+    const isDevelopment = (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                         !window.location.hostname.includes('central-rnc.com.br') &&
+                         !window.location.hostname.includes('www.central-rnc.com.br');
     if (!isDevelopment && !captchaToken) {
       setCaptchaError('Por favor, confirme que você não é um robô');
       return false;
@@ -109,6 +142,7 @@ export const CareersPage: React.FC = () => {
         email: formData.email.trim().toLowerCase(),
         phone: formData.phone.trim() || undefined,
         position: formData.position.trim() || undefined,
+        positionId: formData.positionId || undefined,
         linkedinUrl: formData.linkedinUrl.trim() || undefined,
         message: formData.message.trim() || undefined,
         cvUrl,
@@ -122,6 +156,7 @@ export const CareersPage: React.FC = () => {
         email: '',
         phone: '',
         position: '',
+        positionId: '',
         linkedinUrl: '',
         message: '',
       });
@@ -231,11 +266,30 @@ export const CareersPage: React.FC = () => {
                   value={formData.phone}
                   onChange={(value) => setFormData((prev) => ({ ...prev, phone: value }))}
                 />
-                <Input
-                  label="Área de interesse / Posição"
-                  value={formData.position}
-                  onChange={(value) => setFormData((prev) => ({ ...prev, position: value }))}
-                />
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Área de Interesse / Posição
+                  </label>
+                  <select
+                    value={formData.positionId}
+                    onChange={(e) => {
+                      const selectedPosition = jobPositions.find(p => p.id === e.target.value);
+                      setFormData((prev) => ({
+                        ...prev,
+                        positionId: e.target.value,
+                        position: selectedPosition?.name || '',
+                      }));
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#3bb664] focus:border-[#3bb664] transition-colors"
+                  >
+                    <option value="">Selecione uma área...</option>
+                    {jobPositions.map((position) => (
+                      <option key={position.id} value={position.id}>
+                        {position.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <Input
                 label="LinkedIn (opcional)"
@@ -294,39 +348,33 @@ export const CareersPage: React.FC = () => {
                 />
               </div>
 
-              {/* hCaptcha */}
+              {/* hCaptcha - Modo desenvolvimento/localhost */}
               {(() => {
-                const isDevelopment =
-                  import.meta.env.DEV ||
-                  window.location.hostname === 'localhost' ||
-                  window.location.hostname === '127.0.0.1';
-
+                // Detectar desenvolvimento apenas se for realmente localhost
+                // Em produção (VPS), nunca mostrar o banner
+                const isDevelopment = (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && 
+                                     !window.location.hostname.includes('central-rnc.com.br') &&
+                                     !window.location.hostname.includes('www.central-rnc.com.br');
+                
                 if (isDevelopment) {
                   return (
                     <div className="p-3 bg-yellow-50 border border-yellow-200">
                       <p className="text-yellow-800 text-sm">
-                        <strong>Modo Desenvolvimento:</strong> Validação de segurança desabilitada para
-                        testes em localhost.
+                        <strong>Modo Desenvolvimento:</strong> Validação de segurança desabilitada para testes em localhost.
                       </p>
                     </div>
                   );
                 }
-
+                
                 return (
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-3">
                       Verificação de Segurança
                     </label>
                     <ReCaptcha
-                      siteKey={import.meta.env.VITE_HCAPTCHA_SITE_KEY || '7752cf8c-cc60-4c64-9210-8020448030a4'}
-                      onVerify={(token) => {
-                        setCaptchaToken(token);
-                        setCaptchaError('');
-                      }}
-                      onExpire={() => {
-                        setCaptchaToken(null);
-                        setCaptchaError('Verificação expirada. Por favor, confirme novamente.');
-                      }}
+                      siteKey={configuration?.hcaptcha_site_key || import.meta.env.VITE_HCAPTCHA_SITE_KEY || '7752cf8c-cc60-4c64-9210-8020448030a4'}
+                      onVerify={handleCaptchaVerify}
+                      onExpire={handleCaptchaExpire}
                       theme="light"
                       size="normal"
                     />

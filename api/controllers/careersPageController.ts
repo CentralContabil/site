@@ -222,3 +222,5 @@ export const deleteCareersPageImage = async (req: AuthRequest, res: Response) =>
 
 
 
+
+

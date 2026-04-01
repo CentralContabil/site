@@ -4,7 +4,7 @@ import { apiService } from '../../services/api';
 import { CareersPage, UpdateCareersPageRequest } from '../../types';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/Button';
-import { Textarea } from '../../components/ui/Textarea';
+import { Textarea } from '../../components/ui/textarea';
 import { Input } from '../../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { AdminPageHeader } from '../../components/admin/AdminPageHeader';

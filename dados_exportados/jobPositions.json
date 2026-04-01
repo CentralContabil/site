@@ -1,0 +1,200 @@
+[
+  {
+    "id": "fdf6ac7b-6bb0-4182-b847-14510f1a3c86",
+    "name": "Contador",
+    "description": "Profissional responsável pela contabilidade geral, escrituração fiscal e tributária, elaboração de demonstrações contábeis e assessoria contábil.",
+    "is_active": true,
+    "order": 1,
+    "created_at": "2025-12-03T15:36:30.162Z",
+    "updated_at": "2025-12-03T15:36:30.162Z"
+  },
+  {
+    "id": "94e98eab-3c15-4dbf-9b08-1cfe1236e2ef",
+    "name": "Analista Contábil",
+    "description": "Análise de lançamentos contábeis, conciliações bancárias, controle de contas a pagar e receber, e apoio na elaboração de relatórios contábeis.",
+    "is_active": true,
+    "order": 2,
+    "created_at": "2025-12-03T15:36:30.167Z",
+    "updated_at": "2025-12-03T15:36:30.167Z"
+  },
+  {
+    "id": "59c4954b-1d46-48f8-8fd2-d04f0ae427d8",
+    "name": "Analista Fiscal",
+    "description": "Responsável pelo cálculo e apuração de impostos, elaboração de obrigações acessórias (SPED, EFD, DCTF), planejamento tributário e análise de legislação fiscal.",
+    "is_active": true,
+    "order": 3,
+    "created_at": "2025-12-03T15:36:30.172Z",
+    "updated_at": "2025-12-03T15:36:30.172Z"
+  },
+  {
+    "id": "c1e6ae1f-e00f-4d3f-8bb9-a913d9305620",
+    "name": "Assistente Contábil",
+    "description": "Apoio nas rotinas contábeis, organização de documentos, digitação de lançamentos, arquivamento e controle de prazos.",
+    "is_active": true,
+    "order": 4,
+    "created_at": "2025-12-03T15:36:30.176Z",
+    "updated_at": "2025-12-03T15:36:30.176Z"
+  },
+  {
+    "id": "7e5f562f-e39b-4cf2-b14a-4ad284e1fa65",
+    "name": "Assistente Fiscal",
+    "description": "Auxílio nas rotinas fiscais, organização de documentos fiscais, controle de prazos de obrigações acessórias e apoio na apuração de impostos.",
+    "is_active": true,
+    "order": 5,
+    "created_at": "2025-12-03T15:36:30.181Z",
+    "updated_at": "2025-12-03T15:36:30.181Z"
+  },
+  {
+    "id": "9b0bb729-4b6e-4bc1-9f28-60df1e90f561",
+    "name": "Departamento Pessoal",
+    "description": "Responsável pelo processamento de folha de pagamento, cálculo de encargos sociais, controle de férias, 13º salário, admissões e demissões.",
+    "is_active": true,
+    "order": 6,
+    "created_at": "2025-12-03T15:36:30.187Z",
+    "updated_at": "2025-12-03T15:36:30.187Z"
+  },
+  {
+    "id": "97b1c34e-dea0-4354-ba0d-be6faf36756a",
+    "name": "Analista de Departamento Pessoal",
+    "description": "Análise e processamento de folha de pagamento, cálculo de provisões, controle de benefícios, e-Social e relacionamento com funcionários.",
+    "is_active": true,
+    "order": 7,
+    "created_at": "2025-12-03T15:36:30.192Z",
+    "updated_at": "2025-12-03T15:36:30.192Z"
+  },
+  {
+    "id": "00f8ab49-0f16-452b-b90f-52b0686aeac2",
+    "name": "Assistente de Departamento Pessoal",
+    "description": "Apoio nas rotinas de departamento pessoal, organização de documentos, controle de ponto, férias e benefícios.",
+    "is_active": true,
+    "order": 8,
+    "created_at": "2025-12-03T15:36:30.195Z",
+    "updated_at": "2025-12-03T15:36:30.195Z"
+  },
+  {
+    "id": "fbbb6ca4-d786-47fa-8500-eb816bb43309",
+    "name": "Auxiliar Contábil",
+    "description": "Auxílio nas rotinas contábeis básicas, organização de documentos, arquivamento e apoio geral ao setor contábil.",
+    "is_active": true,
+    "order": 9,
+    "created_at": "2025-12-03T15:36:30.199Z",
+    "updated_at": "2025-12-03T15:36:30.199Z"
+  },
+  {
+    "id": "d97ccd72-8f18-4d63-988a-506a80217542",
+    "name": "Auxiliar Fiscal",
+    "description": "Auxílio nas rotinas fiscais básicas, organização de documentos fiscais, controle de prazos e apoio geral ao setor fiscal.",
+    "is_active": true,
+    "order": 10,
+    "created_at": "2025-12-03T15:36:30.203Z",
+    "updated_at": "2025-12-03T15:36:30.203Z"
+  },
+  {
+    "id": "6369616e-2460-4c8a-83c7-33652ec43b95",
+    "name": "Estagiário Contábil",
+    "description": "Estágio na área contábil com aprendizado prático em escrituração, lançamentos contábeis e rotinas administrativas.",
+    "is_active": true,
+    "order": 11,
+    "created_at": "2025-12-03T15:36:30.209Z",
+    "updated_at": "2025-12-03T15:36:30.209Z"
+  },
+  {
+    "id": "e35b961a-48e5-441d-ae48-5f8228fab041",
+    "name": "Estagiário Fiscal",
+    "description": "Estágio na área fiscal com aprendizado prático em apuração de impostos, obrigações acessórias e rotinas fiscais.",
+    "is_active": true,
+    "order": 12,
+    "created_at": "2025-12-03T15:36:30.213Z",
+    "updated_at": "2025-12-03T15:36:30.213Z"
+  },
+  {
+    "id": "e732eb18-b59b-4e8c-82cf-27ea46928c0e",
+    "name": "Estagiário Departamento Pessoal",
+    "description": "Estágio na área de departamento pessoal com aprendizado prático em folha de pagamento, e-Social e rotinas de RH.",
+    "is_active": true,
+    "order": 13,
+    "created_at": "2025-12-03T15:36:30.216Z",
+    "updated_at": "2025-12-03T15:36:30.216Z"
+  },
+  {
+    "id": "a030805b-7a2a-4070-945f-a56d79a28621",
+    "name": "Coordenador Contábil",
+    "description": "Coordenação da equipe contábil, supervisão de processos, análise de demonstrações contábeis e relacionamento com clientes.",
+    "is_active": true,
+    "order": 14,
+    "created_at": "2025-12-03T15:36:30.221Z",
+    "updated_at": "2025-12-03T15:36:30.221Z"
+  },
+  {
+    "id": "3cf313b4-89d0-4514-abe6-b16ff967ecfe",
+    "name": "Coordenador Fiscal",
+    "description": "Coordenação da equipe fiscal, supervisão de processos tributários, planejamento fiscal estratégico e relacionamento com clientes.",
+    "is_active": true,
+    "order": 15,
+    "created_at": "2025-12-03T15:36:30.225Z",
+    "updated_at": "2025-12-03T15:36:30.225Z"
+  },
+  {
+    "id": "2ab58b74-132b-4a97-ba97-c87058d006b5",
+    "name": "Supervisor Contábil",
+    "description": "Supervisão de equipe contábil, revisão de trabalhos, garantia de qualidade dos processos e treinamento de colaboradores.",
+    "is_active": true,
+    "order": 16,
+    "created_at": "2025-12-03T15:36:30.228Z",
+    "updated_at": "2025-12-03T15:36:30.228Z"
+  },
+  {
+    "id": "000c469b-6a24-455c-b681-c7c5e6d0ef6e",
+    "name": "Supervisor Fiscal",
+    "description": "Supervisão de equipe fiscal, revisão de apurações tributárias, garantia de conformidade fiscal e treinamento de colaboradores.",
+    "is_active": true,
+    "order": 17,
+    "created_at": "2025-12-03T15:36:30.233Z",
+    "updated_at": "2025-12-03T15:36:30.233Z"
+  },
+  {
+    "id": "8f6704e0-a8dc-4194-9cf6-7477ccf52f05",
+    "name": "Gerente Contábil",
+    "description": "Gestão completa do setor contábil, estratégias de melhoria de processos, relacionamento com clientes de grande porte e liderança de equipe.",
+    "is_active": true,
+    "order": 18,
+    "created_at": "2025-12-03T15:36:30.237Z",
+    "updated_at": "2025-12-03T15:36:30.237Z"
+  },
+  {
+    "id": "268acd56-afe6-4e6c-9ceb-cc79d1ebc332",
+    "name": "Gerente Fiscal",
+    "description": "Gestão completa do setor fiscal, planejamento tributário estratégico, relacionamento com clientes de grande porte e liderança de equipe.",
+    "is_active": true,
+    "order": 19,
+    "created_at": "2025-12-03T15:36:30.240Z",
+    "updated_at": "2025-12-03T15:36:30.240Z"
+  },
+  {
+    "id": "990e3049-ae9d-45f6-a261-4e2efe40d8a0",
+    "name": "Auditor Contábil",
+    "description": "Realização de auditorias contábeis, análise de controles internos, verificação de conformidade e elaboração de relatórios de auditoria.",
+    "is_active": true,
+    "order": 20,
+    "created_at": "2025-12-03T15:36:30.245Z",
+    "updated_at": "2025-12-03T15:36:30.245Z"
+  },
+  {
+    "id": "01b97fed-0f81-4022-9712-9fc294da1bc3",
+    "name": "Consultor Contábil",
+    "description": "Consultoria contábil estratégica, análise de processos, implementação de melhorias e assessoria especializada para clientes.",
+    "is_active": true,
+    "order": 21,
+    "created_at": "2025-12-03T15:36:30.249Z",
+    "updated_at": "2025-12-03T15:36:30.249Z"
+  },
+  {
+    "id": "bb974082-16bb-4522-9cb9-fe9fd09de721",
+    "name": "Consultor Fiscal",
+    "description": "Consultoria fiscal estratégica, planejamento tributário, análise de oportunidades fiscais e assessoria especializada para clientes.",
+    "is_active": true,
+    "order": 22,
+    "created_at": "2025-12-03T15:36:30.253Z",
+    "updated_at": "2025-12-03T15:36:30.253Z"
+  }
+]

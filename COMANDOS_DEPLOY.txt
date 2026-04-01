@@ -1,0 +1,146 @@
+===========================================
+COMANDOS PARA DEPLOY NA PRODUÇÃO
+===========================================
+
+SERVIDOR: ftp.central-rnc.com.br
+USUÁRIO: central-rnc
+SENHA: gc6j3gtq62
+DOMÍNIO: central-rnc.com.br
+
+===========================================
+PASSO 1: UPLOAD DOS ARQUIVOS
+===========================================
+
+Execute estes comandos no PowerShell (do diretório do projeto):
+
+# Upload das pastas principais
+scp -r ./api central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp -r ./prisma central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp -r ./public central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp -r ./dist central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+
+# Upload dos arquivos de configuração
+scp ./package.json central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp ./package-lock.json central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp ./ecosystem.config.js central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp ./tsconfig.json central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp ./vite.config.ts central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp ./tailwind.config.js central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp ./postcss.config.js central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+scp ./index.html central-rnc@ftp.central-rnc.com.br:~/public_html/site/
+
+NOTA: Você será solicitado a inserir a senha: gc6j3gtq62
+
+===========================================
+PASSO 2: CONECTAR AO SERVIDOR VIA SSH
+===========================================
+
+ssh central-rnc@ftp.central-rnc.com.br
+
+Senha: gc6j3gtq62
+
+===========================================
+PASSO 3: CONFIGURAR NO SERVIDOR
+===========================================
+
+# Navegar para o diretório do projeto
+cd ~/public_html/site
+
+# OU, se o diretório for diferente, verifique:
+pwd
+ls -la
+
+# Instalar dependências
+npm install --production
+
+# Gerar Prisma Client
+npx prisma generate
+
+# Executar migrações do banco
+npx prisma migrate deploy
+
+# OU, se for a primeira vez:
+npx prisma db push
+
+# Criar diretório de uploads
+mkdir -p public/uploads
+chmod -R 755 public/uploads
+
+# Instalar PM2 e TSX globalmente
+npm install -g pm2 tsx
+
+===========================================
+PASSO 4: CRIAR ARQUIVO .env
+===========================================
+
+nano .env
+
+Cole o seguinte conteúdo (ajuste conforme necessário):
+
+JWT_SECRET=seu-jwt-secret-super-seguro-para-producao-aqui
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=seu-email@gmail.com
+SMTP_PASS=sua-senha-app
+PORT=3006
+NODE_ENV=production
+
+Salvar: Ctrl+X, depois Y, depois Enter
+
+===========================================
+PASSO 5: INICIAR APLICAÇÃO COM PM2
+===========================================
+
+# Iniciar aplicação
+pm2 start ecosystem.config.js
+
+# Salvar configuração do PM2
+pm2 save
+
+# Configurar PM2 para iniciar automaticamente
+pm2 startup
+
+# Ver status
+pm2 list
+pm2 logs site-contabil-api
+
+===========================================
+PASSO 6: VERIFICAR SE ESTÁ FUNCIONANDO
+===========================================
+
+# Testar API localmente no servidor
+curl http://localhost:3006/api/configurations
+
+# Ver logs
+pm2 logs site-contabil-api
+
+===========================================
+PASSO 7: CONFIGURAR NGINX/APACHE (se necessário)
+===========================================
+
+Consulte o arquivo GUIA_DEPLOY_PRODUCAO.md para configuração
+de proxy reverso (Nginx/Apache) se necessário.
+
+===========================================
+ATUALIZAÇÕES FUTURAS
+===========================================
+
+Para atualizar o projeto:
+
+1. No seu computador local:
+   npm run build
+   (faça upload dos arquivos atualizados)
+
+2. No servidor:
+   cd ~/public_html/site
+   git pull  (se usar Git)
+   OU faça upload dos arquivos atualizados
+   npm install --production
+   npx prisma generate
+   npx prisma migrate deploy
+   pm2 restart site-contabil-api
+
+===========================================
+
+
+

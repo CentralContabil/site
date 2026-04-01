@@ -69,7 +69,7 @@ export default function AdminLogin() {
     try {
       // Em desenvolvimento, usar o proxy do Vite (/api)
       // Em produção, usar a variável de ambiente ou fallback
-      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
       const url = `${API_BASE_URL}/auth/send-code`;
       
       console.log('📧 Enviando código para:', trimmedEmail);
@@ -150,7 +150,7 @@ export default function AdminLogin() {
     try {
       // Em desenvolvimento, usar o proxy do Vite (/api)
       // Em produção, usar a variável de ambiente ou fallback
-      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
       const url = `${API_BASE_URL}/auth/verify-code`;
       
       console.log('🔐 Verificando código para:', email.trim().toLowerCase());

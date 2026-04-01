@@ -39,7 +39,7 @@ export const AboutSection: React.FC = () => {
   useEffect(() => {
     const fetchAbout = async () => {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
         const response = await fetch(`${API_BASE_URL}/sections/about`);
         if (response.ok) {
           const data = await response.json();
@@ -56,7 +56,7 @@ export const AboutSection: React.FC = () => {
 
     const fetchFeatures = async () => {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
         const response = await fetch(`${API_BASE_URL}/sections/features`);
         if (response.ok) {
           const data = await response.json();
@@ -85,11 +85,11 @@ export const AboutSection: React.FC = () => {
     }
     // Se a URL começa com /uploads/, usar a URL base do backend
     if (url.startsWith('/uploads/')) {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : 'http://localhost:3006');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '';
       return `${API_BASE_URL}${url}`;
     }
     // Fallback para URLs relativas
-    const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : 'http://localhost:3006');
+    const API_BASE_URL = import.meta.env.VITE_API_URL || '';
     return `${API_BASE_URL}${url}`;
   };
 

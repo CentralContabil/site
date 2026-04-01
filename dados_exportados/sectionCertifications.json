@@ -1,0 +1,35 @@
+[
+  {
+    "id": "cert-1",
+    "icon": "Shield",
+    "name": "Rede Nacional de Contabilidade",
+    "acronym": "RNC",
+    "description": "Associados à maior rede de contabilidade do Brasil",
+    "order": 1,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.626Z",
+    "updated_at": "2025-11-21T14:12:49.626Z"
+  },
+  {
+    "id": "cert-3",
+    "icon": "CheckCircle",
+    "name": "ISO 9001",
+    "acronym": "ISO",
+    "description": "Padrões internacionais de qualidade em nossos processos",
+    "order": 3,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.627Z",
+    "updated_at": "2025-11-21T14:12:49.627Z"
+  },
+  {
+    "id": "cert-2",
+    "icon": "Award",
+    "name": "Grupo Master",
+    "acronym": "GM",
+    "description": "Integrantes do Grupo Master de Contabilidade Consultiva",
+    "order": 2,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.627Z",
+    "updated_at": "2025-11-21T14:12:49.627Z"
+  }
+]

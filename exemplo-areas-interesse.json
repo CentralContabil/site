@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Contador",
+    "description": "Profissional responsável pela contabilidade geral, escrituração fiscal e tributária, elaboração de demonstrações contábeis e assessoria contábil.",
+    "order": 1,
+    "isActive": true
+  },
+  {
+    "name": "Analista Contábil",
+    "description": "Análise de lançamentos contábeis, conciliações bancárias, controle de contas a pagar e receber, e apoio na elaboração de relatórios contábeis.",
+    "order": 2,
+    "isActive": true
+  },
+  {
+    "name": "Analista Fiscal",
+    "description": "Responsável pelo cálculo e apuração de impostos, elaboração de obrigações acessórias (SPED, EFD, DCTF), planejamento tributário e análise de legislação fiscal.",
+    "order": 3,
+    "isActive": true
+  }
+]
+
+

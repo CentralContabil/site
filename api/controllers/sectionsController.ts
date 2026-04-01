@@ -127,7 +127,12 @@ export const updateAbout = async (req: AuthRequest, res: Response) => {
     const data = aboutSchema.parse(req.body);
     let about = await prisma.sectionAbout.findFirst();
     if (!about) {
-      about = await prisma.sectionAbout.create({ data });
+      about = await prisma.sectionAbout.create({ 
+        data: {
+          ...data,
+          description: data.description || ''
+        }
+      });
     } else {
       about = await prisma.sectionAbout.update({
         where: { id: about.id },
@@ -533,6 +538,63 @@ export const getFiscalBenefitBySlug = async (req: Request, res: Response) => {
   }
 };
 
+// ==================== FISCAL BENEFITS CONFIG ====================
+
+export const getFiscalBenefitsConfig = async (req: Request, res: Response) => {
+  try {
+    let config = await prisma.sectionFiscalBenefitsConfig.findFirst();
+    if (!config) {
+      // Criar configuração padrão
+      config = await prisma.sectionFiscalBenefitsConfig.create({
+        data: {
+          calculator_url: 'https://www.usehigh.land/competecentral',
+          calculator_open_type: 'modal',
+        },
+      });
+    }
+    res.json({ success: true, config });
+  } catch (error) {
+    console.error('Erro ao buscar configuração de benefícios fiscais:', error);
+    res.status(500).json({ success: false, error: 'Erro ao buscar configuração' });
+  }
+};
+
+export const updateFiscalBenefitsConfig = async (req: AuthRequest, res: Response) => {
+  try {
+    const { calculator_url, calculator_open_type } = req.body;
+    
+    if (!calculator_url || typeof calculator_url !== 'string') {
+      return res.status(400).json({ success: false, error: 'URL da calculadora é obrigatória' });
+    }
+    
+    if (calculator_open_type && !['modal', 'new_tab', 'same_page'].includes(calculator_open_type)) {
+      return res.status(400).json({ success: false, error: 'Tipo de abertura inválido. Use: modal, new_tab ou same_page' });
+    }
+
+    let config = await prisma.sectionFiscalBenefitsConfig.findFirst();
+    if (config) {
+      config = await prisma.sectionFiscalBenefitsConfig.update({
+        where: { id: config.id },
+        data: {
+          calculator_url,
+          calculator_open_type: calculator_open_type || 'modal',
+        },
+      });
+    } else {
+      config = await prisma.sectionFiscalBenefitsConfig.create({
+        data: {
+          calculator_url,
+          calculator_open_type: calculator_open_type || 'modal',
+        },
+      });
+    }
+    res.json({ success: true, config });
+  } catch (error: any) {
+    console.error('Erro ao atualizar configuração de benefícios fiscais:', error);
+    res.status(400).json({ success: false, error: error.message || 'Erro ao atualizar configuração' });
+  }
+};
+
 export const uploadFiscalBenefitImage = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.file) {
@@ -907,12 +969,12 @@ export const uploadClientsImage = async (req: AuthRequest, res: Response) => {
 // ==================== SERVICES SECTION ====================
 
 const servicesSectionSchema = z.object({
-  badge_text: z.string().optional(),
-  title_line1: z.string().optional(),
-  title_line2: z.string().optional(),
-  description: z.string().optional(),
-  years_highlight: z.string().nullable().optional(),
-  background_image_url: z.string().nullable().optional(),
+  badge_text: z.string().optional().nullable(),
+  title_line1: z.string().optional().nullable(),
+  title_line2: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  years_highlight: z.string().optional().nullable(),
+  background_image_url: z.string().optional().nullable(),
 });
 
 export const getServicesSection = async (req: Request, res: Response) => {
@@ -925,13 +987,14 @@ export const getServicesSection = async (req: Request, res: Response) => {
           title_line1: 'Nossas Soluções Vão',
           title_line2: 'Além da Contabilidade',
           description: 'Atuamos de forma integrada e estratégica para que o seu negócio tenha a melhor performance contábil, fiscal e tributária com 34 anos de experiência.',
+          years_highlight: '34',
         },
       });
     }
     res.json({ success: true, services });
   } catch (error) {
     console.error('Erro ao buscar services section:', error);
-    res.status(500).json({ success: false, error: 'Erro ao buscar services section' });
+    res.status(500).json({ success: false, error: 'Erro ao buscar seção de serviços' });
   }
 };
 
@@ -950,7 +1013,7 @@ export const updateServicesSection = async (req: AuthRequest, res: Response) => 
     res.json({ success: true, services });
   } catch (error: any) {
     console.error('Erro ao atualizar services section:', error);
-    res.status(400).json({ success: false, error: error.message || 'Erro ao atualizar services section' });
+    res.status(400).json({ success: false, error: error.message || 'Erro ao atualizar seção de serviços' });
   }
 };
 
@@ -969,7 +1032,6 @@ export const uploadServicesImage = async (req: AuthRequest, res: Response) => {
           badge_text: 'Nossos Serviços',
           title_line1: 'Nossas Soluções Vão',
           title_line2: 'Além da Contabilidade',
-          description: 'Atuamos de forma integrada e estratégica para que o seu negócio tenha a melhor performance contábil, fiscal e tributária com 34 anos de experiência.',
         },
       });
     }
@@ -1002,23 +1064,26 @@ export const deleteServicesImage = async (req: AuthRequest, res: Response) => {
     if (!services) {
       return res.status(404).json({ success: false, error: 'Seção de serviços não encontrada' });
     }
-
-    const oldImageUrl = services.background_image_url;
-    if (oldImageUrl && oldImageUrl.startsWith('/uploads/')) {
+    
+    if (!services.background_image_url) {
+      return res.status(400).json({ success: false, error: 'Não há imagem para remover' });
+    }
+    
+    if (services.background_image_url.startsWith('/uploads/')) {
       try {
-        const oldFilename = oldImageUrl.split('/').pop();
-        if (oldFilename) await FileService.deleteFile(oldFilename);
+        const filename = services.background_image_url.split('/').pop();
+        if (filename) await FileService.deleteFile(filename);
       } catch (e) {
-        console.warn('Erro ao deletar imagem antiga:', e);
+        console.warn('Erro ao deletar arquivo:', e);
       }
     }
-
+    
     services = await prisma.sectionServices.update({
       where: { id: services.id },
       data: { background_image_url: null },
     });
-
-    res.json({ success: true, services, message: 'Imagem de fundo removida com sucesso' });
+    
+    res.json({ success: true, services });
   } catch (error: any) {
     console.error('Erro ao deletar imagem:', error);
     res.status(500).json({ success: false, error: error.message || 'Erro ao deletar imagem' });

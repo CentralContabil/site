@@ -1,0 +1,28 @@
+[
+  {
+    "id": "9e1a3d10-6ad8-4647-be5e-893ebe5616cd",
+    "name": "Wagner Guerra",
+    "email": "wagner@central-rnc.com.br",
+    "phone": "27999078863",
+    "position": "Outros",
+    "position_id": null,
+    "linkedin_url": null,
+    "message": null,
+    "cv_url": "/uploads/a50fea97-459b-45bc-b8c6-f5e6784beb46.pdf",
+    "is_read": true,
+    "created_at": "2025-11-27T12:11:45.518Z"
+  },
+  {
+    "id": "4f9b2976-9114-42a3-ae80-aa91f85ff000",
+    "name": "Usuário teste",
+    "email": "wagner@central-rnc.com.br",
+    "phone": "27 999078863",
+    "position": "Contador",
+    "position_id": "fdf6ac7b-6bb0-4182-b847-14510f1a3c86",
+    "linkedin_url": null,
+    "message": null,
+    "cv_url": "/uploads/3e22947a-0ab2-415e-bf80-bb9691802e7a.pdf",
+    "is_read": true,
+    "created_at": "2025-12-03T17:31:44.731Z"
+  }
+]

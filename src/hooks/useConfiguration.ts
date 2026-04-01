@@ -19,6 +19,7 @@ interface ConfigurationResponse {
   footer_years_text?: string;
   head_scripts?: string;
   body_scripts?: string;
+  hcaptcha_site_key?: string;
   updated_at: string;
 }
 
@@ -32,7 +33,7 @@ export function useConfiguration() {
       setLoading(true);
       // Em desenvolvimento, usar o proxy do Vite (/api)
       // Em produção, usar a variável de ambiente ou fallback
-      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:3006/api');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
       const response = await fetch(`${API_BASE_URL}/configurations`);
       
       if (!response.ok) {
@@ -104,6 +105,8 @@ export function useConfiguration() {
         headScripts: data.head_scripts,
         body_scripts: data.body_scripts,
         bodyScripts: data.body_scripts,
+        hcaptcha_site_key: data.hcaptcha_site_key,
+        hcaptchaSiteKey: data.hcaptcha_site_key,
         updatedAt: data.updated_at ? new Date(data.updated_at) : new Date()
       };
       setConfiguration(config);

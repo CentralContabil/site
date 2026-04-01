@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { BlogPost, CreateBlogPostRequest, UpdateBlogPostRequest, Category, CreateCategoryRequest, UpdateCategoryRequest, Tag, CreateTagRequest, UpdateTagRequest } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { Textarea } from '../../components/ui/Textarea';
+import { Textarea } from '../../components/ui/textarea';
 import { RichTextEditor } from '../../components/ui/RichTextEditor';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { format } from 'date-fns';

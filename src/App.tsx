@@ -8,6 +8,8 @@ import { FiscalBenefitPage } from "@/pages/FiscalBenefitPage";
 import { PrivacyPolicyPage } from "@/pages/PrivacyPolicyPage";
 import { CareersPage } from "@/pages/CareersPage";
 import { TermsPage } from "@/pages/TermsPage";
+import { LandingPagePage } from "@/pages/LandingPagePage";
+import { LandingPageCatchAll } from "@/components/LandingPageCatchAll";
 import { BlogAdmin } from "@/pages/admin/BlogAdmin";
 import AdminLogin from "@/pages/AdminLogin";
 import Dashboard from "@/pages/admin/Dashboard";
@@ -24,7 +26,11 @@ import HeroAdmin from "@/pages/admin/HeroAdmin";
 import LoginPageAdmin from "@/pages/admin/LoginPageAdmin";
 import AccessLogsAdmin from "@/pages/admin/AccessLogsAdmin";
 import JobApplicationsAdmin from "@/pages/admin/JobApplicationsAdmin";
+import JobPositionsAdmin from "@/pages/admin/JobPositionsAdmin";
+import RecruitmentProcessesAdmin from "@/pages/admin/RecruitmentProcessesAdmin";
 import CareersPageAdmin from "@/pages/admin/CareersPageAdmin";
+import LandingPagesAdmin from "@/pages/admin/LandingPagesAdmin";
+import FormsAdmin from "@/pages/admin/FormsAdmin";
 import AdminLayout from "@/pages/admin/AdminLayout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { GlobalHeader } from "@/components/layout/GlobalHeader";
@@ -166,6 +172,11 @@ export default function App() {
             <TermsPage />
           </AppLayout>
         } />
+        <Route path="/landing/:slug" element={
+          <AppLayout>
+            <LandingPagePage />
+          </AppLayout>
+        } />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
@@ -182,9 +193,19 @@ export default function App() {
           <Route path="users" element={<ProtectedRoute><UsersAdmin /></ProtectedRoute>} />
           <Route path="access-logs" element={<ProtectedRoute><AccessLogsAdmin /></ProtectedRoute>} />
           <Route path="job-applications" element={<ProtectedRoute><JobApplicationsAdmin /></ProtectedRoute>} />
+          <Route path="job-positions" element={<ProtectedRoute><JobPositionsAdmin /></ProtectedRoute>} />
+          <Route path="recruitment-processes" element={<ProtectedRoute><RecruitmentProcessesAdmin /></ProtectedRoute>} />
           <Route path="careers-page" element={<ProtectedRoute><CareersPageAdmin /></ProtectedRoute>} />
+          <Route path="landing-pages" element={<ProtectedRoute><LandingPagesAdmin /></ProtectedRoute>} />
+          <Route path="forms" element={<ProtectedRoute><FormsAdmin /></ProtectedRoute>} />
           <Route path="configuration" element={<ProtectedRoute><ConfigurationPage /></ProtectedRoute>} />
         </Route>
+        {/* Rota catch-all para landing pages - deve ser a última */}
+        <Route path="/:slug" element={
+          <AppLayout>
+            <LandingPageCatchAll />
+          </AppLayout>
+        } />
       </Routes>
     </Router>
   );

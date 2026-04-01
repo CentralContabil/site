@@ -74,7 +74,6 @@ export const createClient = async (req: AuthRequest, res: Response) => {
     const client = await prisma.client.create({
       data: {
         name: data.name,
-        phone: data.phone || null,
         website_url: data.website_url || null,
         facebook_url: data.facebook_url || null,
         instagram_url: data.instagram_url || null,
@@ -95,7 +94,7 @@ export const createClient = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'Dados inválidos',
-        details: error.errors,
+        details: error.issues,
       });
     }
 
@@ -128,7 +127,6 @@ export const updateClient = async (req: AuthRequest, res: Response) => {
       where: { id },
       data: {
         name: data.name,
-        phone: data.phone !== undefined ? (data.phone || null) : existingClient.phone,
         website_url: data.website_url || null,
         facebook_url: data.facebook_url || null,
         instagram_url: data.instagram_url || null,
@@ -149,7 +147,7 @@ export const updateClient = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'Dados inválidos',
-        details: error.errors,
+        details: error.issues,
       });
     }
 

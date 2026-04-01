@@ -29,7 +29,11 @@ import tagRoutes from './routes/tagRoutes.js'
 import loginPageRoutes from './routes/loginPageRoutes.js'
 import accessLogsRoutes from './routes/accessLogs.js'
 import jobApplicationsRoutes from './routes/jobApplications.js'
+import jobPositionsRoutes from './routes/jobPositions.js'
+import recruitmentRoutes from './routes/recruitment.js'
 import careersPageRoutes from './routes/careersPageRoutes.js'
+import landingPagesRoutes from './routes/landingPages.js'
+import formsRoutes from './routes/forms.js'
 import { errorHandler } from './middleware/errorHandler.js'
 
 // for esm mode
@@ -47,6 +51,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')))
+
+// Serve static files from dist directory (frontend build)
+const distPath = path.join(__dirname, '../dist')
+app.use(express.static(distPath))
 
 /**
  * API Routes
@@ -69,7 +77,11 @@ app.use('/api', tagRoutes)
 app.use('/api/login-page', loginPageRoutes)
 app.use('/api/access-logs', accessLogsRoutes)
 app.use('/api/job-applications', jobApplicationsRoutes)
+app.use('/api/job-positions', jobPositionsRoutes)
+app.use('/api/recruitment', recruitmentRoutes)
 app.use('/api/careers-page', careersPageRoutes)
+app.use('/api', landingPagesRoutes)
+app.use('/api', formsRoutes)
 
 /**
  * health
@@ -85,22 +97,24 @@ app.use(
 )
 
 /**
- * Root route
+ * Serve frontend (SPA) - must be after API routes
+ * This handles all non-API routes and serves the React app
  */
-app.get('/', (req: Request, res: Response) => {
-  res.status(200).json({
-    success: true,
-    message: 'API Server is running',
-    version: '1.0.0',
-    endpoints: {
-      health: '/api/health',
-      auth: '/api/auth',
-      configurations: '/api/configurations',
-      services: '/api/services',
-      blog: '/api/blog',
-      slides: '/api/slides',
-      testimonials: '/api/testimonials',
-      clients: '/api/clients',
+app.get('*', (req: Request, res: Response, next: NextFunction) => {
+  // Skip API routes
+  if (req.path.startsWith('/api')) {
+    return next()
+  }
+  
+  // Serve index.html for all other routes (SPA routing)
+  const indexPath = path.join(__dirname, '../dist/index.html')
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err)
+      res.status(404).json({
+        success: false,
+        error: 'Frontend not found. Make sure dist/ folder exists and contains index.html',
+      })
     }
   })
 })
@@ -111,12 +125,12 @@ app.get('/', (req: Request, res: Response) => {
 app.use(errorHandler)
 
 /**
- * 404 handler
+ * 404 handler for API routes only
  */
-app.use((req: Request, res: Response) => {
+app.use('/api/*', (req: Request, res: Response) => {
   res.status(404).json({
     success: false,
-    error: 'API not found',
+    error: 'API endpoint not found',
   })
 })
 

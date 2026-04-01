@@ -1,0 +1,80 @@
+[
+  {
+    "id": "service-4",
+    "name": "Fiscal e Tributária",
+    "slug": "fiscal-e-tributaria",
+    "description": "Planejamento tributário, elaboração de guias e cumprimento de obrigações fiscais. Reduza custos dentro da legalidade.",
+    "content": "<p>Planejamento tributário estratégico, elaboração de guias e cumprimento de todas as obrigações fiscais.</p><p>Reduza custos tributários dentro da legalidade, otimizando a carga fiscal da sua empresa.</p>",
+    "icon": "file-text",
+    "image_url": "/uploads/cb19a293-5e82-497f-83b3-c6eab4b23d59.png",
+    "order": 4,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.210Z",
+    "updated_at": "2025-11-26T21:44:21.716Z"
+  },
+  {
+    "id": "service-3",
+    "name": "Departamento Pessoal",
+    "slug": "departamento-pessoal",
+    "description": "Gestão completa de folha de pagamento, admissões, demissões e obrigações trabalhistas. Garantia de conformidade com a legislação.",
+    "content": "<p>Gestão completa de folha de pagamento, admissões, demissões e todas as obrigações trabalhistas.</p><p>Garantimos total conformidade com a legislação trabalhista vigente.</p>",
+    "icon": "users",
+    "image_url": "/uploads/032f3ceb-7233-4e6c-9721-4a14a35fd5e3.jpg",
+    "order": 1,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.210Z",
+    "updated_at": "2025-11-26T21:41:43.731Z"
+  },
+  {
+    "id": "service-1",
+    "name": "Abertura de Empresa",
+    "slug": "abertura-de-empresa",
+    "description": "Assessoria completa para abertura de CNPJ, escolha do regime tributário e legalização do seu negócio. Cuidamos de todo o processo burocrático para você.",
+    "content": "<p>Nossa equipe especializada oferece uma assessoria completa para abertura de empresa, desde a escolha do melhor regime tributário até a legalização completa do seu negócio.</p><p>Oferecemos suporte em todas as etapas do processo, garantindo agilidade e segurança na abertura da sua empresa.</p>",
+    "icon": "building",
+    "image_url": "/uploads/c5dc8d9a-d7a5-4915-ae54-763b8a8c9bcd.jpg",
+    "order": 2,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.210Z",
+    "updated_at": "2025-11-26T21:42:45.996Z"
+  },
+  {
+    "id": "service-2",
+    "name": "Contabilidade Consultiva",
+    "slug": "contabilidade-consultiva",
+    "description": "Serviços contábeis com análise detalhada e orientação estratégica para crescimento do seu negócio. Transforme dados em decisões inteligentes.",
+    "content": "<p>A contabilidade consultiva vai além dos números. Oferecemos análise detalhada e orientação estratégica para o crescimento sustentável do seu negócio.</p><p>Transformamos dados contábeis em insights valiosos para tomada de decisão.</p>",
+    "icon": "calculator",
+    "image_url": "/uploads/99b2b2fd-deb3-433c-b029-554460151a70.webp",
+    "order": 3,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.210Z",
+    "updated_at": "2025-11-26T21:42:52.426Z"
+  },
+  {
+    "id": "service-5",
+    "name": "Legalização de Empresas",
+    "slug": "legalizacao-de-empresas",
+    "description": "Regularização de empresas com pendências fiscais e trabalhistas junto aos órgãos competentes. Recupere a saúde do seu negócio.",
+    "content": "<p>Regularização completa de empresas com pendências fiscais e trabalhistas junto aos órgãos competentes.</p><p>Recupere a saúde do seu negócio com nosso suporte especializado.</p>",
+    "icon": "shield",
+    "image_url": "/uploads/f4ff5c99-2df3-4d6b-99a5-01f827ad205c.jpg",
+    "order": 5,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.210Z",
+    "updated_at": "2025-11-26T21:43:10.703Z"
+  },
+  {
+    "id": "service-6",
+    "name": "Assessoria Financeira",
+    "slug": "assessoria-financeira",
+    "description": "Análise de demonstrativos financeiros e orientação para melhoria da saúde financeira. Tomar decisões baseadas em dados.",
+    "content": "<p>Análise detalhada de demonstrativos financeiros e orientação estratégica para melhoria da saúde financeira.</p><p>Tomamos decisões baseadas em dados concretos e análises precisas.</p>",
+    "icon": "trending-up",
+    "image_url": "/uploads/8380d409-d292-49df-a9a0-53d63baf81a7.jpg",
+    "order": 6,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.210Z",
+    "updated_at": "2025-11-26T21:43:17.337Z"
+  }
+]

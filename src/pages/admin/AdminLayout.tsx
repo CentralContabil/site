@@ -73,6 +73,16 @@ const AdminLayout: React.FC = () => {
   // Estado para controlar se o dropdown de páginas está aberto quando o menu está comprimido
   const [pagesDropdownOpen, setPagesDropdownOpen] = useState(false);
   
+  // Estado para controlar se "RH" está expandido
+  const [rhExpanded, setRhExpanded] = useState(() => {
+    const saved = localStorage.getItem('rhExpanded');
+    return saved === 'true';
+  });
+  // Flag para saber se o usuário já interagiu manualmente com o grupo "RH"
+  const [rhAutoExpandDisabled, setRhAutoExpandDisabled] = useState(false);
+  
+  // Estado para controlar se o dropdown de RH está aberto quando o menu está comprimido
+  const [rhDropdownOpen, setRhDropdownOpen] = useState(false);
 
   // Verificar autenticação ao carregar o layout
   useEffect(() => {
@@ -122,6 +132,11 @@ const AdminLayout: React.FC = () => {
     localStorage.setItem('pagesExpanded', String(pagesExpanded));
   }, [pagesExpanded]);
   
+  // Salvar estado de expansão do RH
+  useEffect(() => {
+    localStorage.setItem('rhExpanded', String(rhExpanded));
+  }, [rhExpanded]);
+  
   // Expandir automaticamente se estiver em uma subseção
   useEffect(() => {
     if (
@@ -145,6 +160,17 @@ const AdminLayout: React.FC = () => {
       setPagesExpanded(true);
     }
   }, [location.pathname, pagesExpanded, sidebarCollapsed, pagesAutoExpandDisabled]);
+  
+  // Expandir automaticamente "RH" se estiver em uma de suas rotas
+  useEffect(() => {
+    const isInRh =
+      location.pathname === '/admin/job-applications' ||
+      location.pathname === '/admin/job-positions';
+    
+    if (isInRh && !rhExpanded && !sidebarCollapsed && !rhAutoExpandDisabled) {
+      setRhExpanded(true);
+    }
+  }, [location.pathname, rhExpanded, sidebarCollapsed, rhAutoExpandDisabled]);
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -170,6 +196,15 @@ const AdminLayout: React.FC = () => {
     { path: '/admin/careers-page', label: 'Trabalhe Conosco', icon: Briefcase },
     { path: '/admin/privacy-policy', label: 'Política de Privacidade', icon: Shield },
     { path: '/admin/blog', label: 'Blog', icon: FileText },
+    { path: '/admin/landing-pages', label: 'Landing Pages', icon: FileText },
+    { path: '/admin/forms', label: 'Formulários', icon: FileText },
+  ];
+  
+  // Subitens de "RH"
+  const rhSubItems = [
+    { path: '/admin/job-applications', label: 'Candidaturas', icon: FileCheck },
+    { path: '/admin/job-positions', label: 'Áreas de Interesse', icon: Target },
+    { path: '/admin/recruitment-processes', label: 'Processos Seletivos', icon: ClipboardList },
   ];
 
   const menuItems = [
@@ -196,7 +231,14 @@ const AdminLayout: React.FC = () => {
     { path: '/admin/messages', label: 'Mensagens', icon: MessageSquare },
     { path: '/admin/subscriptions', label: 'Inscrições', icon: Mail },
     { path: '/admin/users', label: 'Usuários', icon: Users },
-    { path: '/admin/job-applications', label: 'Candidaturas', icon: FileCheck },
+    {
+      path: '/admin/rh',
+      label: 'RH',
+      icon: Users,
+      hasSubItems: true,
+      subItems: rhSubItems,
+      groupType: 'rh' as const,
+    },
     { path: '/admin/access-logs', label: 'Logs de Acesso', icon: FileText },
     { path: '/admin/configuration', label: 'Configurações', icon: Settings },
   ];
@@ -216,6 +258,12 @@ const AdminLayout: React.FC = () => {
     const pageSubItem = pagesSubItems.find(item => item.path === location.pathname);
     if (pageSubItem) {
       return pageSubItem.label;
+    }
+    
+    // Verificar se está em alguma página agrupada em "RH"
+    const rhSubItem = rhSubItems.find(item => item.path === location.pathname);
+    if (rhSubItem) {
+      return rhSubItem.label;
     }
     
     const currentItem = menuItems.find(item => item.path === location.pathname);
@@ -249,6 +297,11 @@ const AdminLayout: React.FC = () => {
   // Verificar se alguma página agrupada está ativa
   const isPageGroupActive = () => {
     return pagesSubItems.some((item) => item.path === location.pathname);
+  };
+  
+  // Verificar se alguma página de RH está ativa
+  const isRhGroupActive = () => {
+    return rhSubItems.some((item) => item.path === location.pathname);
   };
 
   useEffect(() => {
@@ -307,9 +360,13 @@ const AdminLayout: React.FC = () => {
 
               if (item.hasSubItems) {
                 const groupHasActiveChild =
-                  item.groupType === 'sections' ? isSectionActive() : isPageGroupActive();
+                  item.groupType === 'sections' ? isSectionActive() :
+                  item.groupType === 'pages' ? isPageGroupActive() :
+                  item.groupType === 'rh' ? isRhGroupActive() : false;
                 const groupIsExpanded =
-                  item.groupType === 'sections' ? sectionsExpanded : pagesExpanded;
+                  item.groupType === 'sections' ? sectionsExpanded :
+                  item.groupType === 'pages' ? pagesExpanded :
+                  item.groupType === 'rh' ? rhExpanded : false;
 
                 if (groupIsExpanded && groupHasActiveChild) {
                   isActive = true;
@@ -319,7 +376,9 @@ const AdminLayout: React.FC = () => {
               const hasSubItems = item.hasSubItems && item.subItems;
               const isExpanded =
                 hasSubItems &&
-                (item.groupType === 'sections' ? sectionsExpanded : pagesExpanded);
+                (item.groupType === 'sections' ? sectionsExpanded :
+                 item.groupType === 'pages' ? pagesExpanded :
+                 item.groupType === 'rh' ? rhExpanded : false);
               
               return (
                 <li key={item.path} className="relative">
@@ -337,6 +396,9 @@ const AdminLayout: React.FC = () => {
                             } else if (item.groupType === 'pages') {
                               setPagesExpanded(!pagesExpanded);
                               setPagesAutoExpandDisabled(true);
+                            } else if (item.groupType === 'rh') {
+                              setRhExpanded(!rhExpanded);
+                              setRhAutoExpandDisabled(true);
                             }
                           }
                         }}
@@ -353,6 +415,8 @@ const AdminLayout: React.FC = () => {
                               setSectionsDropdownOpen(true);
                             } else if (item.groupType === 'pages') {
                               setPagesDropdownOpen(true);
+                            } else if (item.groupType === 'rh') {
+                              setRhDropdownOpen(true);
                             }
                           }
                         }}
@@ -404,7 +468,9 @@ const AdminLayout: React.FC = () => {
                       {sidebarCollapsed && (
                         <div 
                           className={`fixed bg-gray-800 rounded-lg shadow-xl py-2 min-w-[200px] border border-gray-700 transition-all duration-200 ease-in-out ${
-                            ((item.groupType === 'sections' ? sectionsDropdownOpen : pagesDropdownOpen) &&
+                            ((item.groupType === 'sections' ? sectionsDropdownOpen :
+                              item.groupType === 'pages' ? pagesDropdownOpen :
+                              item.groupType === 'rh' ? rhDropdownOpen : false) &&
                               hoveredItem === item.path)
                               ? 'opacity-100 visible translate-x-0 pointer-events-auto' 
                               : 'opacity-0 invisible -translate-x-2 pointer-events-none'
@@ -420,6 +486,8 @@ const AdminLayout: React.FC = () => {
                               setSectionsDropdownOpen(true);
                             } else if (item.groupType === 'pages') {
                               setPagesDropdownOpen(true);
+                            } else if (item.groupType === 'rh') {
+                              setRhDropdownOpen(true);
                             }
                           }}
                           onMouseLeave={() => {
@@ -428,6 +496,8 @@ const AdminLayout: React.FC = () => {
                               setSectionsDropdownOpen(false);
                             } else if (item.groupType === 'pages') {
                               setPagesDropdownOpen(false);
+                            } else if (item.groupType === 'rh') {
+                              setRhDropdownOpen(false);
                             }
                           }}
                         >
@@ -458,6 +528,8 @@ const AdminLayout: React.FC = () => {
                                         setSectionsDropdownOpen(false);
                                       } else if (item.groupType === 'pages') {
                                         setPagesDropdownOpen(false);
+                                      } else if (item.groupType === 'rh') {
+                                        setRhDropdownOpen(false);
                                       }
                                     }}
                                   >
@@ -508,7 +580,11 @@ const AdminLayout: React.FC = () => {
                     !(
                       item.groupType === 'sections'
                         ? sectionsDropdownOpen
-                        : pagesDropdownOpen
+                        : item.groupType === 'pages'
+                        ? pagesDropdownOpen
+                        : item.groupType === 'rh'
+                        ? rhDropdownOpen
+                        : false
                     ) && (
                     <div className={`absolute left-full ml-2 top-1/2 -translate-y-1/2 z-40 pointer-events-none transition-opacity duration-200 ${
                       isHovered ? 'opacity-100' : 'opacity-0'

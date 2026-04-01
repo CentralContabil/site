@@ -1,0 +1,17 @@
+// Schema do Prisma para PRODUÇÃO (MySQL)
+// Este arquivo deve ser usado apenas como referência
+// No servidor, edite o prisma/schema.prisma e altere o datasource
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ... resto do schema permanece igual ao schema.prisma original
+
+
+

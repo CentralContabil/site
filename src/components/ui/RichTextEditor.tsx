@@ -8,7 +8,14 @@ interface RichTextEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  ref?: React.Ref<any>;
 }
+
+// Variáveis globais para comunicação entre insertTable e o componente
+let globalOnChange: ((html: string) => void) | null = null;
+let globalSetShowCodeEditor: ((show: boolean) => void) | null = null;
+let globalSetHtmlContent: ((html: string) => void) | null = null;
+let globalCurrentHtml: string = '';
 
 // Custom handler para inserir tabela
 const insertTable = (quill: any) => {
@@ -20,33 +27,74 @@ const insertTable = (quill: any) => {
   const rowCount = parseInt(rows) || 3;
   const colCount = parseInt(cols) || 3;
   
-  let tableHTML = '<table style="border-collapse: collapse; width: 100%; margin: 1rem 0;"><tbody>';
+  // Criar HTML da tabela com estilos inline para garantir renderização
+  let tableHTML = '<table style="border-collapse: collapse; width: 100%; margin: 1rem 0; border: 1px solid #ddd;"><tbody>';
   
   for (let i = 0; i < rowCount; i++) {
     tableHTML += '<tr>';
     for (let j = 0; j < colCount; j++) {
-      tableHTML += '<td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>';
+      tableHTML += '<td style="border: 1px solid #ddd; padding: 8px; min-width: 50px;">&nbsp;</td>';
     }
     tableHTML += '</tr>';
   }
   
   tableHTML += '</tbody></table>';
   
-  const range = quill.getSelection(true);
-  quill.clipboard.dangerouslyPasteHTML(range.index, tableHTML);
-  quill.setSelection(range.index + tableHTML.length);
+  // Obter o HTML atual (do editor ou do modo HTML)
+  const currentHTML = quill ? quill.root.innerHTML : globalCurrentHtml;
+  
+  // Inserir a tabela no HTML atual
+  const newHTML = currentHTML + tableHTML;
+  
+  // Como o Quill não suporta tabelas, vamos mudar para o modo HTML e inserir lá
+  if (globalSetShowCodeEditor && globalSetHtmlContent) {
+    globalSetHtmlContent(newHTML);
+    globalSetShowCodeEditor(true);
+    // Chamar onChange com o novo HTML
+    if (globalOnChange) {
+      setTimeout(() => {
+        globalOnChange(newHTML);
+      }, 100);
+    }
+  } else if (quill) {
+    // Fallback: tentar inserir diretamente (pode não funcionar)
+    const editorElement = quill.root;
+    editorElement.innerHTML = newHTML;
+    if (globalOnChange) {
+      setTimeout(() => {
+        globalOnChange(newHTML);
+      }, 100);
+    }
+  }
 };
 
-export const RichTextEditor: React.FC<RichTextEditorProps> = ({
+export const RichTextEditor = React.forwardRef<any, RichTextEditorProps>(({
   value,
   onChange,
   placeholder = 'Digite o conteúdo...',
   className = '',
-}) => {
+}, ref) => {
   const quillRef = useRef<ReactQuill>(null);
+  const onChangeRef = useRef(onChange);
+  
+  // Atualizar a ref do onChange sempre que mudar
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+  
+  // Expor o quillRef através do ref externo
+  React.useImperativeHandle(ref, () => quillRef.current);
   const [showCodeEditor, setShowCodeEditor] = useState(false);
   const [htmlContent, setHtmlContent] = useState(value);
   const latestContentRef = useRef<string>(value);
+
+  // Atualizar variáveis globais
+  useEffect(() => {
+    globalOnChange = onChangeRef.current;
+    globalSetShowCodeEditor = setShowCodeEditor;
+    globalSetHtmlContent = setHtmlContent;
+    globalCurrentHtml = htmlContent;
+  }, [onChange, setShowCodeEditor, setHtmlContent, htmlContent]);
 
   useEffect(() => {
     if (quillRef.current) {
@@ -231,6 +279,19 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           onChange={(content) => {
             // Log para debug
             console.log('ReactQuill onChange - Content length:', content.length);
+            
+            // Sempre usar o HTML direto do editor para preservar tabelas
+            if (quillRef.current) {
+              const quill = quillRef.current.getEditor();
+              const editorHTML = quill.root.innerHTML;
+              
+              // Se o HTML do editor contém tabelas, sempre usar o HTML direto
+              if (editorHTML.includes('<table')) {
+                onChange(editorHTML);
+                return;
+              }
+            }
+            
             onChange(content);
           }}
           modules={modules}
@@ -248,6 +309,22 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }
         .rich-text-editor .ql-editor {
           min-height: 300px;
+          color: #111827;
+          background-color: #ffffff;
+        }
+        .rich-text-editor .ql-editor p,
+        .rich-text-editor .ql-editor div,
+        .rich-text-editor .ql-editor span,
+        .rich-text-editor .ql-editor h1,
+        .rich-text-editor .ql-editor h2,
+        .rich-text-editor .ql-editor h3,
+        .rich-text-editor .ql-editor h4,
+        .rich-text-editor .ql-editor h5,
+        .rich-text-editor .ql-editor h6,
+        .rich-text-editor .ql-editor li,
+        .rich-text-editor .ql-editor ul,
+        .rich-text-editor .ql-editor ol {
+          color: #111827;
         }
         .rich-text-editor .ql-editor.ql-blank::before {
           color: #9ca3af;
@@ -290,21 +367,34 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           border-collapse: collapse;
           width: 100%;
           margin: 1rem 0;
+          display: table !important;
+          border: 1px solid #ddd;
+        }
+        .rich-text-editor .ql-editor table tbody {
+          display: table-row-group !important;
+        }
+        .rich-text-editor .ql-editor table tr {
+          display: table-row !important;
         }
         .rich-text-editor .ql-editor table td,
         .rich-text-editor .ql-editor table th {
           border: 1px solid #ddd;
           padding: 8px;
           text-align: left;
+          display: table-cell !important;
+          min-width: 50px;
         }
         .rich-text-editor .ql-editor table th {
           background-color: #f3f4f6;
           font-weight: 600;
         }
+        .rich-text-editor .ql-editor p {
+          margin: 0.5rem 0;
+        }
       `}</style>
     </div>
   );
-};
+});
 
 
 

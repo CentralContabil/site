@@ -55,6 +55,9 @@ import {
   updateServicesSection,
   uploadServicesImage,
   deleteServicesImage,
+  // Fiscal Benefits Config
+  getFiscalBenefitsConfig,
+  updateFiscalBenefitsConfig,
 } from '../controllers/sectionsController';
 
 const router = express.Router();
@@ -130,6 +133,10 @@ router.get('/fiscal-benefits/slug/:slug', getFiscalBenefitBySlug);
 router.post('/fiscal-benefits', authenticateToken, authorizeRoles(['administrator', 'editor']), createFiscalBenefit);
 router.put('/fiscal-benefits/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), updateFiscalBenefit);
 router.delete('/fiscal-benefits/:id', authenticateToken, authorizeRoles(['administrator', 'editor']), deleteFiscalBenefit);
+
+// ==================== FISCAL BENEFITS CONFIG ====================
+router.get('/fiscal-benefits/config', getFiscalBenefitsConfig);
+router.put('/fiscal-benefits/config', authenticateToken, authorizeRoles(['administrator', 'editor']), updateFiscalBenefitsConfig);
 router.post('/fiscal-benefits/:id/image', authenticateToken, upload.single('file'), (err: any, req: any, res: any, next: any) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {

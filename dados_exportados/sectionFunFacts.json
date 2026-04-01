@@ -1,0 +1,46 @@
+[
+  {
+    "id": "funfact-2",
+    "icon": "Briefcase",
+    "label": "Anos de Experiência",
+    "value": "36",
+    "suffix": "+",
+    "order": 2,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.577Z",
+    "updated_at": "2025-11-24T19:24:36.140Z"
+  },
+  {
+    "id": "funfact-1",
+    "icon": "Users",
+    "label": "Clientes Atendidos",
+    "value": "500",
+    "suffix": "+",
+    "order": 1,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.577Z",
+    "updated_at": "2025-11-21T14:12:49.577Z"
+  },
+  {
+    "id": "funfact-4",
+    "icon": "Trophy",
+    "label": "Prêmios Recebidos",
+    "value": "15",
+    "suffix": "+",
+    "order": 4,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.577Z",
+    "updated_at": "2025-11-21T14:12:49.577Z"
+  },
+  {
+    "id": "funfact-3",
+    "icon": "Coffee",
+    "label": "Xícaras de Café",
+    "value": "840",
+    "suffix": "+",
+    "order": 3,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.577Z",
+    "updated_at": "2025-11-24T10:52:24.725Z"
+  }
+]

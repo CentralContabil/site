@@ -14,6 +14,7 @@ export class JobApplicationsController {
         email,
         phone,
         position,
+        positionId,
         linkedinUrl,
         message,
         cvUrl,
@@ -80,11 +81,15 @@ export class JobApplicationsController {
           name,
           email,
           phone: phone || null,
-          position: position || null,
+          position: position || null, // Mantido para compatibilidade
+          position_id: positionId || null, // Nova referência
           linkedin_url: linkedinUrl || null,
           message: message || null,
           cv_url: cvUrl || null,
           is_read: false,
+        },
+        include: {
+          job_position: true,
         },
       });
 
@@ -164,7 +169,18 @@ export class JobApplicationsController {
   // Listar candidaturas (admin)
   static async getAll(req: Request, res: Response) {
     try {
+      const { positionId } = req.query;
+      
+      const where: any = {};
+      if (positionId && positionId !== 'all') {
+        where.position_id = positionId as string;
+      }
+
       const applications = await prisma.jobApplication.findMany({
+        where,
+        include: {
+          job_position: true,
+        },
         orderBy: { created_at: 'desc' },
       });
       res.json({ applications });
@@ -177,7 +193,12 @@ export class JobApplicationsController {
   static async getOne(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const application = await prisma.jobApplication.findUnique({ where: { id } });
+      const application = await prisma.jobApplication.findUnique({
+        where: { id },
+        include: {
+          job_position: true,
+        },
+      });
 
       if (!application) {
         return res.status(404).json({ error: 'Candidatura não encontrada' });
@@ -219,6 +240,7 @@ export class JobApplicationsController {
     }
   }
 }
+
 
 
 

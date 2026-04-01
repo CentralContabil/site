@@ -1,0 +1,41 @@
+[
+  {
+    "id": "testimonial-2",
+    "client_name": "Maria Santos",
+    "company": "Comércio Varejista Ltda",
+    "testimonial_text": "Estou muito satisfeita com os serviços prestados. A assessoria tributária fez toda a diferença para o crescimento do meu negócio. Profissionais excelentes!",
+    "client_image_url": null,
+    "media_type": "image",
+    "media_url": null,
+    "order": 2,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.305Z",
+    "updated_at": "2025-11-21T14:12:49.305Z"
+  },
+  {
+    "id": "testimonial-3",
+    "client_name": "Pedro Oliveira",
+    "company": "Tecnologia Inovadora",
+    "testimonial_text": "Profissionais extremamente competentes. Sempre disponíveis para tirar dúvidas e oferecer as melhores soluções contábeis. São parceiros fundamentais para nossa empresa.",
+    "client_image_url": null,
+    "media_type": "image",
+    "media_url": null,
+    "order": 3,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.305Z",
+    "updated_at": "2025-11-21T14:12:49.305Z"
+  },
+  {
+    "id": "testimonial-1",
+    "client_name": "João Silva",
+    "company": "Silva & Associados",
+    "testimonial_text": "Excelente serviço! A equipe é muito profissional e atenciosa. Nos ajudou a organizar toda a contabilidade da empresa com muita eficiência. Super recomendo!",
+    "client_image_url": null,
+    "media_type": "image",
+    "media_url": null,
+    "order": 1,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.305Z",
+    "updated_at": "2025-11-21T14:12:49.305Z"
+  }
+]

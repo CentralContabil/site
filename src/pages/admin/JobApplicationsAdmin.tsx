@@ -9,15 +9,33 @@ export default function JobApplicationsAdmin() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<JobApplication | null>(null);
   const [isClosingDetails, setIsClosingDetails] = useState(false);
+  const [jobPositions, setJobPositions] = useState<Array<{ id: string; name: string }>>([]);
+  const [filterPositionId, setFilterPositionId] = useState<string>('all');
 
   useEffect(() => {
     loadApplications();
+    loadJobPositions();
   }, []);
+
+  useEffect(() => {
+    loadApplications();
+  }, [filterPositionId]);
+
+  const loadJobPositions = async () => {
+    try {
+      const response = await apiService.getAllJobPositions();
+      setJobPositions(response.positions || []);
+    } catch (error) {
+      console.error('Erro ao carregar áreas de interesse:', error);
+    }
+  };
 
   const loadApplications = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getJobApplications();
+      const response = await apiService.getJobApplications(
+        filterPositionId !== 'all' ? filterPositionId : undefined
+      );
       setApplications(response.applications || []);
     } catch (error) {
       console.error('Erro ao carregar candidaturas:', error);
@@ -121,6 +139,25 @@ export default function JobApplicationsAdmin() {
           </div>
         </div>
 
+        {/* Filtro por Área de Interesse */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Filtrar por Área de Interesse
+          </label>
+          <select
+            value={filterPositionId}
+            onChange={(e) => setFilterPositionId(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3bb664] focus:border-[#3bb664] transition-colors text-gray-900"
+          >
+            <option value="all">Todas as áreas</option>
+            {jobPositions.map((position) => (
+              <option key={position.id} value={position.id}>
+                {position.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {applications.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
             Nenhuma candidatura recebida ainda.
@@ -155,7 +192,7 @@ export default function JobApplicationsAdmin() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-700">
-                        {app.position || '—'}
+                        {app.jobPosition?.name || app.position || '—'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -212,10 +249,10 @@ export default function JobApplicationsAdmin() {
                   <span>{selected.phone}</span>
                 </div>
               )}
-              {selected.position && (
+              {(selected.jobPosition || selected.position) && (
                 <div className="flex items-center">
                   <FileText className="w-4 h-4 mr-2 text-gray-400" />
-                  <span>Posição de interesse: {selected.position}</span>
+                  <span>Posição de interesse: {selected.jobPosition?.name || selected.position}</span>
                 </div>
               )}
               {selected.linkedinUrl && (
@@ -270,6 +307,7 @@ export default function JobApplicationsAdmin() {
     </div>
   );
 }
+
 
 
 

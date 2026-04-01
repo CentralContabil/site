@@ -1,0 +1,62 @@
+[
+  {
+    "id": "feature-1",
+    "icon": "Shield",
+    "title": "Conformidade Garantida",
+    "description": "Garantimos total conformidade fiscal e tributária para seu negócio",
+    "order": 1,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.411Z",
+    "updated_at": "2025-11-21T14:12:49.411Z"
+  },
+  {
+    "id": "feature-6",
+    "icon": "Award",
+    "title": "Excelência Comprovada",
+    "description": "Mais de 36 anos de tradição e milhares de clientes satisfeitos",
+    "order": 6,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.411Z",
+    "updated_at": "2025-11-24T19:59:15.624Z"
+  },
+  {
+    "id": "feature-3",
+    "icon": "Settings",
+    "title": "Soluções Personalizadas",
+    "description": "Consultoria adaptada às necessidades específicas do seu negócio",
+    "order": 3,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.411Z",
+    "updated_at": "2025-11-21T14:12:49.411Z"
+  },
+  {
+    "id": "feature-4",
+    "icon": "TrendingUp",
+    "title": "Otimização Tributária",
+    "description": "Redução legal da carga tributária com estratégias inteligentes",
+    "order": 4,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.411Z",
+    "updated_at": "2025-11-21T14:12:49.411Z"
+  },
+  {
+    "id": "feature-2",
+    "icon": "Zap",
+    "title": "Agilidade nos Processos",
+    "description": "Entregas rápidas e eficientes sem comprometer a qualidade",
+    "order": 2,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.411Z",
+    "updated_at": "2025-11-21T14:12:49.411Z"
+  },
+  {
+    "id": "feature-5",
+    "icon": "Users",
+    "title": "Equipe Qualificada",
+    "description": "Profissionais certificados e atualizados com as últimas normas",
+    "order": 5,
+    "is_active": true,
+    "created_at": "2025-11-21T14:12:49.411Z",
+    "updated_at": "2025-11-21T14:12:49.411Z"
+  }
+]
