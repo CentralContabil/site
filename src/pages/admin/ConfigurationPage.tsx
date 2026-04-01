@@ -476,7 +476,7 @@ export default function ConfigurationPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contact_email">Email para Receber Contatos</Label>
+                <Label htmlFor="contact_email">Email para Receber Mensagens do Formulário de Contato</Label>
                 <Input
                   id="contact_email"
                   type="email"

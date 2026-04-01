@@ -269,6 +269,106 @@ class EmailService {
     }
   }
 
+  async sendCareerApplicationNotification(
+    recipientEmail: string,
+    applicationData: {
+      name: string;
+      email: string;
+      phone?: string;
+      position?: string;
+      message?: string;
+      cvUrl?: string;
+      linkedinUrl?: string;
+    }
+  ): Promise<boolean> {
+    try {
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.SMTP_PASS;
+
+      if (!smtpUser || !smtpPass || smtpUser === 'seu-email@gmail.com' || smtpPass === 'sua-senha-app') {
+        console.error('❌ Configuração de email não encontrada ou inválida no .env');
+        return false;
+      }
+
+      console.log('📧 Enviando notificação de candidatura...');
+      console.log('📧 Para:', recipientEmail);
+
+      const mailOptions = {
+        from: `"Central Contábil" <${smtpUser}>`,
+        to: recipientEmail,
+        subject: `Nova Candidatura - ${applicationData.position || 'Trabalhe Conosco'} - ${applicationData.name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #3bb664; padding: 20px; text-align: center; color: white;">
+              <h1 style="margin: 0;">Central Contábil</h1>
+              <p style="margin: 10px 0 0 0; font-size: 14px;">Nova Candidatura Recebida</p>
+            </div>
+
+            <div style="padding: 30px; background-color: #f9fafb;">
+              <h2 style="color: #3bb664; margin-bottom: 20px;">Você recebeu uma nova candidatura</h2>
+
+              <div style="background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0 0 10px 0;"><strong>Nome:</strong> ${applicationData.name}</p>
+                <p style="margin: 0 0 10px 0;"><strong>Email:</strong> <a href="mailto:${applicationData.email}">${applicationData.email}</a></p>
+                ${applicationData.phone ? `<p style="margin: 0 0 10px 0;"><strong>Telefone:</strong> <a href="tel:${applicationData.phone.replace(/\D/g, '')}">${applicationData.phone}</a></p>` : ''}
+                ${applicationData.position ? `<p style="margin: 0 0 10px 0;"><strong>Vaga:</strong> ${applicationData.position}</p>` : ''}
+                ${applicationData.linkedinUrl ? `<p style="margin: 0 0 10px 0;"><strong>LinkedIn:</strong> <a href="${applicationData.linkedinUrl}">${applicationData.linkedinUrl}</a></p>` : ''}
+                ${applicationData.cvUrl ? `<p style="margin: 0 0 10px 0;"><strong>Currículo:</strong> <a href="${applicationData.cvUrl}" style="color: #3bb664;">Baixar currículo</a></p>` : ''}
+              </div>
+
+              ${applicationData.message ? `
+              <div style="background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0 0 10px 0;"><strong>Mensagem:</strong></p>
+                <p style="margin: 0; line-height: 1.6; color: #374151; white-space: pre-wrap;">${applicationData.message}</p>
+              </div>
+              ` : ''}
+
+              <div style="margin-top: 20px; text-align: center;">
+                <a href="mailto:${applicationData.email}" style="
+                  display: inline-block;
+                  background-color: #3bb664;
+                  color: white;
+                  padding: 12px 24px;
+                  text-decoration: none;
+                  border-radius: 6px;
+                  font-weight: bold;
+                ">Responder ao Candidato</a>
+              </div>
+            </div>
+
+            <div style="background-color: #3bb664; padding: 15px; text-align: center;">
+              <p style="color: white; font-size: 12px; margin: 0;">
+                Central Contábil - 34 anos de excelência em serviços contábeis
+              </p>
+            </div>
+          </div>
+        `,
+        text: `
+          Central Contábil - Nova Candidatura Recebida
+
+          Nome: ${applicationData.name}
+          Email: ${applicationData.email}
+          ${applicationData.phone ? `Telefone: ${applicationData.phone}` : ''}
+          ${applicationData.position ? `Vaga: ${applicationData.position}` : ''}
+          ${applicationData.linkedinUrl ? `LinkedIn: ${applicationData.linkedinUrl}` : ''}
+          ${applicationData.cvUrl ? `Currículo: ${applicationData.cvUrl}` : ''}
+          ${applicationData.message ? `\nMensagem:\n${applicationData.message}` : ''}
+
+          Central Contábil - 34 anos de excelência em serviços contábeis
+        `,
+      };
+
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log('✅ Email de notificação de candidatura enviado com sucesso!');
+      console.log('✅ Message ID:', result.messageId);
+      return true;
+    } catch (error: any) {
+      console.error('❌ Erro ao enviar email de notificação de candidatura:');
+      console.error('❌ Mensagem:', error.message);
+      return false;
+    }
+  }
+
   async sendLandingPageNotification(
     recipientEmail: string,
     data: {

@@ -100,15 +100,14 @@ export class JobApplicationsController {
           config.careers_email || config.contact_email || config.email || process.env.SMTP_USER || '';
 
         if (recipientEmail) {
-          await emailService.sendContactNotification(recipientEmail, {
+          await emailService.sendCareerApplicationNotification(recipientEmail, {
             name,
             email,
             phone,
-            serviceType: position || 'Candidatura - Trabalhe Conosco',
-            message:
-              (message || 'Nova candidatura recebida pelo formulário Trabalhe com a Gente.') +
-              (cvUrl ? `\n\nCurrículo anexado: ${cvUrl}` : '') +
-              (linkedinUrl ? `\nLinkedIn: ${linkedinUrl}` : ''),
+            position: position || 'Trabalhe Conosco',
+            message,
+            cvUrl,
+            linkedinUrl,
           });
         }
       } catch (notifyError) {
