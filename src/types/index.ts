@@ -62,6 +62,8 @@ export interface Configuration {
   email?: string;
   contact_email?: string;
   contactEmail?: string;
+  careers_email?: string;
+  careersEmail?: string;
   address?: string;
   businessHours?: string;
   business_hours?: string; // Para compatibilidade

@@ -97,7 +97,7 @@ export class JobApplicationsController {
       try {
         const config = await ConfigurationService.getConfiguration();
         const recipientEmail =
-          config.contact_email || config.email || process.env.SMTP_USER || '';
+          config.careers_email || config.contact_email || config.email || process.env.SMTP_USER || '';
 
         if (recipientEmail) {
           await emailService.sendContactNotification(recipientEmail, {

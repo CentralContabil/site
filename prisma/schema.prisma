@@ -241,6 +241,7 @@ model Configuration {
   phone          String?
   email          String?
   contact_email  String? @default("wagner.guerra@gmail.com") // Email para receber mensagens de contato
+  careers_email  String? // Email para receber candidaturas da página de carreiras
   address        String?
   business_hours String?
   facebook_url   String?

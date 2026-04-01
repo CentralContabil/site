@@ -489,6 +489,19 @@ export default function ConfigurationPage() {
                 </p>
               </div>
               <div className="space-y-2">
+                <Label htmlFor="careers_email">Email para Receber Currículos</Label>
+                <Input
+                  id="careers_email"
+                  type="email"
+                  placeholder="rh@suaempresa.com.br"
+                  value={config.careers_email || config.careersEmail || ''}
+                  onChange={(value) => handleInputChange('careers_email', value)}
+                />
+                <p className="text-xs text-gray-500">
+                  Este email receberá notificações de candidaturas da página de carreiras. Se não preenchido, será usado o email de contatos.
+                </p>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="business_hours">Horário de Funcionamento</Label>
                 <Input
                   id="business_hours"
